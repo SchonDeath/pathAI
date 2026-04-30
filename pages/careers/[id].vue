@@ -57,15 +57,15 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
               <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Sueldo Junior</p>
+                <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Sueldo Junior</p>
                 <p class="text-lg font-bold text-slate-900 mt-1">{{ formatSalary(career.salary_junior) }}</p>
               </div>
               <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Sueldo Promedio</p>
+                <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Sueldo Promedio</p>
                 <p class="text-lg font-bold text-slate-900 mt-1">{{ formatSalary(career.salary_mid) }}</p>
               </div>
               <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Sueldo Senior</p>
+                <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Sueldo Senior</p>
                 <p class="text-lg font-bold text-slate-900 mt-1">{{ formatSalary(career.salary_senior) }}</p>
               </div>
             </div>

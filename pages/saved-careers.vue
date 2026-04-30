@@ -180,6 +180,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
 import { useCareerStore } from '~/stores/career'
 import { getMarketData, formatSalary, getDemandLabel } from '~/utils/marketData'
 import { exportRoadmapToPDF, exportComparisonToPDF } from '~/utils/exportPDF'

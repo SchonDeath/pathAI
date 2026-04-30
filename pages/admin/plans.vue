@@ -34,6 +34,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'admin' })
 useHead({ title: 'Admin · Planes — KoraChile' })
 const { data, pending } = await useFetch<any>('/api/admin/plans')
 const plans = computed(() => data.value?.plans ?? [])

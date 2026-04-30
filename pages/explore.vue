@@ -17,14 +17,14 @@
         <div class="bg-white rounded-2xl border border-slate-100 p-4 space-y-3">
           <div class="flex flex-wrap gap-3 items-center">
             <div class="flex-1 min-w-[200px] max-w-md relative">
-              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Buscar carrera..."
-                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
                 @input="debouncedFetch"
               />
             </div>
@@ -81,7 +81,7 @@
               @click.stop="toggleSave(career)"
               :class="[
                 'absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 active:scale-90',
-                isSaved(career.id) ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'hover:bg-slate-100 text-slate-400'
+                isSaved(career.id) ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'hover:bg-slate-100 text-slate-500'
               ]"
               :title="isSaved(career.id) ? 'Quitar de guardados' : 'Guardar carrera'">
               <svg class="w-5 h-5" :class="isSaved(career.id) ? 'scale-110' : ''" :fill="isSaved(career.id) ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -116,7 +116,7 @@
                 class="text-xs bg-slate-50 text-slate-600 border border-slate-100 px-2 py-0.5 rounded-full">
                 {{ skill }}
               </span>
-              <span v-if="career.skills?.length > 3" class="text-xs bg-slate-50 text-slate-400 border border-slate-100 px-2 py-0.5 rounded-full">
+              <span v-if="career.skills?.length > 3" class="text-xs bg-slate-50 text-slate-500 border border-slate-100 px-2 py-0.5 rounded-full">
                 +{{ career.skills.length - 3 }}
               </span>
             </div>
@@ -125,7 +125,7 @@
             <div v-if="career.salary_junior || career.salary_mid || career.salary_senior" class="bg-gradient-to-br from-emerald-50 to-cyan-50 border border-emerald-100 rounded-xl p-3 space-y-2">
               <div class="flex items-center justify-between text-[11px] font-semibold text-emerald-700">
                 <span>💼 Sueldo SIES</span>
-                <span class="text-slate-400 font-normal">CLP/mes</span>
+                <span class="text-slate-500 font-normal">CLP/mes</span>
               </div>
               <div class="grid grid-cols-3 gap-1.5 text-center">
                 <div>

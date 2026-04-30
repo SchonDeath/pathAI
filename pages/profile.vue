@@ -40,7 +40,7 @@
 
                   <!-- Preferencias vocacionales -->
                   <div v-if="(profile?.preferred_areas?.length || profile?.preferred_institution_types?.length || profile?.region_interes || profile?.anio_egreso)" class="pt-1 space-y-2">
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Preferencias</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preferencias</p>
                     <div class="flex flex-wrap gap-1.5">
                       <span v-for="area in (profile?.preferred_areas ?? [])" :key="area"
                         class="text-xs px-2 py-0.5 rounded-full bg-primary-50 border border-primary-200 text-primary-700 font-medium">
@@ -171,7 +171,7 @@
                 </form>
               </div>
 
-              <button @click="signOut" class="text-sm text-slate-400 hover:text-red-500 transition">
+              <button @click="signOut" class="text-sm text-slate-500 hover:text-red-500 transition">
                 Cerrar sesión
               </button>
             </div>
@@ -227,6 +227,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
 import { useAuthStore } from '~/stores/auth'
 
 useHead({ title: 'Mi Perfil — KoraChile' })

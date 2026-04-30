@@ -24,7 +24,7 @@
             <div class="w-2 h-2 rounded-full bg-white"></div>
           </div>
           <div v-else class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
-          <span :class="index <= currentPhaseIndex ? 'text-slate-700 font-medium' : 'text-slate-400'">{{ phase }}</span>
+          <span :class="index <= currentPhaseIndex ? 'text-slate-700 font-medium' : 'text-slate-500'">{{ phase }}</span>
         </div>
       </div>
     </div>

@@ -49,7 +49,7 @@
                     <td class="px-4 py-3 text-slate-600 text-xs">{{ inst.tipo_institucion }}</td>
                     <td class="px-4 py-3 text-center">
                       <span v-if="inst.is_featured" class="inline-flex px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">Sí</span>
-                      <span v-else class="text-slate-400 text-xs">No</span>
+                      <span v-else class="text-slate-500 text-xs">No</span>
                     </td>
                     <td class="px-4 py-3 text-center">
                       <select v-model="edits[inst.institution_code].plan_slug"
@@ -106,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'admin' })
 import { useAuthStore } from '~/stores/auth'
 useHead({ title: 'Admin · Instituciones — KoraChile' })
 

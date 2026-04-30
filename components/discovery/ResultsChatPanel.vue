@@ -1,4 +1,4 @@
-ï»¿<template>
+<template>
   <aside
     class="bg-white/95 border border-slate-200 shadow-sm flex flex-col overflow-hidden transition-all duration-300"
     :class="mode === 'modal' ? 'rounded-3xl h-[min(78vh,700px)]' : 'rounded-3xl h-[calc(100vh-7rem)] lg:sticky lg:top-24'">
@@ -39,10 +39,10 @@
         </div>
         <div class="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] space-y-3">
           <p class="text-sm text-slate-800 leading-relaxed">
-            Â¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con
-            <strong>{{ userQuery }}</strong>. ðŸ‘‹<br><br>
-            Te sugerÃ­ <strong>{{ careerTitles.join(', ') }}</strong>.
-            Â¿Quieres profundizar en alguna, comparar opciones o preguntar algo especÃ­fico?
+            ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con
+            <strong>{{ userQuery }}</strong>. ??<br><br>
+            Te sugerí <strong>{{ careerTitles.join(', ') }}</strong>.
+            ¿Quieres profundizar en alguna, comparar opciones o preguntar algo específico?
           </p>
           <div class="flex flex-wrap gap-2">
             <button
@@ -112,7 +112,7 @@
           v-if="!isNearBottom"
           @click="scrollToBottom"
           class="absolute right-4 bottom-4 z-10 px-3 py-1.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5">
-          Ir al final â†“
+          Ir al final ?
         </button>
       </Transition>
     </div>
@@ -130,7 +130,7 @@
           ref="inputEl"
           placeholder="Escribe tu mensaje..."
           rows="1"
-          class="flex-1 resize-none px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent max-h-32 overflow-y-auto"
+          class="flex-1 resize-none px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none bg-transparent max-h-32 overflow-y-auto"
           @keydown.enter.exact.prevent="send"
           @input="autoResize" />
         <button
@@ -142,7 +142,7 @@
           </svg>
         </button>
       </div>
-      <p class="text-xs text-slate-400 text-center mt-2">Enter para enviar Â· Shift+Enter para nueva lÃ­nea</p>
+      <p class="text-xs text-slate-500 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
     </div>
   </aside>
 </template>
@@ -170,7 +170,7 @@ const messagesEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
 const userAvatar = computed(() => authStore.profile?.avatar_url || null)
-const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'TÃº')
+const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'Tú')
 const userFirstName = computed(() => authStore.profile?.name?.split(' ')[0] || '')
 
 const userQuery = computed(() => store.result?.query ?? '')
@@ -194,10 +194,10 @@ const careersContext = computed(() => {
 })
 
 const quickPrompts = [
-  'Â¿CuÃ¡l tiene mejor sueldo?',
+  '¿Cuál tiene mejor sueldo?',
   'Compara pros y contras',
   'Universidades reales en Chile',
-  'Â¿CuÃ¡l encaja mÃ¡s conmigo?',
+  '¿Cuál encaja más conmigo?',
 ]
 
 const typingMsgId = ref<string | null>(null)

@@ -122,7 +122,7 @@
                   :style="{ width: `${roadmapProgress}%` }">
                 </div>
               </div>
-              <p class="text-xs text-slate-400 mt-2">{{ completedMilestonesCount }} de {{ totalMilestones }} hitos completados</p>
+              <p class="text-xs text-slate-500 mt-2">{{ completedMilestonesCount }} de {{ totalMilestones }} hitos completados</p>
             </div>
 
             <div class="space-y-6">
@@ -142,7 +142,7 @@
                     </div>
                   </div>
                   <svg
-                    class="w-6 h-6 text-slate-400 transition-transform duration-200 shrink-0 mt-1"
+                    class="w-6 h-6 text-slate-500 transition-transform duration-200 shrink-0 mt-1"
                     :class="expandedPhase === index ? 'rotate-180' : ''"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -164,7 +164,7 @@
                     <div class="border-t border-slate-100 pt-6 space-y-6">
                       <!-- Hitos -->
                       <div>
-                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Hitos principales</h4>
+                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">Hitos principales</h4>
                         <ul class="space-y-3">
                           <li
                             v-for="(milestone, mIdx) in phase.milestones"
@@ -179,14 +179,14 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                               </svg>
                             </div>
-                            <span class="text-slate-700 leading-snug transition-colors" :class="isMilestoneCompleted(index, mIdx) ? 'line-through text-slate-400' : ''">{{ milestone }}</span>
+                            <span class="text-slate-700 leading-snug transition-colors" :class="isMilestoneCompleted(index, mIdx) ? 'line-through text-slate-500' : ''">{{ milestone }}</span>
                           </li>
                         </ul>
                       </div>
 
                       <!-- Teoría -->
                       <div v-if="phase.theory?.length" class="pt-4 border-t border-slate-100">
-                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">📖 Teoría a dominar</h4>
+                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">📖 Teoría a dominar</h4>
                         <div class="flex flex-wrap gap-2">
                           <span
                             v-for="(topic, tIdx) in phase.theory"
@@ -210,7 +210,7 @@
                 <div class="flex items-center justify-between mb-6">
                   <h3 class="text-lg font-bold text-slate-900">Rangos salariales en Chile (CLP mensual)</h3>
                   <span v-if="dbSalary" class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">Datos oficiales SIES</span>
-                  <span v-else class="text-xs px-2.5 py-1 rounded-full bg-slate-50 text-slate-400 border border-slate-100 font-medium">Estimación IA</span>
+                  <span v-else class="text-xs px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-100 font-medium">Estimación IA</span>
                 </div>
                 <div class="space-y-5">
                   <div v-for="level in salaryLevels" :key="level.key" class="space-y-1.5">
@@ -228,10 +228,10 @@
                         :style="{ width: `${salaryBarWidth(activeSalary[level.key])}%` }">
                       </div>
                     </div>
-                    <p class="text-xs text-slate-400">{{ level.description }}</p>
+                    <p class="text-xs text-slate-500">{{ level.description }}</p>
                   </div>
                 </div>
-                <p class="text-xs text-slate-400 mt-6 text-center">
+                <p class="text-xs text-slate-500 mt-6 text-center">
                   <template v-if="dbSalary">* Ingresos reales basados en egresados según datos SIES/MiFuturo. Pueden variar según institución y región.</template>
                   <template v-else>* Estimaciones basadas en el mercado laboral chileno actual. Los valores pueden variar según empresa, ciudad y experiencia.</template>
                 </p>
@@ -358,14 +358,14 @@
                       </span>
                     </div>
                     <p class="text-xs text-primary-600 font-medium mt-1">{{ prog.nombre_carrera }}</p>
-                    <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                    <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                       </svg>
                       {{ prog.sede || prog.region }}
                     </p>
-                    <p v-if="prog.arancel_anual" class="text-xs text-slate-400 mt-0.5">
+                    <p v-if="prog.arancel_anual" class="text-xs text-slate-500 mt-0.5">
                       Arancel anual: ${{ prog.arancel_anual.toLocaleString('es-CL') }}
                     </p>
                     <button
@@ -419,7 +419,7 @@
                       </span>
                     </div>
                     <p class="text-xs text-primary-600 font-medium mt-1">{{ uni.program }}</p>
-                    <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                    <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -488,7 +488,7 @@
                     <div class="min-w-0">
                       <h3 class="font-bold text-slate-900 text-sm leading-snug truncate">{{ person.name }}</h3>
                       <p class="text-xs text-primary-600 font-medium mt-0.5">{{ person.role }}</p>
-                      <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                      <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                         <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
                         </svg>

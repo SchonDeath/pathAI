@@ -42,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'admin' })
 import { useAuthStore } from '~/stores/auth'
 useHead({ title: 'Admin — KoraChile' })
 const authStore = useAuthStore()

@@ -9,7 +9,9 @@
         :placeholder="placeholder"
         :disabled="loading"
         rows="1"
-        class="w-full resize-none px-6 pt-5 pb-4 text-slate-900 text-base placeholder:text-slate-400 bg-transparent rounded-3xl outline-none leading-relaxed font-medium"
+        aria-label="Describe tu idea o intereses para descubrir carreras"
+        maxlength="500"
+        class="w-full resize-none px-6 pt-5 pb-4 text-slate-900 text-base placeholder:text-slate-500 bg-transparent rounded-3xl outline-none leading-relaxed font-medium"
         :style="{ minHeight: '100px', maxHeight: '180px' }"
         @focus="focused = true"
         @blur="focused = false"
@@ -19,11 +21,11 @@
 
       <div class="flex items-center justify-between px-4 pb-4">
         <div class="flex items-center gap-2">
-          <span class="text-xs text-slate-400">{{ inputValue.length }}/500</span>
+          <span class="text-xs text-slate-500">{{ inputValue.length }}/500</span>
           <template v-if="!loading && inputValue.length > 0">
             <button
               type="button"
-              class="text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100"
+              class="text-xs text-slate-500 hover:text-slate-600 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100"
               @click="inputValue = ''">
               Limpiar
             </button>

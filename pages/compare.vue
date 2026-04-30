@@ -14,7 +14,7 @@
         <!-- Comparador desde Chat (programas reales MINEDUC) -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
           <div class="flex items-center justify-between gap-3 flex-wrap">
-            <h2 class="font-semibold text-slate-800">Programas agregados desde Chat <span class="text-slate-400 font-normal">({{ filteredPrograms.length }}/{{ selectedPrograms.length }})</span></h2>
+            <h2 class="font-semibold text-slate-800">Programas agregados desde Chat <span class="text-slate-500 font-normal">({{ filteredPrograms.length }}/{{ selectedPrograms.length }})</span></h2>
             <div class="flex gap-2 flex-wrap">
               <button
                 @click="reloadProgramDetails"
@@ -141,11 +141,11 @@
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Jornada / Modalidad</td>
-                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.jornada || '—' }} <span v-if="p.modalidad" class="text-slate-400">· {{ p.modalidad }}</span></td>
+                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.jornada || '—' }} <span v-if="p.modalidad" class="text-slate-500">· {{ p.modalidad }}</span></td>
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Región / Sede</td>
-                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.nombre_sede || '—' }}<div class="text-xs text-slate-400">{{ p.region || '' }}</div></td>
+                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.nombre_sede || '—' }}<div class="text-xs text-slate-500">{{ p.region || '' }}</div></td>
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Tipo de institución</td>
@@ -155,7 +155,7 @@
                   <td class="py-3 pr-4 text-slate-500 font-medium">Gratuidad</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="gratuidadLabel(p)" class="text-xs font-semibold text-emerald-700">✓ {{ gratuidadLabel(p) }}</span>
-                    <span v-else class="text-xs text-slate-400">No aplica</span>
+                    <span v-else class="text-xs text-slate-500">No aplica</span>
                   </td>
                 </tr>
                 <tr class="hover:bg-slate-50">
@@ -190,7 +190,7 @@
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Matrícula 1er año 2025</td>
-                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.matricula_primer_ano_2025 ?? '—' }}<span v-if="p.porcentaje_matricula_primer_ano_2025" class="text-xs text-slate-400 ml-1">({{ p.porcentaje_matricula_primer_ano_2025 }}%)</span></td>
+                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.matricula_primer_ano_2025 ?? '—' }}<span v-if="p.porcentaje_matricula_primer_ano_2025" class="text-xs text-slate-500 ml-1">({{ p.porcentaje_matricula_primer_ano_2025 }}%)</span></td>
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Titulados 2024</td>
@@ -202,7 +202,7 @@
                     <span v-if="employabilityMap[p.program_unique_code]">
                       {{ employabilityMap[p.program_unique_code].e1 ?? '—' }}% / {{ employabilityMap[p.program_unique_code].e2 ?? '—' }}%
                     </span>
-                    <span v-else class="text-slate-400">—</span>
+                    <span v-else class="text-slate-500">—</span>
                   </td>
                 </tr>
                 <tr class="hover:bg-slate-50">
@@ -211,7 +211,7 @@
                     <span v-if="employabilityMap[p.program_unique_code]">
                       {{ formatMoney(employabilityMap[p.program_unique_code].i1) }} / {{ formatMoney(employabilityMap[p.program_unique_code].i4) }}
                     </span>
-                    <span v-else class="text-slate-400">—</span>
+                    <span v-else class="text-slate-500">—</span>
                   </td>
                 </tr>
               </tbody>
@@ -226,7 +226,7 @@
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <h2 class="font-semibold text-slate-800">
               🏆 Instituciones agregadas desde Ranking
-              <span class="text-slate-400 font-normal">({{ selectedInstitutions.length }}/4)</span>
+              <span class="text-slate-500 font-normal">({{ selectedInstitutions.length }}/4)</span>
             </h2>
             <div class="flex gap-2 flex-wrap">
               <NuxtLink to="/ranking" class="px-3 py-1.5 rounded-lg border border-accent-200 text-xs font-semibold text-accent-700 hover:bg-accent-50 transition">
@@ -258,7 +258,7 @@
                     class="py-3 px-3 text-left font-semibold text-slate-700 min-w-[180px]">
                     <div class="flex items-start justify-between gap-2">
                       <span class="truncate max-w-[180px]" :title="inst.nombre_institucion">{{ inst.nombre_institucion }}</span>
-                      <button @click="removeInstitution(inst.institution_code)" class="text-slate-400 hover:text-red-600 font-bold shrink-0">×</button>
+                      <button @click="removeInstitution(inst.institution_code)" class="text-slate-500 hover:text-red-600 font-bold shrink-0">×</button>
                     </div>
                   </th>
                 </tr>
@@ -280,7 +280,7 @@
                   <td class="py-3 text-slate-500 font-medium">Acreditación</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-3">
                     <span v-if="inst.acreditacion_anos" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">🏅 {{ inst.acreditacion_anos }} años</span>
-                    <span v-else class="text-slate-400">—</span>
+                    <span v-else class="text-slate-500">—</span>
                   </td>
                 </tr>
                 <tr>

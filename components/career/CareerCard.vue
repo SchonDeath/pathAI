@@ -1,70 +1,80 @@
 <template>
   <div
-    class="bg-white rounded-3xl border border-slate-100 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden group cursor-pointer"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300 overflow-hidden group cursor-pointer flex"
     :class="visible ? 'animate-scale-in' : 'opacity-0'"
     ref="cardRef"
     @click="goToRoadmap">
-    <div class="p-5">
-      <!-- Top row: icono + demanda/barra -->
-      <div class="flex items-start justify-between gap-3 mb-3">
-        <!-- Icono -->
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 transition-transform duration-300 group-hover:scale-105"
-          :style="{ background: iconBg }">
-          {{ career.emoji }}
+
+    <!-- Panel izquierdo: imagen / emoji -->
+    <div
+      class="relative shrink-0 w-40 sm:w-48 flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.02]"
+      :style="{ background: iconBg }">
+      <span class="text-6xl select-none">{{ career.emoji }}</span>
+
+      <!-- Badge match score -->
+      <div class="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
+        <span class="text-xs font-bold text-primary-700">{{ career.match_score }}% Match</span>
+      </div>
+    </div>
+
+    <!-- Contenido derecho -->
+    <div class="flex-1 min-w-0 p-5 flex flex-col justify-between">
+      <!-- Cabecera -->
+      <div>
+        <!-- Demanda -->
+        <div class="flex items-center justify-between mb-1.5">
+          <span v-if="career.job_demand" class="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
+            :class="{
+              'text-emerald-600': career.job_demand === 'Muy Alta',
+              'text-blue-600': career.job_demand === 'Alta',
+              'text-amber-600': career.job_demand === 'Media',
+              'text-slate-500': !['Muy Alta','Alta','Media'].includes(career.job_demand),
+            }">
+            🔥 Demanda {{ career.job_demand }}
+          </span>
         </div>
 
-        <!-- Demanda + barra -->
-        <div class="flex flex-col items-end gap-1 pt-0.5">
-          <span v-if="career.job_demand" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold"
-            :class="{
-              'bg-emerald-100 text-emerald-700': career.job_demand === 'Muy Alta',
-              'bg-blue-100 text-blue-700': career.job_demand === 'Alta',
-              'bg-amber-100 text-amber-700': career.job_demand === 'Media',
-              'bg-slate-100 text-slate-600': !['Muy Alta','Alta','Media'].includes(career.job_demand),
-            }">
-            🔥 {{ career.job_demand }}
-          </span>
-          <div class="flex items-center gap-1.5">
-            <div class="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all duration-1000 ease-out"
-                style="background: linear-gradient(90deg, #1A73E8, #06b6d4)"
-                :style="{ width: visible ? `${career.match_score}%` : '0%' }">
-              </div>
-            </div>
-            <span class="text-xs font-bold text-primary-600">{{ career.match_score }}%</span>
+        <!-- Título -->
+        <h3 class="font-bold text-slate-900 text-lg leading-snug">{{ career.title }}</h3>
+        <!-- Descripción -->
+        <p class="text-sm text-slate-500 mt-1 leading-snug line-clamp-2">{{ career.description || career.tagline }}</p>
+
+        <!-- Skills -->
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <SkillPill
+            v-for="(skill, i) in career.skills.slice(0, 3)"
+            :key="skill"
+            :skill="skill"
+            class="animate-fade-in"
+            :style="{ animationDelay: `${i * 50}ms` }" />
+          <span v-if="career.skills.length > 3" class="tag bg-slate-50 text-slate-500 border border-slate-200 text-xs">+{{ career.skills.length - 3 }}</span>
+        </div>
+      </div>
+
+      <!-- Footer: sueldo + botón -->
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div class="flex gap-5">
+          <div>
+            <p class="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Sueldo Junior</p>
+            <p class="text-sm font-bold text-slate-900 mt-0.5">
+              {{ career.salary_range?.junior ? `$${career.salary_range.junior.toLocaleString('es-CL')}` : '—' }}
+            </p>
+          </div>
+          <div v-if="career.salary_range?.senior">
+            <p class="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Sueldo Senior</p>
+            <p class="text-sm font-bold text-slate-900 mt-0.5">
+              ${{ career.salary_range.senior.toLocaleString('es-CL') }}
+            </p>
           </div>
         </div>
-      </div>
 
-      <!-- Título y tagline -->
-      <h3 class="font-bold text-slate-900 text-lg leading-tight">{{ career.title }}</h3>
-      <p class="text-sm text-slate-500 mt-1 leading-snug line-clamp-2">{{ career.tagline }}</p>
-
-      <!-- Skills -->
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <SkillPill
-          v-for="(skill, i) in career.skills.slice(0, 4)"
-          :key="skill"
-          :skill="skill"
-          class="animate-fade-in"
-          :style="{ animationDelay: `${i * 50}ms` }" />
-        <span v-if="career.skills.length > 4" class="tag bg-slate-50 text-slate-500 border border-slate-200 text-xs">+{{ career.skills.length - 4 }}</span>
-      </div>
-
-      <!-- Footer: sueldo + flecha -->
-      <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-        <div>
-          <p class="text-[10px] font-semibold tracking-widest text-slate-400 uppercase">Sueldo Junior</p>
-          <p class="text-base font-bold text-slate-900 mt-0.5">
-            {{ career.salary_range?.junior ? `$${career.salary_range.junior.toLocaleString('es-CL')} CLP` : '—' }}
-          </p>
-        </div>
-        <div class="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600 group-hover:bg-primary-100 transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <button class="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition-colors duration-200 group-hover:shadow-md">
+          Ver carrera
+          <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-        </div>
+        </button>
       </div>
     </div>
   </div>

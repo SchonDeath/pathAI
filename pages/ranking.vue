@@ -20,12 +20,12 @@
         <!-- Filtros -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row gap-3">
           <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input
               v-model="search"
               type="text"
               placeholder="Busca por nombre (ej: Católica, USACH, DUOC...)"
-              class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-[border-color,box-shadow]">
+              class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm placeholder:text-slate-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-[border-color,box-shadow]">
           </div>
           <div class="flex gap-2 overflow-x-auto">
             <button
@@ -73,18 +73,25 @@
                       : (page - 1) * PAGE_SIZE + localIdx === 2 ? 'border-amber-600 bg-amber-50'
                       : 'border-slate-200 bg-white'">
                 <img
-                  v-if="inst.logo_url"
+                  v-if="inst.logo_url && !brokenLogos.has(inst.institution_code)"
                   :src="inst.logo_url"
                   :alt="inst.nombre_institucion"
                   class="w-full h-full object-contain p-1"
-                  loading="lazy">
-                <span v-else class="font-extrabold text-sm leading-none"
+                  loading="lazy"
+                  @error="brokenLogos.add(inst.institution_code)">
+                <!-- Fallback: ícono según tipo (universidad / IP / CFT) -->
+                <svg v-else
+                  class="w-7 h-7"
                   :class="(page - 1) * PAGE_SIZE + localIdx === 0 ? 'text-amber-600'
                         : (page - 1) * PAGE_SIZE + localIdx === 1 ? 'text-slate-500'
                         : (page - 1) * PAGE_SIZE + localIdx === 2 ? 'text-amber-700'
-                        : 'text-slate-400'">
-                  #{{ (page - 1) * PAGE_SIZE + localIdx + 1 }}
-                </span>
+                        : 'text-slate-500'"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <!-- Edificio académico (graduación / institución) -->
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M22 8v5"/>
+                </svg>
               </div>
               <!-- Número de posición sobre el badge (siempre visible) -->
               <div class="relative -ml-5 self-end mb-0.5 z-10">
@@ -108,10 +115,10 @@
               <!-- Score -->
               <div class="shrink-0 text-right">
                 <div class="text-2xl sm:text-3xl font-extrabold" :class="scoreColor(inst.score)">{{ inst.score }}</div>
-                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Score</div>
+                <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Score</div>
               </div>
               <svg
-                class="w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0"
+                class="w-5 h-5 text-slate-500 transition-transform duration-200 shrink-0"
                 :class="expanded === inst.institution_code ? 'rotate-180' : ''"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -218,7 +225,7 @@
             Siguiente →
           </button>
         </div>
-        <div v-if="!pending && institutions.length" class="text-center text-xs text-slate-400">
+        <div v-if="!pending && institutions.length" class="text-center text-xs text-slate-500">
           Mostrando {{ (page - 1) * PAGE_SIZE + 1 }}–{{ Math.min(page * PAGE_SIZE, institutions.length) }} de {{ institutions.length }} instituciones
         </div>
 
@@ -246,6 +253,8 @@ const tipo = ref<string | null>('Universidades')
 const expanded = ref<number | null>(null)
 const page = ref(1)
 const PAGE_SIZE = 10
+// Tracking de logos rotos (404, CORS, etc.) para mostrar fallback de ícono
+const brokenLogos = reactive(new Set<number>())
 
 const TIPO_OPTIONS = [
   { value: null, label: 'Todas' },

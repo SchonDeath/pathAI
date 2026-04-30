@@ -2,8 +2,8 @@
   <div class="h-screen chat-starfield overflow-hidden">
     <AppHeader />
 
-    <!-- ── Sidebar fijo: arranca desde el tope (mismo nivel que el logo) y cubre todo el alto ── -->
-    <div class="fixed top-0 left-0 bottom-0 z-[60] flex">
+    <!-- ── Sidebar fijo: en desktop arranca desde el tope; en mobile, debajo del AppHeader ── -->
+    <div class="fixed top-16 sm:top-0 left-0 bottom-0 z-[60] flex">
       <!-- Panel deslizable -->
       <aside
         class="sidebar-panel overflow-hidden flex flex-col sidebar-glass"
@@ -17,14 +17,16 @@
               v-if="sessions.length > 0"
               @click="deleteAllConfirm = true"
               title="Eliminar todas las conversaciones"
-              class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+              aria-label="Eliminar todas las conversaciones"
+              class="p-1.5 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
             <!-- Botón colapsar -->
             <button
               @click="showSidebar = false"
               title="Colapsar"
-              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100/60 transition-colors">
+              aria-label="Cerrar panel de conversaciones"
+              class="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100/60 transition-colors">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
               </svg>
@@ -47,14 +49,14 @@
                 </div>
               </div>
             </div>
-            <div v-else-if="!visibleSessions.length" class="text-xs text-slate-400 text-center py-8 px-4 leading-relaxed">
+            <div v-else-if="!visibleSessions.length" class="text-xs text-slate-500 text-center py-8 px-4 leading-relaxed">
               Sin conversaciones guardadas todavía.
             </div>
             <template v-else v-for="group in sessionGroups" :key="group.label">
               <button
                 @click="toggleGroup(group.label)"
                 class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100/70 transition-colors group/hdr">
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 group-hover/hdr:text-slate-600">{{ group.label }}</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 group-hover/hdr:text-slate-600">{{ group.label }}</span>
                 <svg
                   class="w-3 h-3 text-slate-300 group-hover/hdr:text-slate-500 transition-transform duration-200"
                   :class="collapsedGroups.has(group.label) ? '' : 'rotate-180'"
@@ -89,7 +91,7 @@
                     <button
                       @click.stop="confirmDeleteSession(s.session_id)"
                       title="Eliminar conversación permanentemente"
-                      class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      class="p-1.5 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </div>
@@ -100,9 +102,9 @@
         </div><!-- fin w-64 -->
       </aside>
 
-      <!-- Tab minimal cuando sidebar está cerrado -->
+      <!-- Tab minimal cuando sidebar está cerrado (solo desktop; en mobile usamos botón en el header del chat) -->
       <Transition name="fade-icon">
-        <div v-if="!showSidebar" class="fixed top-0 left-0 h-16 z-[61] flex items-center pl-1">
+        <div v-if="!showSidebar" class="hidden sm:flex fixed top-0 left-0 h-16 z-[61] items-center pl-1">
           <button
             @click="showSidebar = true"
             title="Abrir historial"
@@ -117,7 +119,7 @@
 
     <!-- Modal confirmar eliminar TODAS las conversaciones -->
     <Transition name="msg">
-      <div v-if="deleteAllConfirm" class="fixed inset-0 z-[70] flex items-center justify-center px-4">
+      <div v-if="deleteAllConfirm" class="fixed inset-0 z-[70] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="delete-all-title" ref="deleteAllModalEl">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="deleteAllConfirm = false"></div>
         <div class="relative rounded-2xl p-5 max-w-xs w-full space-y-4 modal-glass">
           <div class="flex items-start gap-3">
@@ -125,7 +127,7 @@
               <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
             <div>
-              <p class="font-semibold text-slate-800 text-sm">¿Eliminar todas las conversaciones?</p>
+              <p id="delete-all-title" class="font-semibold text-slate-800 text-sm">¿Eliminar todas las conversaciones?</p>
               <p class="text-xs text-slate-500 mt-1 leading-relaxed">Se eliminarán permanentemente <strong class="text-slate-700">todas</strong> tus conversaciones. Esta acción no se puede deshacer.</p>
             </div>
           </div>
@@ -149,7 +151,7 @@
 
     <!-- Modal de confirmación de borrado -->
     <Transition name="msg">
-      <div v-if="deleteConfirmId" class="fixed inset-0 z-[70] flex items-center justify-center px-4">
+      <div v-if="deleteConfirmId" class="fixed inset-0 z-[70] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="delete-one-title" ref="deleteOneModalEl">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="deleteConfirmId = null"></div>
         <div class="relative rounded-2xl p-5 max-w-xs w-full space-y-4 modal-glass">
           <div class="flex items-start gap-3">
@@ -157,7 +159,7 @@
               <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </div>
             <div>
-              <p class="font-semibold text-slate-800 text-sm">¿Eliminar esta conversación?</p>
+              <p id="delete-one-title" class="font-semibold text-slate-800 text-sm">¿Eliminar esta conversación?</p>
               <p class="text-xs text-slate-500 mt-1 leading-relaxed">Esta acción es permanente. Todos los mensajes serán eliminados y no se pueden recuperar.</p>
             </div>
           </div>
@@ -204,8 +206,18 @@
               <p class="text-xs sm:text-sm text-slate-500 leading-snug hidden sm:block">Acá te ayudo a descubrir tu carrera ideal o saber sobre instituciones</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <!-- Botón historial (solo mobile, abre sidebar) -->
+              <button
+                @click="showSidebar = true"
+                title="Ver conversaciones"
+                aria-label="Ver conversaciones"
+                class="sm:hidden w-9 h-9 rounded-full text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+              </button>
               <button
                 @click="startNewChat"
+                title="Nueva conversación"
+                aria-label="Nueva conversación"
                 class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 <span class="hidden sm:inline">Nueva conversación</span>
@@ -214,7 +226,14 @@
           </div>
 
           <!-- Messages -->
-          <div ref="messagesEl" @scroll="handleMessagesScroll" class="relative flex-1 overflow-y-auto space-y-4 px-4 sm:px-6 pt-4 pb-4">
+          <div
+            ref="messagesEl"
+            @scroll="handleMessagesScroll"
+            class="relative flex-1 overflow-y-auto space-y-4 px-4 sm:px-6 pt-4 pb-4"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-label="Conversación con Kora">
             <!-- Flash overlay al nueva conversación -->
             <Transition name="chat-flash">
               <div v-if="chatResetting" class="absolute inset-0 z-10 bg-white/80 pointer-events-none"></div>
@@ -321,7 +340,7 @@
                   <div class="text-xs text-slate-500 flex items-center gap-1.5">
                     <span class="line-clamp-1">🏛 {{ card.institution }}</span>
                     <span v-if="card.region" class="text-slate-300">·</span>
-                    <span v-if="card.region" class="shrink-0 text-slate-400">{{ card.region }}</span>
+                    <span v-if="card.region" class="shrink-0 text-slate-500">{{ card.region }}</span>
                   </div>
                   <div class="flex flex-wrap gap-1.5 text-[11px]">
                     <span v-if="card.semesters" class="px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200">🗓 {{ card.semesters }} sem</span>
@@ -366,7 +385,7 @@
                 <span class="typing-dot" style="animation-delay: 150ms"></span>
                 <span class="typing-dot" style="animation-delay: 300ms"></span>
               </div>
-              <span class="text-xs text-slate-400 italic">Generando…</span>
+              <span class="text-xs text-slate-500 italic">Generando…</span>
             </div>
           </div>
         </div>
@@ -399,7 +418,7 @@
                 ref="inputEl"
                 placeholder="Escribe tu mensaje..."
                 rows="1"
-                class="flex-1 resize-none px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none bg-transparent max-h-32 overflow-y-auto"
+                class="flex-1 resize-none px-3 py-2 text-sm text-slate-800 placeholder:text-slate-500 focus:outline-none bg-transparent max-h-32 overflow-y-auto"
                 @keydown.enter.exact.prevent="send()"
                 @input="autoResize"
               />
@@ -412,7 +431,7 @@
                 </svg>
               </button>
             </div>
-            <p class="text-xs text-slate-400/70 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
+            <p class="text-xs text-slate-500/70 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
           </div>
         </section>
       </div>
@@ -422,6 +441,10 @@
         <div
           v-if="showLoginGate"
           class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-gate-title"
+          ref="loginGateEl"
           @click.self="showLoginGate = false">
           <div class="modal-glass w-full max-w-md rounded-3xl p-6 sm:p-8 text-center">
             <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-100 flex items-center justify-center">
@@ -429,7 +452,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0-1.104-.896-2-2-2s-2 .896-2 2v2h4v-2zm6 0V7a6 6 0 10-12 0v4M5 11h14v10H5V11z"/>
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Inicia sesión para continuar</h3>
+            <h3 id="login-gate-title" class="text-xl font-bold text-slate-800 mb-2">Inicia sesión para continuar</h3>
             <p class="text-sm text-slate-600 mb-6 leading-relaxed">
               Para chatear con Kora y guardar tus conversaciones necesitas una cuenta.
               Es gratis y te toma menos de un minuto.
@@ -448,7 +471,7 @@
             </div>
             <button
               @click="showLoginGate = false"
-              class="mt-3 text-xs text-slate-400 hover:text-slate-600">
+              class="mt-3 text-xs text-slate-500 hover:text-slate-600">
               Más tarde
             </button>
           </div>
@@ -459,6 +482,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
 import { marked } from 'marked'
 import { useAuthStore } from '~/stores/auth'
 
@@ -515,14 +539,33 @@ const compactMode = false
 const latestProgramCards = ref<ProgramCard[]>([])
 const activeSessionId = ref<string>('')
 const isMobile = ref(false)
-const showSidebar = ref(true)
+// Inicializa cerrado para evitar flash en SSR/mobile.
+// Se abre tras mount solo en desktop.
+const showSidebar = ref(false)
+
+// Refs DOM para modales (a11y trap-focus)
+const deleteAllModalEl = ref<HTMLElement | null>(null)
+const deleteOneModalEl = ref<HTMLElement | null>(null)
+const loginGateEl = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   const checkMobile = () => { isMobile.value = window.innerWidth < 640 }
   checkMobile()
-  if (isMobile.value) showSidebar.value = false
+  showSidebar.value = !isMobile.value
   window.addEventListener('resize', checkMobile)
-  onUnmounted(() => window.removeEventListener('resize', checkMobile))
+  // Cierra modales y sidebar (mobile) con Esc
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return
+    if (deleteAllConfirm.value) { deleteAllConfirm.value = false; return }
+    if (deleteConfirmId.value) { deleteConfirmId.value = null; return }
+    if (showLoginGate.value) { showLoginGate.value = false; return }
+    if (isMobile.value && showSidebar.value) showSidebar.value = false
+  }
+  document.addEventListener('keydown', handleEscape)
+  onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile)
+    document.removeEventListener('keydown', handleEscape)
+  })
 })
 const sessions = ref<ChatSession[]>([])
 const sessionsLoading = ref(false)
@@ -579,6 +622,11 @@ const deleteConfirmId = ref<string | null>(null)
 const deletingSession = ref(false)
 const deleteAllConfirm = ref(false)
 const deletingAll = ref(false)
+
+// A11y: trap-focus en modales (registrado tras tener todos los refs)
+useFocusTrap(deleteAllModalEl, deleteAllConfirm)
+useFocusTrap(deleteOneModalEl, computed(() => !!deleteConfirmId.value))
+useFocusTrap(loginGateEl, showLoginGate)
 
 function confirmDeleteSession(sessionId: string) {
   deleteConfirmId.value = sessionId
@@ -968,6 +1016,7 @@ async function switchSession(sessionId: string) {
   messages.value = []
   latestProgramCards.value = []
   error.value = null
+  if (isMobile.value) showSidebar.value = false
   await loadHistory()
 }
 
@@ -1000,6 +1049,8 @@ async function startNewChat() {
     currentAbortController.value = null
     loading.value = false
   }
+  // En mobile, cerrar sidebar para ver el chat al instante
+  if (isMobile.value) showSidebar.value = false
   // Animación: flash de salida
   chatResetting.value = true
   await nextTick()

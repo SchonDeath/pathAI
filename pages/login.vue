@@ -96,7 +96,7 @@
 
         <div class="flex items-center gap-3">
           <div class="flex-1 h-px bg-slate-100" />
-          <span class="text-xs text-slate-400">o con correo</span>
+          <span class="text-xs text-slate-500">o con correo</span>
           <div class="flex-1 h-px bg-slate-100" />
         </div>
 
@@ -111,7 +111,7 @@
           <p v-if="activeTab === 'login'" class="text-sm text-slate-500">
             ¿Eres nuevo en KoraChile?
             <br />
-            <span class="text-slate-400 text-xs">Crea tu cuenta para guardar carreras y personalizar tu experiencia.</span>
+            <span class="text-slate-500 text-xs">Crea tu cuenta para guardar carreras y personalizar tu experiencia.</span>
           </p>
           <p v-else class="text-sm text-slate-500">¿Ya tienes una cuenta?</p>
           <button

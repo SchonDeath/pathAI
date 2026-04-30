@@ -62,7 +62,7 @@
         :class="isPast(event.date) ? 'opacity-45' : ''">
         <!-- Fecha mini -->
         <div class="shrink-0 text-center min-w-[40px]">
-          <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">{{ monthShort(event.date) }}</div>
+          <div class="text-[9px] font-bold uppercase tracking-wider text-slate-500">{{ monthShort(event.date) }}</div>
           <div class="text-base font-extrabold text-slate-700 leading-tight">{{ dayNum(event.date) }}</div>
         </div>
         <!-- Contenido -->
@@ -77,7 +77,7 @@
         </div>
         <!-- Estado -->
         <div class="shrink-0 text-right">
-          <span v-if="isPast(event.date)" class="text-[10px] text-slate-400 font-medium">Pasado</span>
+          <span v-if="isPast(event.date)" class="text-[10px] text-slate-500 font-medium">Pasado</span>
           <span v-else class="text-[10px] font-bold text-primary-600">{{ daysUntil(event.date) }}d</span>
         </div>
       </div>
@@ -85,7 +85,7 @@
 
     <!-- Footer -->
     <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-      <p class="text-[10px] text-slate-400">Fuente: DEMRE · Fechas referenciales {{ PAES_YEAR }}</p>
+      <p class="text-[10px] text-slate-500">Fuente: DEMRE · Fechas referenciales {{ PAES_YEAR }}</p>
       <a href="https://demre.cl" target="_blank" rel="noopener" class="text-[10px] text-primary-600 hover:underline font-semibold">demre.cl →</a>
     </div>
   </div>

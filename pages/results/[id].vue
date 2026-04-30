@@ -50,7 +50,7 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="text-sm text-slate-400 font-medium mb-1">Basado en tus intereses</p>
+                  <p class="text-sm text-slate-500 font-medium mb-1">Basado en tus intereses</p>
                   <p class="text-slate-700 font-medium italic">"{{ result.query }}"</p>
                   <p class="text-slate-600 text-sm mt-2 leading-relaxed">{{ result.summary }}</p>
                 </div>
@@ -69,7 +69,7 @@
                   </span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 gap-4">
                   <div
                     v-for="(career, index) in result.variations"
                     :key="career.id"

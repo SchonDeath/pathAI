@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Descubriendo tu carrera</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #stage {
+      width: 100vw; height: 100vh;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 60%, #1e3a5f 0%, #0f172a 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      will-change: transform;
+    }
+    /* radial-gradient en vez de filter:blur — mismo efecto visual, costo GPU ~0 */
+    #blob1 { width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(29,78,216,0.35) 0%, transparent 70%); opacity: 0; top: -15%; left: -15%; }
+    #blob2 { width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(124,58,237,0.30) 0%, transparent 70%); opacity: 0; bottom: -15%; right: -10%; }
+    #blob3 { width: 35vw; height: 35vw; background: radial-gradient(circle, rgba(8,145,178,0.25) 0%, transparent 70%); opacity: 0; top: 30%; right: 20%; }
+
+    .particle {
+      position: absolute;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      opacity: 0;
+    }
+
+    #center {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5vh;
+      text-align: center;
+      padding: 0 4vw;
+    }
+
+    #orbit-wrap {
+      position: relative;
+      width: min(18vw, 180px); height: min(18vw, 180px);
+      opacity: 0;
+    }
+    #orbit-ring {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(99,179,237,0.35);
+    }
+    #orbit-ring::before {
+      content: '';
+      position: absolute;
+      top: -5px; left: 50%;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #38bdf8;
+      transform: translateX(-50%);
+      box-shadow: 0 0 18px #38bdf8;
+    }
+    #orbit-ring-2 {
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(167,139,250,0.3);
+    }
+    #orbit-ring-2::before {
+      content: '';
+      position: absolute;
+      bottom: -5px; right: 8px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #a78bfa;
+      box-shadow: 0 0 12px #a78bfa;
+    }
+
+    #icon-box {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0.5);
+    }
+    #icon-inner {
+      width: min(12vw, 110px); height: min(12vw, 110px);
+      border-radius: 28px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 60px rgba(37,99,235,0.5);
+    }
+    #icon-inner svg {
+      width: 45%; height: 45%;
+      stroke: white;
+    }
+
+    #headline {
+      font-size: clamp(28px, 5vw, 64px);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.15;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    #headline .accent {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #subtext {
+      font-size: clamp(14px, 2vw, 22px);
+      color: rgba(255,255,255,0.5);
+      opacity: 0;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    #steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      opacity: 0;
+    }
+    .step-pill {
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-size: clamp(12px, 1.4vw, 16px);
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.4);
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    #progress-wrap {
+      width: min(60vw, 500px);
+      opacity: 0;
+    }
+    #progress-track {
+      height: 5px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      box-shadow: 0 0 12px rgba(56,189,248,0.5);
+    }
+
+    #branding {
+      position: absolute;
+      bottom: 4%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(11px, 1.2vw, 16px);
+      font-weight: 700;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.1em;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="blob1" class="blob"></div>
+    <div id="blob2" class="blob"></div>
+    <div id="blob3" class="blob"></div>
+    <div id="particles"></div>
+
+    <div id="center">
+      <div id="orbit-wrap">
+        <div id="orbit-ring"></div>
+        <div id="orbit-ring-2"></div>
+        <div id="icon-box">
+          <div id="icon-inner">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div id="headline">
+          Construyendo tu<br />
+          <span class="accent">camino perfecto</span>
+        </div>
+        <p id="subtext" style="margin-top:16px">
+          La IA analiza tu perfil y diseña rutas personalizadas para Chile
+        </p>
+      </div>
+
+      <div id="steps">
+        <div class="step-pill" id="s0">✨ Leyendo perfil</div>
+        <div class="step-pill" id="s1">🧠 Analizando mercado</div>
+        <div class="step-pill" id="s2">🗺️ Diseñando rutas</div>
+        <div class="step-pill" id="s3">🚀 Preparando resultados</div>
+      </div>
+
+      <div id="progress-wrap">
+        <div id="progress-track">
+          <div id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="branding">kora.cl</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <script>
+    // Particles
+    var pc = document.getElementById('particles')
+    for (var i = 0; i < 10; i++) {
+      var p = document.createElement('div')
+      p.className = 'particle'
+      p.style.left = Math.random() * 100 + 'vw'
+      p.style.top = Math.random() * 100 + 'vh'
+      pc.appendChild(p)
+    }
+
+    var tl = gsap.timeline()
+
+    // Blobs
+    tl.to('#blob1', { opacity: 0.13, duration: 2, ease: 'power2.out' }, 0)
+    tl.to('#blob2', { opacity: 0.10, duration: 2, ease: 'power2.out' }, 0.3)
+    tl.to('#blob3', { opacity: 0.08, duration: 2, ease: 'power2.out' }, 0.6)
+    tl.to('#blob1', { x: '4vw', y: '3vh', duration: 10, ease: 'none' }, 0)
+    tl.to('#blob2', { x: '-3vw', y: '-2vh', duration: 10, ease: 'none' }, 0)
+
+    // Particles float up
+    document.querySelectorAll('.particle').forEach(function(el, i) {
+      tl.to(el, {
+        opacity: Math.random() * 0.5 + 0.1,
+        y: -(Math.random() * 150 + 50),
+        duration: Math.random() * 4 + 3,
+        ease: 'none'
+      }, Math.random() * 3)
+    })
+
+    // Orbit rings spin
+    tl.to('#orbit-wrap', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.4)
+    tl.to('#orbit-ring', { rotation: 360, duration: 9, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
+    tl.to('#orbit-ring-2', { rotation: -360, duration: 6, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
+
+    // Icon pop
+    tl.to('#icon-box', { opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.7)' }, 0.6)
+
+    // Headline
+    tl.to('#headline', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 1.2)
+
+    // Subtext
+    tl.to('#subtext', { opacity: 1, duration: 0.7, ease: 'power2.out' }, 1.9)
+
+    // Steps
+    tl.to('#steps', { opacity: 1, duration: 0.3 }, 2.5)
+    tl.to('#s0', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 2.5)
+    tl.to('#s1', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 2.7)
+    tl.to('#s2', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 2.9)
+    tl.to('#s3', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 3.1)
+
+    function hl(id, t) {
+      tl.to(id, { background: 'rgba(37,99,235,0.28)', borderColor: 'rgba(56,189,248,0.45)', color: '#38bdf8', duration: 0.3 }, t)
+    }
+    hl('#s0', 3.3)
+    hl('#s1', 5.0)
+    hl('#s2', 6.7)
+    hl('#s3', 8.2)
+
+    // Progress
+    tl.to('#progress-wrap', { opacity: 1, duration: 0.4 }, 3.2)
+    tl.to('#progress-fill', { width: '25%', duration: 1.5, ease: 'power1.inOut' }, 3.3)
+    tl.to('#progress-fill', { width: '55%', duration: 1.5, ease: 'power1.inOut' }, 5.0)
+    tl.to('#progress-fill', { width: '80%', duration: 1.5, ease: 'power1.inOut' }, 6.7)
+    tl.to('#progress-fill', { width: '100%', duration: 1.5, ease: 'power2.inOut' }, 8.2)
+
+    // Icon pulse
+    tl.to('#icon-inner', { boxShadow: '0 0 80px rgba(56,189,248,0.8)', duration: 0.5, ease: 'power2.out' }, 9.0)
+    tl.to('#icon-inner', { boxShadow: '0 0 60px rgba(37,99,235,0.5)', duration: 0.5 }, 9.5)
+
+    // Branding
+    tl.to('#branding', { opacity: 1, duration: 1, ease: 'power2.out' }, 7.0)
+  </script>
+</body>
+</html>

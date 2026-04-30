@@ -5,9 +5,9 @@
       <div class="flex items-center justify-between mb-3">
         <span class="text-sm font-medium text-slate-600">
           <span class="text-primary-700 font-bold">{{ currentIdx + 1 }}</span> / {{ totalQuestions }}
-          <span class="hidden sm:inline text-slate-400 ml-2">· {{ currentSection }}</span>
+          <span class="hidden sm:inline text-slate-500 ml-2">· {{ currentSection }}</span>
         </span>
-        <span class="text-xs text-slate-400">{{ progress }}%</span>
+        <span class="text-xs text-slate-500">{{ progress }}%</span>
       </div>
       <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div class="h-full bg-gradient-to-r from-primary-600 to-accent-500 transition-all duration-500 rounded-full" :style="{ width: `${progress}%` }"></div>
@@ -66,11 +66,11 @@
           rows="5"
           maxlength="600"
           placeholder="Por ejemplo: me encantan los videojuegos y la música, estudio mecánico en el TP, me gustaría trabajar ayudando a animales, no me va bien en matemáticas pero sí en lenguaje..."
-          class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-slate-800 text-sm leading-relaxed placeholder:text-slate-400 resize-none outline-none transition-all duration-200 bg-white"
+          class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-slate-800 text-sm leading-relaxed placeholder:text-slate-500 resize-none outline-none transition-all duration-200 bg-white"
         ></textarea>
         <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400">Opcional · cuéntanos cualquier cosa relevante sobre ti</span>
-          <span :class="freeText.length > 550 ? 'text-amber-600 font-semibold' : 'text-slate-400'">{{ freeText.length }}/600</span>
+          <span class="text-slate-500">Opcional · cuéntanos cualquier cosa relevante sobre ti</span>
+          <span :class="freeText.length > 550 ? 'text-amber-600 font-semibold' : 'text-slate-500'">{{ freeText.length }}/600</span>
         </div>
       </div>
     </div>
