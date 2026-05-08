@@ -32,7 +32,7 @@
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="space-y-2">
                 <div class="flex items-center gap-3">
-                  <span class="text-4xl">{{ career.emoji || '🎯' }}</span>
+                  <Target class="w-8 h-8 text-primary-600" />
                   <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
                     {{ career.title }}
                   </h1>
@@ -115,6 +115,7 @@
 </template>
 
 <script setup lang="ts">
+import { Target } from 'lucide-vue-next'
 useHead({ title: 'Detalle de Carrera — KoraChile' })
 
 const route = useRoute()

@@ -1,8 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 // GET /api/careers?q=texto&category=tecnología&limit=12&offset=0
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
   const query = getQuery(event)
 
   const q        = String(query.q || '').trim().toLowerCase()
@@ -12,10 +11,7 @@ export default defineEventHandler(async (event) => {
   const limit    = Math.min(Number(query.limit) || 12, 50)
   const offset   = Number(query.offset) || 0
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   let sb = supabase
     .from('careers')

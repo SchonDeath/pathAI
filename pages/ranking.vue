@@ -72,26 +72,13 @@
                       : (page - 1) * PAGE_SIZE + localIdx === 1 ? 'border-slate-300 bg-slate-50'
                       : (page - 1) * PAGE_SIZE + localIdx === 2 ? 'border-amber-600 bg-amber-50'
                       : 'border-slate-200 bg-white'">
-                <img
-                  v-if="inst.logo_url && !brokenLogos.has(inst.institution_code)"
-                  :src="inst.logo_url"
-                  :alt="inst.nombre_institucion"
-                  class="w-full h-full object-contain p-1"
-                  loading="lazy"
-                  @error="brokenLogos.add(inst.institution_code)">
-                <!-- Fallback: ícono según tipo (universidad / IP / CFT) -->
-                <svg v-else
-                  class="w-7 h-7"
-                  :class="(page - 1) * PAGE_SIZE + localIdx === 0 ? 'text-amber-600'
-                        : (page - 1) * PAGE_SIZE + localIdx === 1 ? 'text-slate-500'
-                        : (page - 1) * PAGE_SIZE + localIdx === 2 ? 'text-amber-700'
-                        : 'text-slate-500'"
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <!-- Edificio académico (graduación / institución) -->
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M22 8v5"/>
-                </svg>
+                <InstitutionLogo
+                  :logo-url="inst.logo_url"
+                  :institution-name="inst.nombre_institucion"
+                  :fallback-class="(page - 1) * PAGE_SIZE + localIdx === 0 ? 'text-amber-600'
+                    : (page - 1) * PAGE_SIZE + localIdx === 1 ? 'text-slate-500'
+                    : (page - 1) * PAGE_SIZE + localIdx === 2 ? 'text-amber-700'
+                    : 'text-slate-500'" />
               </div>
               <!-- Número de posición sobre el badge (siempre visible) -->
               <div class="relative -ml-5 self-end mb-0.5 z-10">
@@ -108,8 +95,8 @@
                 <div class="font-bold text-slate-900 text-sm sm:text-base truncate">{{ inst.nombre_institucion }}</div>
                 <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-500 flex-wrap">
                   <span v-if="inst.tipo_institucion" class="px-2 py-0.5 rounded-full bg-slate-50 border border-slate-200 font-semibold truncate max-w-[180px]">{{ shortTipo(inst.tipo_institucion) }}</span>
-                  <span v-if="inst.acreditacion_anos" class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">🏅 {{ inst.acreditacion_anos }} años</span>
-                  <span v-if="inst.matricula_pregrado_actual" class="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 font-semibold">👥 {{ formatNum(inst.matricula_pregrado_actual) }}</span>
+                  <span v-if="inst.acreditacion_anos" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold"><Award class="w-3 h-3" />{{ inst.acreditacion_anos }} años</span>
+                  <span v-if="inst.matricula_pregrado_actual" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 font-semibold"><Users class="w-3 h-3" />{{ formatNum(inst.matricula_pregrado_actual) }}</span>
                 </div>
               </div>
               <!-- Score -->
@@ -138,11 +125,45 @@
                   <!-- Desglose del score -->
                   <div>
                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">¿Cómo se calcula el score?</h4>
+                    <p class="text-[11px] text-slate-500 mb-3">
+                      Cobertura de datos: <strong>{{ inst.score_data_coverage_pct ?? 100 }}%</strong>.
+                      Si falta una métrica, su peso se excluye del cálculo para no penalizar.
+                    </p>
+
+                    <div v-if="inst.score_excluded_metrics?.length" class="mb-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">
+                      <p class="text-[11px] font-semibold text-amber-800 mb-1.5">No se agregó al cálculo estos datos:</p>
+                      <ul class="space-y-1">
+                        <li v-for="metric in inst.score_excluded_metrics" :key="metric.key" class="text-[11px] text-amber-900 leading-snug">
+                          • <strong>{{ metric.label }}</strong> (peso {{ metric.weight_pct }}%): {{ metric.reason }}
+                          <span v-if="metric.raw_value !== null"> Valor recibido: {{ metric.raw_value }}.</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div v-else class="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-800">
+                      Todos los datos principales del score fueron incluidos en el cálculo.
+                    </div>
+
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <ScoreBar label="Acreditación" :value="inst.breakdown.acreditacion" weight="40%" color="emerald" />
-                      <ScoreBar label="Retención" :value="inst.breakdown.retencion" weight="25%" color="blue" />
-                      <ScoreBar label="PAES" :value="inst.breakdown.paes" weight="20%" color="violet" />
-                      <ScoreBar label="Matrícula" :value="inst.breakdown.matricula" weight="15%" color="amber" />
+                      <ScoreBar
+                        label="Acreditación"
+                        :value="inst.breakdown.acreditacion"
+                        :weight="inst.breakdown_available?.acreditacion === false ? 'n/d' : '40%'"
+                        color="emerald" />
+                      <ScoreBar
+                        label="Retención"
+                        :value="inst.breakdown.retencion"
+                        :weight="inst.breakdown_available?.retencion === false ? 'n/d' : '25%'"
+                        color="blue" />
+                      <ScoreBar
+                        label="PAES"
+                        :value="inst.breakdown.paes"
+                        :weight="inst.breakdown_available?.paes === false ? 'n/d' : '20%'"
+                        color="violet" />
+                      <ScoreBar
+                        label="Matrícula"
+                        :value="inst.breakdown.matricula"
+                        :weight="inst.breakdown_available?.matricula === false ? 'n/d' : '15%'"
+                        color="amber" />
                     </div>
                   </div>
 
@@ -172,19 +193,25 @@
                     <a
                       v-if="inst.pagina_web"
                       :href="normalizeUrl(inst.pagina_web)"
+                      @click="trackInstitutionWebsite(inst)"
                       target="_blank"
                       rel="noopener"
-                      class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:border-primary-300 transition">
-                      🌐 Sitio web
+                      class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:border-primary-300 transition">
+                      <Globe class="w-3.5 h-3.5" /> Sitio web
                     </a>
                     <button
                       @click="addToCompare(inst)"
                       :disabled="isQueued(inst.institution_code)"
-                      class="px-3 py-2 rounded-xl text-xs font-semibold border transition"
+                      class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition"
                       :class="isQueued(inst.institution_code)
                         ? 'bg-primary-50 border-primary-200 text-primary-600 cursor-default'
                         : 'bg-primary-600 border-primary-600 text-white hover:bg-primary-700'">
-                      {{ isQueued(inst.institution_code) ? '✓ En comparador' : '⚖️ Agregar a comparador' }}
+                      <template v-if="isQueued(inst.institution_code)">
+                        <Check class="w-3.5 h-3.5" /> En comparador
+                      </template>
+                      <template v-else>
+                        <Scale class="w-3.5 h-3.5" /> Agregar a comparador
+                      </template>
                     </button>
                   </div>
                 </div>
@@ -194,7 +221,7 @@
         </div>
 
         <div v-else class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-          <div class="text-4xl mb-3">🔍</div>
+          <div class="mb-3 flex justify-center"><Search class="w-8 h-8 text-slate-400" /></div>
           <p class="text-slate-500">Sin resultados. Prueba con otro filtro o búsqueda.</p>
         </div>
 
@@ -231,7 +258,7 @@
 
         <!-- Footer info -->
         <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-5 text-sm text-slate-600 leading-relaxed">
-          <p class="font-semibold text-slate-800 mb-2">ℹ️ Sobre este ranking</p>
+          <p class="font-semibold text-slate-800 mb-2 inline-flex items-center gap-1.5"><Info class="w-4 h-4" />Sobre este ranking</p>
           <p>
             Los datos provienen del <strong>Servicio de Información de Educación Superior (SIES)</strong> del MINEDUC.
             El puntaje combina indicadores oficiales con pesos balanceados para evitar sesgos por tamaño.
@@ -244,23 +271,24 @@
 </template>
 
 <script setup lang="ts">
+import { Award, Check, Globe, Info, Scale, Search, Users } from 'lucide-vue-next'
+import { useIntentTracker } from '~/composables/useIntentTracker'
 import { useRankingStore, type RankingInstitution } from '~/stores/ranking'
 
 const rankingStore = useRankingStore()
+const { track } = useIntentTracker()
 
 const search = ref('')
 const tipo = ref<string | null>('Universidades')
 const expanded = ref<number | null>(null)
 const page = ref(1)
 const PAGE_SIZE = 10
-// Tracking de logos rotos (404, CORS, etc.) para mostrar fallback de ícono
-const brokenLogos = reactive(new Set<number>())
 
 const TIPO_OPTIONS = [
   { value: null, label: 'Todas' },
-  { value: 'Universidades', label: 'Universidades' },
-  { value: 'Institutos Profesionales', label: 'IP' },
-  { value: 'Centros de Formación Técnica', label: 'CFT' },
+  { value: 'universidades', label: 'Universidades' },
+  { value: 'institutos profesionales', label: 'IP' },
+  { value: 'centros de formacion tecnica', label: 'CFT' },
 ]
 
 // Debounce search
@@ -363,18 +391,46 @@ function addToCompare(inst: RankingInstitution) {
       })
       localStorage.setItem(COMPARE_INSTITUTIONS_KEY, JSON.stringify(safe))
       queuedCodes.value = safe.map((x: any) => Number(x.institution_code))
+      void track({
+        event_name: 'institution_compare_added',
+        source: 'ranking',
+        institution_code: inst.institution_code,
+        metadata: {
+          nombre_institucion: inst.nombre_institucion,
+          tipo_institucion: inst.tipo_institucion,
+          score: inst.score,
+        },
+      })
     }
   } catch (e) {
     console.warn('[ranking] addToCompare failed:', e)
   }
 }
 
+function trackInstitutionWebsite(inst: RankingInstitution) {
+  void track({
+    event_name: 'institution_website_clicked',
+    source: 'ranking',
+    institution_code: inst.institution_code,
+    metadata: {
+      nombre_institucion: inst.nombre_institucion,
+      pagina_web: normalizeUrl(inst.pagina_web || ''),
+    },
+  })
+}
+
 onMounted(() => {
   loadQueued()
-  window.addEventListener('storage', (e) => {
-    if (e.key === COMPARE_INSTITUTIONS_KEY) loadQueued()
-  })
+  window.addEventListener('storage', handleCompareInstitutionsStorage)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('storage', handleCompareInstitutionsStorage)
+})
+
+function handleCompareInstitutionsStorage(e: StorageEvent) {
+  if (e.key === COMPARE_INSTITUTIONS_KEY) loadQueued()
+}
 
 useHead({
   title: 'Ranking de instituciones · KoraChile',

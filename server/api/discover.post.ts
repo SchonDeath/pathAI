@@ -1,15 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
+import { enrichDiscoverResultWithOfficialSalaries } from '~/server/utils/official-salary'
+import { captureLlmUsage, logAiUsageEvent, type CapturedLlmUsage } from '~/server/utils/ai/usage-logger'
+import { getSupabaseServiceClient, requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 // --- Rate limiter via Supabase (funciona en entornos serverless/Vercel) ---
 async function checkRateLimit(ip: string): Promise<void> {
-  const config = useRuntimeConfig()
   // Rate limiter requiere service_role (tabla rate_limits no es accesible con anon).
-  const key = config.supabaseServiceKey
-  if (!key) {
+  const supabase = getSupabaseServiceClient()
+  if (!supabase) {
     console.error('[KoraChile] Rate limit deshabilitado: falta SUPABASE_SERVICE_ROLE_KEY')
     return
   }
-  const supabase = createClient(config.public.supabaseUrl, key)
 
   const windowStart = new Date(Date.now() - 10 * 60 * 1000).toISOString()
 
@@ -57,7 +57,7 @@ ANTES de generar las carreras, analiza internamente el texto del usuario aplican
 
 Usa estos insights para seleccionar las 3 carreras más alineadas con el perfil REAL de la persona, no solo con lo que declara explícitamente.
 
-Reglas (aplican a TODO el JSON): salarios reales en CLP; universidades chilenas reales (U. de Chile, PUC, USACH, DUOC, INACAP, UDP, UAI, CFTs); adapta al mercado chileno (tecnología, minería, fintech, salud, retail, agroindustria).
+Reglas (aplican a TODO el JSON): universidades chilenas reales (U. de Chile, PUC, USACH, DUOC, INACAP, UDP, UAI, CFTs); adapta al mercado chileno (tecnología, minería, fintech, salud, retail, agroindustria). No entregues sueldos ni estimaciones salariales: el backend los agrega solo si existen datos oficiales SIES.
 
 Estructura exacta con 3 variaciones (universitarias o no, según el perfil del usuario):
 {
@@ -73,7 +73,6 @@ Estructura exacta con 3 variaciones (universitarias o no, según el perfil del u
     "pros": string[3],
     "cons": string[2],
     "skills": string[5],
-    "salary_range": { "junior": number, "mid": number, "senior": number, "currency": "CLP" },
     "personality_types": string[2] (tipos MBTI),
     "fun_facts": string[3],
     "job_demand": "Alta"|"Media"|"Muy Alta",
@@ -95,7 +94,7 @@ const COMPACT_SYSTEM_PROMPT = `Eres una IA vocacional para Chile. Devuelve SOLO 
 Analiza el texto del usuario con: Big Five, self-concept y señales semánticas (temas, tono, estilo). Recomienda 3 rutas realistas para Chile.
 
 Reglas:
-- Salarios en CLP reales/estimados.
+- No entregues sueldos ni estimaciones salariales; si el usuario los ve, vendrán de SIES/MiFuturo.
 - Considera universidades e institutos chilenos.
 
 Estructura JSON obligatoria:
@@ -112,7 +111,6 @@ Estructura JSON obligatoria:
     "pros": string[3],
     "cons": string[2],
     "skills": string[5],
-    "salary_range": { "junior": number, "mid": number, "senior": number, "currency": "CLP" },
     "personality_types": string[2],
     "fun_facts": string[3],
     "job_demand": "Alta"|"Media"|"Muy Alta",
@@ -146,8 +144,7 @@ Devuelve exactamente este formato:
       "pros": string[3],
       "cons": string[2],
       "skills": string[5],
-      "job_demand": "Alta"|"Media"|"Muy Alta",
-      "salary_range": { "junior": number, "mid": number, "senior": number, "currency": "CLP" }
+      "job_demand": "Alta"|"Media"|"Muy Alta"
     }
   ]
 }
@@ -156,6 +153,7 @@ Reglas:
 - Genera 3 variaciones.
 - match_score entero entre 70 y 99.
 - Todo adaptado a Chile.
+- No incluyas sueldos, ingresos ni salary_range.
 - No inventes datos absurdos ni uses markdown.`
 
 function extractLikelyJson(raw: string): string {
@@ -221,14 +219,6 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
     const skills = Array.isArray(v?.skills) ? v.skills.filter(Boolean).map(String).slice(0, 5) : []
     while (skills.length < 5) skills.push('Aprendizaje continuo')
 
-    const sr = v?.salary_range || {}
-    const salary_range = {
-      junior: Number(sr.junior) || 700000,
-      mid: Number(sr.mid) || 1200000,
-      senior: Number(sr.senior) || 1800000,
-      currency: 'CLP',
-    }
-
     const roadmap: any[] = []
 
     return {
@@ -241,7 +231,8 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
       pros,
       cons,
       skills,
-      salary_range,
+      salary_source: 'none',
+      salary_label: 'Sin dato oficial SIES para esta recomendación',
       personality_types: Array.isArray(v?.personality_types) ? v.personality_types.slice(0, 2) : ['INTJ', 'ENTP'],
       fun_facts: Array.isArray(v?.fun_facts) ? v.fun_facts.slice(0, 3) : ['Tiene alta demanda de talento en Chile', 'Permite crecimiento profesional continuo', 'Combina teoría con aplicación práctica'],
       books: [],
@@ -265,7 +256,8 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
       pros: ['Buena empleabilidad', 'Ruta flexible', 'Aprendizaje transferible'],
       cons: ['Requiere disciplina', 'Curva de aprendizaje inicial'],
       skills: ['Comunicación', 'Pensamiento crítico', 'Trabajo en equipo', 'Resolución de problemas', 'Aprendizaje continuo'],
-      salary_range: { junior: 700000, mid: 1200000, senior: 1800000, currency: 'CLP' },
+      salary_source: 'none',
+      salary_label: 'Sin dato oficial SIES para esta recomendación',
       personality_types: ['INTJ', 'ENTP'],
       fun_facts: ['Opción con demanda estable', 'Permite especialización', 'Tiene salida en varias industrias'],
       books: [],
@@ -284,11 +276,32 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
   }
 }
 
-async function repairJsonWithProvider(rawText: string, config: ReturnType<typeof useRuntimeConfig>): Promise<string> {
+function withLLMMeta(data: any, provider: string, model: string) {
+  return { ...data, _kora: { provider, model } }
+}
+
+function captureDiscoverUsage(
+  llmUsages: CapturedLlmUsage[],
+  response: any,
+  requestMessages: Array<{ role: string, content: string }>,
+) {
+  const assistantMessage = response?.choices?.[0]?.message ?? { content: '' }
+  llmUsages.push(captureLlmUsage(response, requestMessages, assistantMessage))
+}
+
+async function repairJsonWithProvider(
+  rawText: string,
+  config: ReturnType<typeof useRuntimeConfig>,
+  llmUsages: CapturedLlmUsage[],
+): Promise<string> {
   const repairPrompt = `Repara este contenido para que sea JSON válido estricto.\n\nReglas:\n- Devuelve SOLO JSON, sin markdown.\n- Mantén la misma estructura esperada (query, summary, variations...).\n- Si está truncado, completa lo faltante de forma breve y coherente.\n- No agregues comentarios.\n\nContenido a reparar:\n${rawText.slice(0, 10000)}`
 
   if (config.githubToken) {
     try {
+      const repairMessages = [
+        { role: 'system', content: 'Eres un reparador de JSON. Devuelve únicamente JSON válido.' },
+        { role: 'user', content: repairPrompt },
+      ]
       const res = await fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
@@ -300,14 +313,12 @@ async function repairJsonWithProvider(rawText: string, config: ReturnType<typeof
           model: 'openai/gpt-4.1-mini',
           temperature: 0.1,
           max_tokens: 1800,
-          messages: [
-            { role: 'system', content: 'Eres un reparador de JSON. Devuelve únicamente JSON válido.' },
-            { role: 'user', content: repairPrompt },
-          ],
+          messages: repairMessages,
         }),
       })
       if (res.ok) {
-        const data = await res.json()
+        const data = withLLMMeta(await res.json(), 'github_models', 'openai/gpt-4.1-mini')
+        captureDiscoverUsage(llmUsages, data, repairMessages)
         return data.choices?.[0]?.message?.content || ''
       }
     } catch {
@@ -317,6 +328,10 @@ async function repairJsonWithProvider(rawText: string, config: ReturnType<typeof
 
   if (config.groqApiKey) {
     try {
+      const repairMessages = [
+        { role: 'system', content: 'Eres un reparador de JSON. Devuelve únicamente JSON válido.' },
+        { role: 'user', content: repairPrompt.slice(0, 7000) },
+      ]
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -328,14 +343,12 @@ async function repairJsonWithProvider(rawText: string, config: ReturnType<typeof
           model: 'llama-3.1-8b-instant',
           temperature: 0.1,
           max_tokens: 1200,
-          messages: [
-            { role: 'system', content: 'Eres un reparador de JSON. Devuelve únicamente JSON válido.' },
-            { role: 'user', content: repairPrompt.slice(0, 7000) },
-          ],
+          messages: repairMessages,
         }),
       })
       if (res.ok) {
-        const data = await res.json()
+        const data = withLLMMeta(await res.json(), 'groq', 'llama-3.1-8b-instant')
+        captureDiscoverUsage(llmUsages, data, repairMessages)
         return data.choices?.[0]?.message?.content || ''
       }
     } catch {
@@ -347,6 +360,7 @@ async function repairJsonWithProvider(rawText: string, config: ReturnType<typeof
 }
 
 export default defineEventHandler(async (event) => {
+  const startedAt = Date.now()
   const forwarded = getHeader(event, 'x-forwarded-for') ?? ''
   const ip =
     forwarded.split(',')[0]?.trim() ||
@@ -369,51 +383,22 @@ export default defineEventHandler(async (event) => {
 
   const trimmedQuery = query.trim()
   const userMessage = `Texto de la persona: "${trimmedQuery}"`
+  const llmUsages: CapturedLlmUsage[] = []
+  let repairAttempted = false
   let rawText = ''
 
   if (!config.githubToken && !config.groqApiKey && !config.ollamaUrl) {
     console.warn('[KoraChile] ⚠️ Ninguna variable de proveedor configurada. Define APY_GIT, GROQ u OLLAMA_URL en las variables de entorno.')
   }
 
-  // --- 1. GitHub Models / Meta-Llama-3.1-8B-Instruct (PRIORIDAD — rápido) ---
-  if (!rawText && config.githubToken) {
-    try {
-      console.log('[KoraChile] Intentando con GitHub Models (Meta-Llama-3.1-8B)...')
-      const llamaRes = await fetch('https://models.github.ai/inference/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.githubToken}`,
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(25000),
-        body: JSON.stringify({
-          model: 'meta/Meta-Llama-3.1-8B-Instruct',
-          temperature: 0.5,
-          max_tokens: 900,
-          messages: [
-            { role: 'system', content: GROQ_MINIMAL_PROMPT },
-            { role: 'user', content: userMessage },
-          ],
-        }),
-      })
-      if (llamaRes.ok) {
-        const llamaData = await llamaRes.json()
-        rawText = llamaData.choices?.[0]?.message?.content || ''
-        if (rawText) console.log('[KoraChile] ✅ Meta-Llama (GitHub Models) OK')
-        else console.warn('[KoraChile] ⚠️ Meta-Llama respondió vacío')
-      } else {
-        const errBody = await llamaRes.text()
-        console.warn(`[KoraChile] ⚠️ Meta-Llama HTTP ${llamaRes.status}:`, errBody)
-      }
-    } catch (e) {
-      console.warn('[KoraChile] ⚠️ Meta-Llama no disponible — probando GPT-4.1-mini...')
-    }
-  }
-
-  // --- 2. GitHub Models / GPT-4.1-mini (mayor capacidad, fallback) ---
+  // --- 1. GitHub Models / GPT-4.1-mini (PRIORIDAD) ---
   if (!rawText && config.githubToken) {
     try {
       console.log('[KoraChile] Intentando con GitHub Models (GPT-4.1-mini)...')
+      const requestMessages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ]
       const ghRes = await fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
@@ -425,14 +410,12 @@ export default defineEventHandler(async (event) => {
           model: 'openai/gpt-4.1-mini',
           temperature: 0.7,
           max_tokens: 3200,
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: userMessage },
-          ],
+          messages: requestMessages,
         }),
       })
       if (ghRes.ok) {
-        const ghData = await ghRes.json()
+        const ghData = withLLMMeta(await ghRes.json(), 'github_models', 'openai/gpt-4.1-mini')
+        captureDiscoverUsage(llmUsages, ghData, requestMessages)
         rawText = ghData.choices?.[0]?.message?.content || ''
         if (rawText) console.log('[KoraChile] ✅ GitHub Models GPT-4.1-mini OK')
         else console.warn('[KoraChile] ⚠️ GPT-4.1-mini respondió vacío')
@@ -441,14 +424,92 @@ export default defineEventHandler(async (event) => {
         console.warn(`[KoraChile] ⚠️ GPT-4.1-mini HTTP ${ghRes.status}:`, errBody)
       }
     } catch (e) {
-      console.warn('[KoraChile] ⚠️ GPT-4.1-mini no disponible — probando Groq...')
+      console.warn('[KoraChile] ⚠️ GPT-4.1-mini no disponible — probando DeepSeek...')
     }
   }
 
-  // --- 3. Groq (fallback) ---
+  // --- 2. GitHub Models / DeepSeek-V3-0324 (fallback económico) ---
+  if (!rawText && config.githubToken) {
+    try {
+      console.log('[KoraChile] Intentando con GitHub Models (DeepSeek-V3-0324)...')
+      const requestMessages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ]
+      const deepseekRes = await fetch('https://models.github.ai/inference/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.githubToken}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(35000),
+        body: JSON.stringify({
+          model: 'deepseek/DeepSeek-V3-0324',
+          temperature: 0.7,
+          max_tokens: 3200,
+          messages: requestMessages,
+        }),
+      })
+      if (deepseekRes.ok) {
+        const deepseekData = withLLMMeta(await deepseekRes.json(), 'github_models', 'deepseek/DeepSeek-V3-0324')
+        captureDiscoverUsage(llmUsages, deepseekData, requestMessages)
+        rawText = deepseekData.choices?.[0]?.message?.content || ''
+        if (rawText) console.log('[KoraChile] ✅ DeepSeek-V3-0324 (GitHub Models) OK')
+        else console.warn('[KoraChile] ⚠️ DeepSeek-V3-0324 respondió vacío')
+      } else {
+        const errBody = await deepseekRes.text()
+        console.warn(`[KoraChile] ⚠️ DeepSeek-V3-0324 HTTP ${deepseekRes.status}:`, errBody)
+      }
+    } catch (e) {
+      console.warn('[KoraChile] ⚠️ DeepSeek-V3-0324 no disponible — probando Meta-Llama...')
+    }
+  }
+
+  // --- 3. GitHub Models / Meta-Llama-3.1-8B-Instruct (fallback rápido) ---
+  if (!rawText && config.githubToken) {
+    try {
+      console.log('[KoraChile] Intentando con GitHub Models (Meta-Llama-3.1-8B)...')
+      const requestMessages = [
+        { role: 'system', content: GROQ_MINIMAL_PROMPT },
+        { role: 'user', content: userMessage },
+      ]
+      const llamaRes = await fetch('https://models.github.ai/inference/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.githubToken}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(25000),
+        body: JSON.stringify({
+          model: 'meta/Meta-Llama-3.1-8B-Instruct',
+          temperature: 0.5,
+          max_tokens: 900,
+          messages: requestMessages,
+        }),
+      })
+      if (llamaRes.ok) {
+        const llamaData = withLLMMeta(await llamaRes.json(), 'github_models', 'meta/Meta-Llama-3.1-8B-Instruct')
+        captureDiscoverUsage(llmUsages, llamaData, requestMessages)
+        rawText = llamaData.choices?.[0]?.message?.content || ''
+        if (rawText) console.log('[KoraChile] ✅ Meta-Llama (GitHub Models) OK')
+        else console.warn('[KoraChile] ⚠️ Meta-Llama respondió vacío')
+      } else {
+        const errBody = await llamaRes.text()
+        console.warn(`[KoraChile] ⚠️ Meta-Llama HTTP ${llamaRes.status}:`, errBody)
+      }
+    } catch (e) {
+      console.warn('[KoraChile] ⚠️ Meta-Llama no disponible — probando Groq...')
+    }
+  }
+
+  // --- 4. Groq (fallback) ---
   if (!rawText && config.groqApiKey) {
     try {
       console.log('[KoraChile] Intentando con Groq...')
+      const requestMessages = [
+        { role: 'system', content: GROQ_MINIMAL_PROMPT },
+        { role: 'user', content: userMessage },
+      ]
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -460,14 +521,12 @@ export default defineEventHandler(async (event) => {
           model: 'llama-3.1-8b-instant',
           temperature: 0.5,
           max_tokens: 900,
-          messages: [
-            { role: 'system', content: GROQ_MINIMAL_PROMPT },
-            { role: 'user', content: userMessage },
-          ],
+          messages: requestMessages,
         }),
       })
       if (groqRes.ok) {
-        const groqData = await groqRes.json()
+        const groqData = withLLMMeta(await groqRes.json(), 'groq', 'llama-3.1-8b-instant')
+        captureDiscoverUsage(llmUsages, groqData, requestMessages)
         rawText = groqData.choices?.[0]?.message?.content || ''
         if (rawText) console.log('[KoraChile] ✅ Groq OK')
         else console.warn('[KoraChile] ⚠️ Groq respondió vacío')
@@ -478,6 +537,10 @@ export default defineEventHandler(async (event) => {
         // Reintento defensivo si excede límite TPM/tamaño.
         if (groqRes.status === 413 || /Request too large|tokens per minute|TPM/i.test(errBody)) {
           const safeMessage = `Texto de la persona: "${trimmedQuery.slice(0, 450)}"`
+          const retryMessages = [
+            { role: 'system', content: GROQ_MINIMAL_PROMPT },
+            { role: 'user', content: safeMessage },
+          ]
           const retryRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -489,15 +552,13 @@ export default defineEventHandler(async (event) => {
               model: 'llama-3.1-8b-instant',
               temperature: 0.4,
               max_tokens: 750,
-              messages: [
-                { role: 'system', content: GROQ_MINIMAL_PROMPT },
-                { role: 'user', content: safeMessage },
-              ],
+              messages: retryMessages,
             }),
           })
 
           if (retryRes.ok) {
-            const retryData = await retryRes.json()
+            const retryData = withLLMMeta(await retryRes.json(), 'groq', 'llama-3.1-8b-instant')
+            captureDiscoverUsage(llmUsages, retryData, retryMessages)
             rawText = retryData.choices?.[0]?.message?.content || ''
             if (rawText) console.log('[KoraChile] ✅ Groq OK (retry compact)')
           } else {
@@ -507,38 +568,7 @@ export default defineEventHandler(async (event) => {
         }
       }
     } catch (e) {
-      console.warn('[KoraChile] ⚠️ Groq no disponible — probando Ollama...')
-    }
-  }
-
-  // --- 4. Ollama local (fallback) ---
-  if (!rawText && config.ollamaUrl) {
-    try {
-      console.log(`[KoraChile] Intentando con Ollama (${config.ollamaModel})...`)
-      const ollamaRes = await fetch(`${config.ollamaUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(60000),
-        body: JSON.stringify({
-          model: config.ollamaModel,
-          temperature: 0.8,
-          max_tokens: 2200,
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: userMessage },
-          ],
-        }),
-      })
-      if (ollamaRes.ok) {
-        const data = await ollamaRes.json()
-        rawText = data.choices?.[0]?.message?.content || ''
-        if (rawText) console.log(`[KoraChile] ✅ Ollama (${config.ollamaModel}) OK`)
-        else console.warn('[KoraChile] ⚠️ Ollama respondió vacío')
-      } else {
-        console.warn(`[KoraChile] ⚠️ Ollama HTTP ${ollamaRes.status}`)
-      }
-    } catch (e) {
-      console.warn('[KoraChile] ⚠️ Ollama no disponible')
+      console.warn('[KoraChile] ⚠️ Groq no disponible')
     }
   }
 
@@ -555,7 +585,8 @@ export default defineEventHandler(async (event) => {
     parsed = tryParsePossiblyTruncatedJson(rawText)
   } catch {
     console.warn('[KoraChile] JSON inválido, intentando reparación automática...')
-    const repairedText = await repairJsonWithProvider(rawText, config)
+    repairAttempted = true
+    const repairedText = await repairJsonWithProvider(rawText, config, llmUsages)
 
     try {
       parsed = tryParsePossiblyTruncatedJson(repairedText)
@@ -571,13 +602,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  parsed = normalizeDiscoverResult(parsed, trimmedQuery)
+  const supabase = requireSupabaseServiceClient()
 
-  // ✅ Supabase igual que antes
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey
-  )
+  parsed = normalizeDiscoverResult(parsed, trimmedQuery)
+  parsed = await enrichDiscoverResultWithOfficialSalaries(parsed, supabase)
 
   const { data: session, error: dbError } = await supabase
     .from('discovery_sessions')
@@ -588,6 +616,21 @@ export default defineEventHandler(async (event) => {
   if (dbError) {
     console.error('Supabase insert error:', dbError)
   }
+
+  await logAiUsageEvent({
+    sessionId: session?.id || null,
+    route: 'discover',
+    intent: 'career_recommendation',
+    llmUsages,
+    llmCallCount: llmUsages.length,
+    latencyMs: Date.now() - startedAt,
+    metadata: {
+      query_length: trimmedQuery.length,
+      result_variations: Array.isArray(parsed?.variations) ? parsed.variations.length : 0,
+      repair_attempted: repairAttempted,
+      provider_chain: llmUsages.map(usage => ({ provider: usage.provider, model: usage.model, estimated: usage.estimated })),
+    },
+  })
 
   return {
     sessionId: session?.id || null,

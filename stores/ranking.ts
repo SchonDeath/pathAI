@@ -33,6 +33,32 @@ export interface RankingInstitution {
     paes: number
     matricula: number
   }
+  breakdown_available?: {
+    acreditacion: boolean
+    retencion: boolean
+    paes: boolean
+    matricula: boolean
+  }
+  score_data_coverage_pct?: number
+  score_used_weight?: number
+  score_excluded_metrics?: Array<{
+    key: 'acreditacion' | 'retencion' | 'paes' | 'matricula'
+    label: string
+    weight_pct: number
+    source_field: string
+    raw_value: number | null
+    included: boolean
+    reason: string
+  }>
+  score_included_metrics?: Array<{
+    key: 'acreditacion' | 'retencion' | 'paes' | 'matricula'
+    label: string
+    weight_pct: number
+    source_field: string
+    raw_value: number | null
+    included: boolean
+    reason: string
+  }>
 }
 
 export interface RankingParams {
@@ -46,7 +72,7 @@ interface CacheEntry {
   cachedAt: number
 }
 
-const STORAGE_PREFIX = 'KoraChile:ranking:v1:'
+const STORAGE_PREFIX = 'KoraChile:ranking:v2:'
 const TTL_MS = 1000 * 60 * 10 // 10 minutos
 
 function cacheKey(params: RankingParams): string {

@@ -14,6 +14,14 @@
 
         <LoadingSpinner v-if="pending" label="Cargando planes..." />
 
+        <div v-else-if="!authStore.isAdmin" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-6">
+          Requiere rol admin.
+        </div>
+
+        <div v-else-if="errorMsg" class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6">
+          {{ errorMsg }}
+        </div>
+
         <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div v-for="p in plans" :key="p.slug"
             class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col hover:shadow-md transition">
@@ -35,7 +43,35 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'admin' })
+import { useAuthStore } from '~/stores/auth'
+
 useHead({ title: 'Admin · Planes — KoraChile' })
-const { data, pending } = await useFetch<any>('/api/admin/plans')
-const plans = computed(() => data.value?.plans ?? [])
+const supabase = useSupabaseClient()
+const authStore = useAuthStore()
+const pending = ref(true)
+const errorMsg = ref('')
+const plans = ref<any[]>([])
+
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession()
+  return { Authorization: `Bearer ${data.session?.access_token ?? ''}` }
+}
+
+onMounted(async () => {
+  await authStore.ensureHydrated(true)
+  if (!authStore.isAdmin) {
+    pending.value = false
+    return
+  }
+
+  try {
+    const headers = await authHeaders()
+    const data = await $fetch<any>('/api/admin/plans', { headers })
+    plans.value = data?.plans ?? []
+  } catch (error: any) {
+    errorMsg.value = error?.data?.statusMessage ?? error?.message ?? 'No se pudieron cargar los planes.'
+  } finally {
+    pending.value = false
+  }
+})
 </script>

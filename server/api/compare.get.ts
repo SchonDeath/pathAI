@@ -1,8 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 // GET /api/compare?ids=uuid1,uuid2,uuid3
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
   const query = getQuery(event)
 
   const rawIds = String(query.ids || '').trim()
@@ -16,10 +15,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Debes comparar entre 2 y 4 carreras.' })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   const { data: careers, error } = await supabase
     .from('careers')

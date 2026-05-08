@@ -4,20 +4,18 @@
  * Devuelve ingresos + empleabilidad oficiales (MiFuturo/SIES) por carrera genérica.
  * Si no hay match exacto, intenta fallback parcial por area+tipo.
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const { area, tipo_institucion, nombre_carrera_generica } = getQuery(event) as Record<string, string>
 
   if (!area || !tipo_institucion) {
     throw createError({ statusCode: 400, statusMessage: 'area y tipo_institucion son requeridos' })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   // 1. Match exacto
   if (nombre_carrera_generica) {

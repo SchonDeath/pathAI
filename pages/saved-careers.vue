@@ -20,7 +20,7 @@
         <!-- Empty State -->
         <template v-if="store.savedCareers.length === 0">
           <div class="text-center py-20 space-y-4 bg-white rounded-3xl border border-slate-100 shadow-card">
-            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-2xl">📚</div>
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto"><BookOpen class="w-7 h-7 text-slate-500" /></div>
             <h2 class="text-xl font-bold text-slate-900">No tienes carreras guardadas</h2>
             <p class="text-slate-600">Explora carreras y guarda tus favoritas para revisarlas después</p>
             <NuxtLink to="/" class="btn-primary inline-flex">
@@ -40,7 +40,7 @@
               <div class="p-6 border-b border-slate-100">
                 <div class="flex items-start justify-between gap-4 mb-4">
                   <div class="flex items-start gap-3">
-                    <span class="text-4xl">{{ saved.careerData.emoji }}</span>
+                    <div class="w-11 h-11 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center"><BookOpen class="w-6 h-6 text-primary-600" /></div>
                     <div>
                       <h3 class="text-xl font-bold text-slate-900">{{ saved.careerData.title }}</h3>
                       <p class="text-sm text-slate-500 mt-1">{{ saved.careerData.tagline }}</p>
@@ -70,16 +70,16 @@
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-3 gap-2 text-center text-sm">
                   <div class="bg-slate-50 rounded-lg p-3">
-                    <p class="text-xs text-slate-500 mb-1">Salario Promedio</p>
-                    <p class="font-bold text-emerald-600">{{ formatSalary(getMarketData(saved.careerData.id).salary.avg) }}</p>
+                    <p class="text-xs text-slate-500 mb-1">Ingreso SIES</p>
+                    <p class="font-bold text-emerald-600">{{ officialIncomeLabel(saved.careerData) }}</p>
                   </div>
                   <div class="bg-slate-50 rounded-lg p-3">
                     <p class="text-xs text-slate-500 mb-1">Demanda</p>
-                    <p class="font-bold text-blue-600">{{ getDemandLabel(getMarketData(saved.careerData.id).demand) }}</p>
+                    <p class="font-bold text-blue-600">{{ saved.careerData.job_demand || 'Sin dato' }}</p>
                   </div>
                   <div class="bg-slate-50 rounded-lg p-3">
-                    <p class="text-xs text-slate-500 mb-1">Crecimiento</p>
-                    <p class="font-bold text-slate-900">+{{ getMarketData(saved.careerData.id).growth }}%</p>
+                    <p class="text-xs text-slate-500 mb-1">Fuente sueldo</p>
+                    <p class="font-bold text-slate-900">{{ saved.careerData.salary_source === 'sies' ? 'SIES' : '—' }}</p>
                   </div>
                 </div>
 
@@ -181,8 +181,8 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
+import { BookOpen } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
-import { getMarketData, formatSalary, getDemandLabel } from '~/utils/marketData'
 import { exportRoadmapToPDF, exportComparisonToPDF } from '~/utils/exportPDF'
 
 const store = useCareerStore()
@@ -204,6 +204,20 @@ function formatDate(dateStr: string): string {
     month: 'long',
     day: 'numeric',
   })
+}
+
+function formatCLP(value?: number | null) {
+  if (!value) return 'Sin dato'
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function officialIncomeLabel(career: any) {
+  if (career?.salary_source !== 'sies') return 'Sin dato oficial'
+  return formatCLP(career.salary_range?.senior || career.salary_range?.mid || career.salary_range?.junior)
 }
 
 function exportSinglePDF(career: any) {

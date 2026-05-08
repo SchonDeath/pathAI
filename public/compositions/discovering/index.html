@@ -51,38 +51,58 @@
 
     #orbit-wrap {
       position: relative;
-      width: min(18vw, 180px); height: min(18vw, 180px);
+      width: min(26vw, 240px); height: min(26vw, 240px);
       opacity: 0;
     }
+    /* Anillo exterior — celeste */
     #orbit-ring {
       position: absolute; inset: 0;
       border-radius: 50%;
-      border: 2px solid rgba(99,179,237,0.35);
+      border: 2px solid rgba(56,189,248,0.45);
     }
     #orbit-ring::before {
       content: '';
       position: absolute;
-      top: -5px; left: 50%;
-      width: 10px; height: 10px;
+      top: -6px; left: 50%;
+      width: 12px; height: 12px;
       border-radius: 50%;
       background: #38bdf8;
       transform: translateX(-50%);
-      box-shadow: 0 0 18px #38bdf8;
+      box-shadow: 0 0 22px 4px rgba(56,189,248,0.7);
     }
+    /* Anillo medio — violeta: punto en la parte inferior izquierda */
     #orbit-ring-2 {
       position: absolute;
-      inset: 16px;
+      inset: 22px;
       border-radius: 50%;
-      border: 1px solid rgba(167,139,250,0.3);
+      border: 1.5px solid rgba(167,139,250,0.5);
     }
     #orbit-ring-2::before {
       content: '';
       position: absolute;
-      bottom: -5px; right: 8px;
-      width: 7px; height: 7px;
+      top: -5px; left: 50%;
+      width: 9px; height: 9px;
       border-radius: 50%;
       background: #a78bfa;
-      box-shadow: 0 0 12px #a78bfa;
+      transform: translateX(-50%);
+      box-shadow: 0 0 14px 3px rgba(167,139,250,0.7);
+    }
+    /* Anillo interior — esmeralda: punto en la parte superior derecha */
+    #orbit-ring-3 {
+      position: absolute;
+      inset: 46px;
+      border-radius: 50%;
+      border: 1px solid rgba(52,211,153,0.45);
+    }
+    #orbit-ring-3::before {
+      content: '';
+      position: absolute;
+      top: -4px; left: 50%;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #34d399;
+      transform: translateX(-50%);
+      box-shadow: 0 0 10px 2px rgba(52,211,153,0.7);
     }
 
     #icon-box {
@@ -90,16 +110,12 @@
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transform: scale(0.5);
     }
-    #icon-inner {
-      width: min(12vw, 110px); height: min(12vw, 110px);
-      border-radius: 28px;
-      background: linear-gradient(135deg, #2563eb, #06b6d4);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 60px rgba(37,99,235,0.5);
-    }
-    #icon-inner svg {
-      width: 45%; height: 45%;
-      stroke: white;
+    #kora-label {
+      font-size: clamp(13px, 1.6vw, 20px);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 0 20px rgba(56,189,248,0.6);
     }
 
     #headline {
@@ -166,10 +182,10 @@
       bottom: 4%;
       left: 50%;
       transform: translateX(-50%);
-      font-size: clamp(11px, 1.2vw, 16px);
+      font-size: clamp(12px, 1.3vw, 17px);
       font-weight: 700;
-      color: rgba(255,255,255,0.18);
-      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.15em;
       opacity: 0;
     }
   </style>
@@ -185,30 +201,26 @@
       <div id="orbit-wrap">
         <div id="orbit-ring"></div>
         <div id="orbit-ring-2"></div>
+        <div id="orbit-ring-3"></div>
         <div id="icon-box">
-          <div id="icon-inner">
-            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-            </svg>
-          </div>
+          <span id="kora-label">KORA</span>
         </div>
       </div>
 
       <div>
         <div id="headline">
-          Construyendo tu<br />
-          <span class="accent">camino perfecto</span>
+          Encontrando las<br />
+          <span class="accent">carreras para ti</span>
         </div>
         <p id="subtext" style="margin-top:16px">
-          La IA analiza tu perfil y diseña rutas personalizadas para Chile
+          Kora analizara tus intereses y te recomendará rutas  con todas las carreras que existen en Chile.
         </p>
       </div>
 
       <div id="steps">
-        <div class="step-pill" id="s0">✨ Leyendo perfil</div>
+        <div class="step-pill" id="s0">✨ Leyendo información</div>
         <div class="step-pill" id="s1">🧠 Analizando mercado</div>
-        <div class="step-pill" id="s2">🗺️ Diseñando rutas</div>
+        <div class="step-pill" id="s2">🗺️ Diseñando posibles rutas</div>
         <div class="step-pill" id="s3">🚀 Preparando resultados</div>
       </div>
 
@@ -254,12 +266,13 @@
     })
 
     // Orbit rings spin
-    tl.to('#orbit-wrap', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.4)
-    tl.to('#orbit-ring', { rotation: 360, duration: 9, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
+    tl.to('#orbit-wrap', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0.4)
+    tl.to('#orbit-ring',   { rotation:  360, duration: 9, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
     tl.to('#orbit-ring-2', { rotation: -360, duration: 6, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
+    tl.to('#orbit-ring-3', { rotation:  360, duration: 4, ease: 'none', transformOrigin: '50% 50%', repeat: -1 }, 0)
 
-    // Icon pop
-    tl.to('#icon-box', { opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.7)' }, 0.6)
+    // Kora label aparece en el centro
+    tl.to('#icon-box', { opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.7)' }, 1.0)
 
     // Headline
     tl.to('#headline', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 1.2)
@@ -288,10 +301,6 @@
     tl.to('#progress-fill', { width: '55%', duration: 1.5, ease: 'power1.inOut' }, 5.0)
     tl.to('#progress-fill', { width: '80%', duration: 1.5, ease: 'power1.inOut' }, 6.7)
     tl.to('#progress-fill', { width: '100%', duration: 1.5, ease: 'power2.inOut' }, 8.2)
-
-    // Icon pulse
-    tl.to('#icon-inner', { boxShadow: '0 0 80px rgba(56,189,248,0.8)', duration: 0.5, ease: 'power2.out' }, 9.0)
-    tl.to('#icon-inner', { boxShadow: '0 0 60px rgba(37,99,235,0.5)', duration: 0.5 }, 9.5)
 
     // Branding
     tl.to('#branding', { opacity: 1, duration: 1, ease: 'power2.out' }, 7.0)

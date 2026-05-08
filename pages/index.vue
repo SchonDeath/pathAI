@@ -5,7 +5,10 @@
     <main class="flex-1 flex flex-col">
 
       <!-- ── Hero ── -->
-      <section class="relative flex flex-col items-center justify-center px-4 sm:px-6 pt-28 pb-16 sm:pb-20 min-h-[80vh] overflow-hidden">
+      <section
+        id="inicio"
+        ref="heroSectionEl"
+        class="relative flex min-h-[calc(100svh-64px)] flex-col items-center justify-center overflow-hidden px-4 sm:px-6 pt-24 sm:pt-28 pb-24 sm:pb-28 scroll-mt-20 lg:scroll-mt-24">
         <div class="absolute inset-0 -z-10 overflow-hidden">
           <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full opacity-20 blur-2xl pointer-events-none"
             style="background: radial-gradient(ellipse at center, #bfdbfe 0%, #a5f3fc 50%, transparent 70%)"></div>
@@ -15,7 +18,7 @@
 
         <div class="w-full max-w-3xl mx-auto text-center space-y-6 animate-fade-up">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold uppercase tracking-wider">
-            Orientación vocacional con IA · Chile
+            Descubre tu nuevo futuro
           </span>
 
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
@@ -40,105 +43,92 @@
             </NuxtLink>
           </div>
         </div>
-      </section>
+        <div class="absolute inset-x-0 bottom-0 border-t border-slate-800/70 bg-[#0d1728]">
+          <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(56,189,248,0.08)_0%,_rgba(15,23,42,0)_72%)]"></div>
 
-      <!-- ── Feature sections ── -->
-      <FeatureDiscover />
-      <FeatureKora />
-      <FeatureRanking />
+          <div class="relative mx-auto max-w-[90rem] px-4 sm:px-6 py-4 sm:py-5">
+            <div class="flex items-center gap-4 sm:gap-6">
+              <p class="hidden md:block whitespace-nowrap text-[11px] font-semibold text-slate-400">
+                Instituciones destacadas
+              </p>
+              <p class="md:hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Instituciones
+              </p>
 
-      <!-- ── CTA Simulador PAES ── -->
-      <section class="relative px-4 sm:px-6 py-16 sm:py-20 bg-slate-900 overflow-hidden">
-        <div class="absolute inset-0 -z-0 pointer-events-none overflow-hidden">
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full opacity-20 blur-3xl"
-            style="background: radial-gradient(ellipse, #6366f1 0%, #22d3ee 60%, transparent 80%)"></div>
-        </div>
-        <div class="relative z-10 max-w-3xl mx-auto text-center space-y-6">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider">
-            🎯 Nuevo · Simulador PAES
-          </span>
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-            ¿A qué carreras puedes entrar<br class="hidden sm:block" /> con tu puntaje PAES?
-          </h2>
-          <p class="text-slate-500 text-base leading-relaxed max-w-xl mx-auto">
-            Ingresa tu NEM, Ranking y puntajes PAES y calcula en segundos los programas reales del sistema chileno a los que clasificas.
-          </p>
-          <NuxtLink
-            to="/paes-simulator"
-            class="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 transition-all hover:-translate-y-0.5 shadow-xl">
-            Simular mis puntajes →
-          </NuxtLink>
-        </div>
-      </section>
-
-
-
-      <section class="px-4 sm:px-6 py-16 sm:py-20 bg-surface-50 border-t border-slate-100">
-        <div class="max-w-5xl mx-auto">
-          <div class="text-center mb-12">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold uppercase tracking-wider mb-4">
-              Usuarios reales
-            </span>
-            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Lo que dicen sobre KoraChile</h2>
-            <p class="text-slate-500 mt-2">Jóvenes chilenos que encontraron su camino</p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="(review, i) in testimonials" :key="i"
-              class="bg-white rounded-3xl p-6 border border-slate-100 shadow-card space-y-4 flex flex-col">
-              <!-- Stars -->
-              <div class="flex gap-0.5">
-                <svg v-for="s in 5" :key="s" class="w-4 h-4" :class="s <= review.stars ? 'text-amber-400' : 'text-slate-200'" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-              </div>
-              <p class="text-sm text-slate-700 leading-relaxed flex-1">"{{ review.text }}"</p>
-              <div class="flex items-center gap-3 pt-2 border-t border-slate-50">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                  :style="`background: ${review.avatarColor}`">
-                  {{ review.initials }}
-                </div>
-                <div>
-                  <p class="text-sm font-semibold text-slate-900">{{ review.name }}</p>
-                  <p class="text-xs text-slate-500">{{ review.role }}</p>
+              <div class="relative min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+                <div class="kora-marquee-track">
+                  <div
+                    v-for="(institution, index) in carouselLoopItems"
+                    :key="`${institution.institution_code}-${index}`"
+                    class="kora-marquee-item"
+                    :title="institution.nombre_institucion">
+                    <img
+                      v-if="institution.logo_url"
+                      :src="institution.logo_url"
+                      :alt="institution.nombre_institucion"
+                      class="kora-marquee-logo"
+                      loading="lazy"
+                      decoding="async">
+                    <span class="kora-marquee-label">{{ shortInstitutionName(institution.nombre_institucion) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <!-- Average rating -->
-          <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6 p-6 bg-white rounded-3xl border border-slate-100 shadow-card">
-            <div class="text-center">
-              <p class="text-5xl font-extrabold text-slate-900">4.9</p>
-              <div class="flex gap-0.5 justify-center mt-1">
-                <svg v-for="s in 5" :key="s" class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
+      <section class="relative border-y border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-0 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-10 xl:gap-14">
+          <aside class="lg:sticky lg:top-20 lg:self-start lg:pt-6">
+            <div class="lg:border-l lg:border-slate-200 lg:pl-6">
+              <div class="hidden lg:block mb-6">
+                <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Recorrido</div>
+                <p class="mt-2 text-sm font-semibold text-slate-900">Explora cómo funciona KoraChile</p>
               </div>
-              <p class="text-xs text-slate-500 mt-1">Promedio general</p>
+
+              <div class="flex flex-wrap justify-center gap-2 pb-1 lg:flex-col lg:gap-4 lg:overflow-visible lg:pb-0">
+                <button
+                  v-for="tab in landingTabs"
+                  :key="tab.id"
+                  type="button"
+                  @click="scrollToLandingSection(tab.id)"
+                  class="group inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-4 py-3 text-sm font-semibold transition-all lg:w-full lg:rounded-none lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-left lg:text-[1.05rem] lg:font-medium lg:shadow-none"
+                  :class="activeLandingTab === tab.id
+                    ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-300 lg:bg-transparent lg:text-slate-950 lg:font-bold'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 lg:bg-transparent lg:text-slate-400 lg:hover:text-slate-700'">
+                  <span
+                    class="h-2.5 w-2.5 flex-shrink-0 rounded-full transition-opacity duration-200 lg:h-2.5 lg:w-2.5"
+                    :class="activeLandingTab === tab.id ? 'opacity-100 bg-white lg:bg-slate-950' : 'opacity-0'" />
+                  <span class="text-left leading-tight">{{ tab.label }}</span>
+                </button>
+              </div>
             </div>
-            <div class="hidden sm:block w-px h-16 bg-slate-100"></div>
-            <div class="flex gap-8 text-center">
-              <div>
-                <p class="text-2xl font-bold text-slate-900">+2.400</p>
-                <p class="text-xs text-slate-500 mt-1">Usuarios activos</p>
-              </div>
-              <div>
-                <p class="text-2xl font-bold text-slate-900">+7.200</p>
-                <p class="text-xs text-slate-500 mt-1">Carreras descubiertas</p>
-              </div>
-              <div>
-                <p class="text-2xl font-bold text-slate-900">98%</p>
-                <p class="text-xs text-slate-500 mt-1">Lo recomendarían</p>
-              </div>
-            </div>
+          </aside>
+
+          <div>
+            <!-- ── Feature sections ── -->
+            <section id="orientacion-vocacional" class="scroll-mt-20 lg:scroll-mt-24">
+              <FeatureDiscover />
+            </section>
+            <section id="asistente-ia" class="scroll-mt-20 lg:scroll-mt-24">
+              <FeatureKora />
+            </section>
+            <section id="datos-oficiales" class="scroll-mt-20 lg:scroll-mt-24">
+              <FeatureRanking />
+            </section>
           </div>
         </div>
       </section>
+ 
+
+
+
+
     </main>
 
     <footer class="bg-white border-t border-slate-100 mt-0">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
+      <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-12 sm:py-14">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
           <!-- Brand -->
           <div class="md:col-span-2 space-y-4">
@@ -209,6 +199,246 @@ useHead({
   meta: [
     { name: 'description', content: 'Descubre tu carrera ideal, consulta datos oficiales de instituciones chilenas y conversa con Kora, tu asistente de orientación vocacional impulsado por IA.' }
   ]
+})
+
+type CarouselInstitution = {
+  institution_code: number
+  nombre_institucion: string
+  pagina_web: string | null
+  logo_url: string | null
+}
+
+const fallbackUniversityCarousel: CarouselInstitution[] = [
+  { institution_code: 39, nombre_institucion: 'Pontificia Universidad Católica de Chile', pagina_web: null, logo_url: null },
+  { institution_code: 2, nombre_institucion: 'Universidad de Chile', pagina_web: null, logo_url: null },
+  { institution_code: 12, nombre_institucion: 'Universidad de Santiago de Chile', pagina_web: null, logo_url: null },
+  { institution_code: 72, nombre_institucion: 'Universidad Técnica Federico Santa María', pagina_web: null, logo_url: null },
+  { institution_code: 54, nombre_institucion: 'Universidad de Concepción', pagina_web: null, logo_url: null },
+  { institution_code: 110, nombre_institucion: 'Duoc UC', pagina_web: null, logo_url: null },
+  { institution_code: 111, nombre_institucion: 'INACAP', pagina_web: null, logo_url: null },
+  { institution_code: 26, nombre_institucion: 'Universidad Diego Portales', pagina_web: null, logo_url: null },
+]
+
+const featuredInstitutionsStore = useFeaturedInstitutionsStore()
+await featuredInstitutionsStore.fetch()
+
+const carouselItems = computed(() => {
+  return featuredInstitutionsStore.items.length
+    ? featuredInstitutionsStore.items
+    : fallbackUniversityCarousel
+})
+
+const carouselLoopItems = computed(() => {
+  return [...carouselItems.value, ...carouselItems.value]
+})
+
+function shortInstitutionName(name: string) {
+  return name
+    .replace(/^Pontificia\s+/i, '')
+    .replace(/^Universidad\s+/i, 'U. ')
+    .replace(/^Instituto Profesional\s+/i, 'IP ')
+    .replace(/^Centro de Formación Técnica\s+/i, 'CFT ')
+}
+
+const landingTabs = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'orientacion-vocacional', label: 'Orientación vocacional' },
+  { id: 'asistente-ia', label: 'Asistente Personal' },
+  { id: 'datos-oficiales', label: 'Datos oficiales' },
+]
+
+const activeLandingTab = ref(landingTabs[0].id)
+const heroSectionEl = ref<HTMLElement | null>(null)
+let scrollRAF: number | null = null
+let sectionElements: HTMLElement[] = []
+let pendingScrollTargetId: string | null = null
+let pendingScrollTop: number | null = null
+let pendingScrollExpiresAt = 0
+let touchStartY: number | null = null
+let landingSnapLockedUntil = 0
+
+function getLandingStickyOffset() {
+  return window.innerWidth >= 1024 ? 88 : 80
+}
+
+function getSectionScrollTop(section: HTMLElement) {
+  return Math.max(0, window.scrollY + section.getBoundingClientRect().top - getLandingStickyOffset())
+}
+
+function getActiveLandingIndex() {
+  return landingTabs.findIndex(tab => tab.id === activeLandingTab.value)
+}
+
+function isWithinLandingSnapRange(direction: 1 | -1) {
+  if (!sectionElements.length) return false
+  if (pendingScrollTargetId) return false
+  if (Date.now() < landingSnapLockedUntil) return false
+
+  const stickyOffset = getLandingStickyOffset()
+  const firstTop = getSectionScrollTop(sectionElements[0])
+  const lastTop = getSectionScrollTop(sectionElements[sectionElements.length - 1])
+
+  if (direction < 0 && window.scrollY <= firstTop + 8) return false
+  if (direction > 0 && window.scrollY >= lastTop + window.innerHeight * 0.35) return false
+
+  return window.scrollY >= firstTop - 8 && window.scrollY <= lastTop + window.innerHeight * 0.45 + stickyOffset
+}
+
+function snapLandingByDirection(direction: 1 | -1) {
+  if (!isWithinLandingSnapRange(direction)) return false
+
+  const currentIndex = getActiveLandingIndex()
+  if (currentIndex === -1) return false
+
+  const targetIndex = currentIndex + direction
+  if (targetIndex < 0 || targetIndex >= sectionElements.length) return false
+
+  const targetSection = sectionElements[targetIndex]
+  if (!targetSection) return false
+
+  landingSnapLockedUntil = Date.now() + 950
+  scrollToLandingSection(targetSection.id)
+  return true
+}
+
+function collectLandingSections() {
+  sectionElements = landingTabs
+    .map(tab => document.getElementById(tab.id))
+    .filter((section): section is HTMLElement => Boolean(section))
+}
+
+function updateActiveSection() {
+  if (!sectionElements.length) return
+
+  const stickyOffset = getLandingStickyOffset()
+  const anchorY = window.scrollY + stickyOffset + 20
+  let activeId = sectionElements[0].id
+
+  for (const section of sectionElements) {
+    const sectionTop = section.getBoundingClientRect().top + window.scrollY
+    if (sectionTop <= anchorY) {
+      activeId = section.id
+    } else {
+      break
+    }
+  }
+
+  activeLandingTab.value = activeId
+}
+
+function syncActiveTabDuringScroll() {
+  if (pendingScrollTargetId && pendingScrollTop !== null) {
+    if (Date.now() >= pendingScrollExpiresAt) {
+      pendingScrollTargetId = null
+      pendingScrollTop = null
+      pendingScrollExpiresAt = 0
+      updateActiveSection()
+      return
+    }
+
+    const distance = Math.abs(window.scrollY - pendingScrollTop)
+    activeLandingTab.value = pendingScrollTargetId
+
+    if (distance <= 6) {
+      pendingScrollTargetId = null
+      pendingScrollTop = null
+      pendingScrollExpiresAt = 0
+      updateActiveSection()
+    }
+
+    return
+  }
+
+  updateActiveSection()
+}
+
+function onScroll() {
+  if (scrollRAF !== null) return
+  scrollRAF = requestAnimationFrame(() => {
+    scrollRAF = null
+    syncActiveTabDuringScroll()
+  })
+}
+
+function onWheel(event: WheelEvent) {
+  if (Math.abs(event.deltaY) <= 14) return
+  const direction = event.deltaY > 0 ? 1 : -1
+  if (!snapLandingByDirection(direction)) return
+  event.preventDefault()
+}
+
+function onKeydown(event: KeyboardEvent) {
+  let direction: 1 | -1 | null = null
+
+  if (event.key === 'ArrowDown' || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey)) {
+    direction = 1
+  } else if (event.key === 'ArrowUp' || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey)) {
+    direction = -1
+  }
+
+  if (!direction) return
+  if (!snapLandingByDirection(direction)) return
+  event.preventDefault()
+}
+
+function onTouchStart(event: TouchEvent) {
+  touchStartY = event.touches[0]?.clientY ?? null
+}
+
+function onTouchEnd(event: TouchEvent) {
+  if (touchStartY === null) return
+  const endY = event.changedTouches[0]?.clientY ?? touchStartY
+  const deltaY = touchStartY - endY
+  touchStartY = null
+  if (Math.abs(deltaY) <= 24) return
+  snapLandingByDirection(deltaY > 0 ? 1 : -1)
+}
+
+function scrollToLandingSection(sectionId: string) {
+  const section = document.getElementById(sectionId)
+  if (!section) return
+
+  activeLandingTab.value = sectionId
+
+  const stickyOffset = getLandingStickyOffset()
+  const top = window.scrollY + section.getBoundingClientRect().top - stickyOffset
+  const safeTop = Math.max(0, top)
+
+  pendingScrollTargetId = sectionId
+  pendingScrollTop = safeTop
+  pendingScrollExpiresAt = Date.now() + 1400
+  landingSnapLockedUntil = Date.now() + 900
+
+  window.scrollTo({
+    top: safeTop,
+    behavior: 'smooth',
+  })
+}
+
+function onResize() {
+  collectLandingSections()
+  syncActiveTabDuringScroll()
+}
+
+onMounted(() => {
+  collectLandingSections()
+  updateActiveSection()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onResize)
+  window.addEventListener('wheel', onWheel, { passive: false })
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('touchstart', onTouchStart, { passive: true })
+  window.addEventListener('touchend', onTouchEnd, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('wheel', onWheel)
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('touchstart', onTouchStart)
+  window.removeEventListener('touchend', onTouchEnd)
+  if (scrollRAF !== null) cancelAnimationFrame(scrollRAF)
 })
 
 const testimonials = [

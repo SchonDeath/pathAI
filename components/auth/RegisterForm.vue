@@ -82,8 +82,8 @@
       {{ serverError }}
     </div>
 
-    <div v-if="success" class="text-sm text-green-700 bg-green-50 rounded-xl px-3 py-2">
-      ✅ Cuenta creada. Revisa tu correo para confirmar tu cuenta.
+    <div v-if="success" class="text-sm text-green-700 bg-green-50 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
+      <CheckCircle2 class="w-4 h-4" /> Cuenta creada. Revisa tu correo para confirmar tu cuenta.
     </div>
 
     <button
@@ -100,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+import { CheckCircle2 } from 'lucide-vue-next'
 const emit = defineEmits<{ success: [email: string] }>()
 
 const supabase = useSupabaseClient()

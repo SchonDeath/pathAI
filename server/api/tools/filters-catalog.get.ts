@@ -8,14 +8,12 @@
  *
  * Uso: la IA lo llama una vez al inicio si no está segura de los valores válidos.
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  await requireAuth(event, { skipRateLimit: true })
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   const [areas, regions] = await Promise.all([
     supabase.from('career_generic').select('area').limit(1000),

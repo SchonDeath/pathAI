@@ -21,7 +21,7 @@
       <div class="w-full max-w-3xl mx-auto text-center space-y-6">
         <div class="space-y-3">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold uppercase tracking-wider">
-            Orientación vocacional con IA
+            Orientación vocacional con Kora
           </span>
           <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
             Descubre tu
@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import { useCareerStore } from '~/stores/career'
+import { useAuthStore } from '~/stores/auth'
 
 useHead({
   title: 'Descubrir carrera · KoraChile',
@@ -73,6 +74,15 @@ useHead({
 
 const router = useRouter()
 const store = useCareerStore()
+const authStore = useAuthStore()
+
+function requireAuth() {
+  if (!authStore.isAuthenticated) {
+    navigateTo({ path: '/login', query: { redirect: '/discover' } })
+    return false
+  }
+  return true
+}
 
 const SearchBar = defineAsyncComponent(() => import('~/components/discovery/SearchBar.vue'))
 const QuizFlow = defineAsyncComponent(() => import('~/components/discovery/QuizFlow.vue'))
@@ -81,6 +91,8 @@ const DiscoveringModal = defineAsyncComponent(() => import('~/components/discove
 const showQuiz = ref(false)
 
 async function handleDiscover(query: string) {
+  if (!requireAuth()) return
+
   const cached = store.getFromCache(query)
   if (cached) {
     store.setResult(cached.result, cached.sessionId)
@@ -114,6 +126,8 @@ function handleQuizComplete(result: {
   mbti_type: string
   free_text?: string
 }) {
+  if (!requireAuth()) return
+
   store.setQuizAnswers(result.answers)
 
   const topScores = Object.entries(result.riasec_scores)

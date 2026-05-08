@@ -7,12 +7,16 @@
  *  - Promedio PAES: peso 20%
  *  - Matrícula pregrado (log-normalizada): peso 15%
  *
+ * Si falta un dato, ese peso se excluye del cálculo (reponderación por
+ * cobertura disponible) para no castigar injustamente a la institución.
+ *
  * Query params:
  *  - tipo: filtra por tipo_institucion (opcional)
  *  - limit: cantidad máxima (default 50)
  *  - search: texto en nombre (opcional)
  */
-import { createClient } from '@supabase/supabase-js'
+import { computeRankingScore } from '~/server/utils/ranking-score'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 interface InstitutionRow {
   institution_code: number
@@ -38,11 +42,7 @@ export default defineEventHandler(async (event) => {
   const search = typeof query.search === 'string' ? query.search.trim() : ''
   const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 200)
 
-  const config = useRuntimeConfig()
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   let q = supabase
     .from('institutions')
@@ -73,45 +73,29 @@ export default defineEventHandler(async (event) => {
 
   const rows = (data ?? []) as InstitutionRow[]
 
-  // Normalización max para matrícula (log) → evita dominio de las mega universidades
-  const logMatricula = rows.map(r => Math.log(Math.max(r.matricula_pregrado_actual || 1, 1)))
+  // Normalización max para matrícula (log) solo con datos presentes.
+  // Evita dominio de mega universidades y no penaliza faltantes.
+  const logMatricula = rows
+    .map(r => (r.matricula_pregrado_actual && r.matricula_pregrado_actual > 0)
+      ? Math.log(r.matricula_pregrado_actual)
+      : null)
+    .filter((v): v is number => v !== null)
   const maxLogMat = Math.max(...logMatricula, 1)
 
-  const scored = rows.map((r, idx) => {
-    // Acreditación (0-7 años) → 0-100
-    const acredScore = r.acreditacion_anos
-      ? Math.min((r.acreditacion_anos / 7) * 100, 100)
-      : 0
-
-    // Retención: el dataset ya es 0-100
-    const retScore = r.retencion_1er_ano_pct
-      ? Math.min(Math.max(r.retencion_1er_ano_pct, 0), 100)
-      : 0
-
-    // PAES: 450-850 → 0-100
-    const paesScore = r.promedio_paes
-      ? Math.min(Math.max(((r.promedio_paes - 450) / 400) * 100, 0), 100)
-      : 0
-
-    // Matrícula (log-normalizada) → 0-100
-    const matScore = (logMatricula[idx] / maxLogMat) * 100
-
-    const score = Math.round(
-      acredScore * 0.4 +
-      retScore * 0.25 +
-      paesScore * 0.2 +
-      matScore * 0.15
+  const scored = rows.map((r) => {
+    const scoreResult = computeRankingScore(
+      {
+        acreditacion_anos: r.acreditacion_anos,
+        retencion_1er_ano_pct: r.retencion_1er_ano_pct,
+        promedio_paes: r.promedio_paes,
+        matricula_pregrado_actual: r.matricula_pregrado_actual,
+      },
+      maxLogMat,
     )
 
     return {
       ...r,
-      score,
-      breakdown: {
-        acreditacion: Math.round(acredScore),
-        retencion: Math.round(retScore),
-        paes: Math.round(paesScore),
-        matricula: Math.round(matScore),
-      },
+      ...scoreResult,
     }
   })
 

@@ -91,6 +91,64 @@
   .dot-loader span:nth-child(3) {
     animation-delay: 0.4s;
   }
+
+  .kora-marquee-track {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    gap: 1rem;
+    animation: koraMarquee 36s linear infinite;
+    will-change: transform;
+  }
+
+  .kora-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 170px;
+    max-width: 230px;
+    height: 34px;
+    border: 1px solid rgb(51 65 85 / 0.55);
+    border-radius: 9999px;
+    padding: 0 0.6rem;
+    background: rgb(15 23 42 / 0.55);
+    opacity: 0.9;
+    transition: opacity 180ms ease, border-color 180ms ease;
+  }
+
+  .kora-marquee-item:hover {
+    opacity: 1;
+    border-color: rgb(56 189 248 / 0.45);
+  }
+
+  .kora-marquee-logo {
+    max-height: 20px;
+    width: auto;
+    max-width: 64px;
+    object-fit: contain;
+  }
+
+  .kora-marquee-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgb(226 232 240);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .kora-marquee-fallback {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(148 163 184);
+  }
+
+  .kora-marquee-track:hover {
+    animation-play-state: paused;
+  }
 }
 
 @layer utilities {
@@ -144,6 +202,11 @@
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-5px); opacity: 1; }
+}
+
+@keyframes koraMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* Hover suave global para elementos interactivos con clase .smooth-hover */

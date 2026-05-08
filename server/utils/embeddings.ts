@@ -9,8 +9,24 @@
  */
 
 let pipelinePromise: Promise<any> | null = null
+let disabledWarningShown = false
+
+function embeddingsEnabled() {
+  return useRuntimeConfig().aiEmbeddingsEnabled !== false
+}
+
+function warnEmbeddingsDisabled() {
+  if (disabledWarningShown) return
+  disabledWarningShown = true
+  console.info('[embeddings] disabled in this runtime; set AI_EMBEDDINGS_ENABLED=1 to enable them explicitly')
+}
 
 async function getPipeline() {
+  if (!embeddingsEnabled()) {
+    warnEmbeddingsDisabled()
+    return null
+  }
+
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
       const { pipeline, env } = await import('@xenova/transformers')
@@ -34,6 +50,7 @@ export async function embedText(text: string): Promise<number[] | null> {
   if (!text?.trim()) return null
   try {
     const embedder = await getPipeline()
+    if (!embedder) return null
     const output = await embedder(text, { pooling: 'mean', normalize: true })
     return Array.from(output.data as Float32Array)
   } catch (err: any) {

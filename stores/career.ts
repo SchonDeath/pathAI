@@ -8,9 +8,9 @@ export interface CareerRoadmapPhase {
 }
 
 export interface SalaryRange {
-  junior: number
-  mid: number
-  senior: number
+  junior: number | null
+  mid: number | null
+  senior: number | null
   currency: string
 }
 
@@ -46,6 +46,10 @@ export interface CareerVariation {
   skills: string[]
   roadmap: CareerRoadmapPhase[]
   salary_range?: SalaryRange
+  salary_source?: 'sies' | 'none'
+  salary_label?: string
+  salary_year?: number
+  matched_career?: string
   personality_types?: string[]
   books?: CareerBook[]
   fun_facts?: string[]

@@ -1,67 +1,45 @@
 <template>
   <div class="min-h-screen flex relative overflow-hidden bg-slate-900">
-    <!-- Botón volver -->
-    <NuxtLink
-      to="/"
-      class="absolute top-4 right-4 lg:top-6 lg:right-6 z-20 flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md text-slate-700 text-sm font-medium hover:bg-white transition">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-      </svg>
-      Volver
-    </NuxtLink>
-
     <!-- Fondo móvil — imagen bosque -->
     <div class="lg:hidden absolute inset-0 z-0 overflow-hidden">
       <img
-        src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80"
+        :src="loginImage"
         alt="Paisaje bosque"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="absolute inset-0 w-full h-full object-cover object-[center_top]"
       />
       <div class="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/25 to-slate-900/60" />
     </div>
 
     <!-- Lado izquierdo — imagen -->
-    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+    <div class="hidden lg:flex lg:w-[58%] xl:w-[60%] relative overflow-hidden">
       <img
-        src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80"
+        :src="loginImage"
         alt="Paisaje montañas"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="absolute inset-0 w-full h-full object-cover object-[center_top]"
       />
       <!-- Overlay oscuro suave -->
       <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/20" />
-      <!-- Logo sobre la imagen -->
-      <NuxtLink to="/" class="absolute top-8 left-8 flex items-center gap-2.5 z-10">
-        <div class="w-8 h-8 shrink-0">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-            <defs>
-              <linearGradient id="logoGradImg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#1A73E8"/>
-                <stop offset="100%" stop-color="#0891b2"/>
-              </linearGradient>
-            </defs>
-            <circle cx="16" cy="16" r="15" fill="url(#logoGradImg)"/>
-            <polygon points="16,4 18.2,16 16,14.5" fill="white"/>
-            <polygon points="16,28 13.8,16 16,17.5" fill="white" fill-opacity="0.3"/>
-            <circle cx="16" cy="16" r="1.8" fill="white"/>
-          </svg>
-        </div>
-        <span class="font-bold text-white text-lg tracking-tight drop-shadow">KoraChile</span>
+      <!-- Botón volver sobre la imagen -->
+      <NuxtLink
+        to="/"
+        class="absolute top-8 left-8 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md text-slate-700 text-sm font-medium hover:bg-white transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver
       </NuxtLink>
     </div>
 
     <!-- Lado derecho — formulario -->
-    <div class="w-full lg:w-1/2 relative z-10 flex flex-col justify-center px-4 sm:px-6 lg:px-16 py-8 sm:py-10 lg:py-12 lg:bg-white">
-      <!-- Logo móvil -->
-      <NuxtLink to="/" class="flex lg:hidden items-center gap-2 mb-6 text-white drop-shadow">
-        <div class="w-7 h-7">
-          <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
-            <circle cx="16" cy="16" r="15" fill="#1A73E8"/>
-            <polygon points="16,4 18.2,16 16,14.5" fill="white"/>
-            <polygon points="16,28 13.8,16 16,17.5" fill="white" fill-opacity="0.3"/>
-            <circle cx="16" cy="16" r="1.8" fill="white"/>
-          </svg>
-        </div>
-        <span class="font-bold text-base">KoraChile</span>
+  <div class="w-full lg:w-[42%] xl:w-[40%] relative z-10 flex flex-col justify-center px-4 sm:px-6 lg:px-12 xl:px-16 py-8 sm:py-10 lg:py-12 lg:bg-white">
+      <!-- Volver móvil -->
+      <NuxtLink
+        to="/"
+        class="inline-flex lg:hidden items-center gap-1.5 mb-6 w-fit px-3 py-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md text-slate-700 text-sm font-medium hover:bg-white transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver
       </NuxtLink>
 
       <div class="w-full max-w-sm mx-auto space-y-7 rounded-3xl border border-slate-200 bg-white shadow-2xl p-5 sm:p-6 lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:p-0">
@@ -126,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import loginImage from '~/assets/css/login.png'
 import { useAuthStore } from '~/stores/auth'
 
 useHead({ title: 'Iniciar sesión — KoraChile' })
@@ -136,9 +115,12 @@ const googleLoading = ref(false)
 const activeTab = ref<'login' | 'register'>('login')
 const postRegisterEmail = ref<string | null>(null)
 
+const route = useRoute()
+
 onMounted(async () => {
   if (authStore.isAuthenticated) {
-    await navigateTo('/profile')
+    const redirect = route.query.redirect as string | undefined
+    await navigateTo(redirect || '/profile')
   }
 })
 

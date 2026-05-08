@@ -23,7 +23,10 @@
             'bg-accent-50 text-accent-700': currentQuestion.kind === 'mbti',
             'bg-emerald-50 text-emerald-700': currentQuestion.kind === 'free',
           }">
-          {{ currentQuestion.kind === 'riasec' ? '🧭 Intereses' : currentQuestion.kind === 'mbti' ? '🧠 Personalidad' : '✍️ Cuéntanos' }}
+          <Compass v-if="currentQuestion.kind === 'riasec'" class="w-3 h-3" />
+          <Brain v-else-if="currentQuestion.kind === 'mbti'" class="w-3 h-3" />
+          <PencilLine v-else class="w-3 h-3" />
+          {{ currentQuestion.kind === 'riasec' ? 'Intereses' : currentQuestion.kind === 'mbti' ? 'Personalidad' : 'Cuéntanos' }}
         </span>
         <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">{{ currentQuestion.title }}</h2>
         <p class="text-sm sm:text-base text-slate-600">{{ currentQuestion.description }}</p>
@@ -97,14 +100,15 @@
         v-else
         @click="submit"
         :disabled="!isComplete"
-        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-accent-500 text-white text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-        Ver mis carreras ✨
+        class="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-accent-500 text-white text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+        Ver mis carreras <Sparkles class="w-3.5 h-3.5" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Brain, Compass, PencilLine, Sparkles } from 'lucide-vue-next'
 /**
  * Quiz vocacional basado en:
  *  - RIASEC (Holland): 6 preguntas, una por dimensión (Realista, Investigador, Artístico, Social, Emprendedor, Convencional).

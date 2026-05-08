@@ -145,7 +145,7 @@ async function fetchAll() {
 
     const [instRes, plansRes] = await Promise.all([
       $fetch<any>(`/api/admin/institutions?${qs.toString()}`, { headers }),
-      plans.value.length ? Promise.resolve({ plans: plans.value }) : $fetch<any>('/api/admin/plans'),
+      plans.value.length ? Promise.resolve({ plans: plans.value }) : $fetch<any>('/api/admin/plans', { headers }),
     ])
     results.value = instRes.results
     count.value = instRes.count
@@ -174,15 +174,16 @@ async function save(inst: any) {
       headers,
       body: {
         plan_slug: edit.plan_slug,
+        priority: edit.priority ?? 0,
         featured_until: edit.featured_until || null,
         is_featured: (edit.priority ?? 0) > 0,
       },
     })
     const idx = results.value.findIndex(r => r.institution_code === inst.institution_code)
     if (idx >= 0) results.value[idx] = { ...results.value[idx], ...res.institution }
-    showStatus(`✓ ${inst.nombre_institucion} actualizada`)
+    showStatus(`Listo: ${inst.nombre_institucion} actualizada`)
   } catch (e: any) {
-    showStatus(`✗ Error: ${e?.data?.statusMessage ?? e.message}`)
+    showStatus(`Error: ${e?.data?.statusMessage ?? e.message}`)
   } finally {
     savingId.value = null
   }

@@ -11,8 +11,8 @@
  * empleabilidad, carreras y mallas. Solo interpreta/redacta.
  */
 import { $fetch } from 'ofetch'
-import { createClient } from '@supabase/supabase-js'
 import { resolveInstitution } from './institution-resolver'
+import { getSupabaseServiceClient } from './supabase-clients'
 
 export const aiTools = [
   {
@@ -25,6 +25,7 @@ export const aiTools = [
         type: 'object',
         properties: {
           keywords: { type: 'array', items: { type: 'string' }, description: 'Palabras clave de interés' },
+          institution: { type: 'string', description: 'Nombre o sigla de una institución específica (ej: "Universidad de Chile", "PUCV"). Úsalo cuando el usuario pregunte por una carrera EN una institución concreta.' },
           area: { type: 'string', description: 'Área genérica de conocimiento (ej: Tecnología, Salud)' },
           tipo_institucion: {
             type: 'string',
@@ -163,7 +164,7 @@ export const aiTools = [
     function: {
       name: 'get_career_employability_by_institution',
       description:
-        'Empleabilidad+ingreso por carrera-título EN una institución específica. Devuelve ingreso_label (RANGO textual, ej: "$1.200.001 - $1.600.000"), ingreso_min_clp, ingreso_max_clp, empleabilidad_1_ano_pct, empleabilidad_2_ano_pct. IMPORTANTE: NO hay ingreso 4to año aquí — para eso usar get_career_stats_detailed. Usa esta tool para comparar "sueldo Ing. Comercial UDP vs UChile" o "empleabilidad Psicología por universidad". Al citar ingresos SIEMPRE presenta el rango textual (ingreso_label), NUNCA calcules ni inventes un promedio.',
+        'Empleabilidad+ingreso por carrera genérica EN una institución específica. Devuelve ingreso_label, ingreso_promedio_4to_ano_clp, empleabilidad_1_ano_pct y empleabilidad_2_ano_pct. Usa esta tool para comparar "sueldo Ing. Comercial UDP vs UChile" o "empleabilidad Psicología por universidad". Al citar ingresos privilegia ingreso_label cuando exista y no inventes rangos.',
       parameters: {
         type: 'object',
         properties: {
@@ -239,11 +240,9 @@ async function resolveInstitutionInArgs(args: any) {
   if (!nombreKey) return args
   if (args.institution_code) return args
   try {
-    const cfg = useRuntimeConfig()
-    const supabase = createClient(
-      cfg.public.supabaseUrl,
-      cfg.supabaseServiceKey || cfg.public.supabaseAnonKey,
-    )
+    const supabase = getSupabaseServiceClient({ fallbackToAnon: true })
+    if (!supabase) return args
+
     const r = await resolveInstitution(supabase, args[nombreKey])
     if (r) {
       args.institution_code = r.institution_code
@@ -263,32 +262,38 @@ async function resolveInstitutionInArgs(args: any) {
  */
 export async function runTool(name: ToolName, args: any, event?: any) {
   const base = event ? getRequestURL(event).origin : ''
+  // Forwardea el Authorization del request original. Como las tools internas
+  // exigen JWT (para cerrar la puerta a llamadas externas anónimas), aquí
+  // re-inyectamos el bearer del usuario que ya pasó requireAuth en /api/chat.
+  const authHeader = event ? getHeader(event, 'authorization') : ''
+  const headers = authHeader ? { Authorization: authHeader } : undefined
+
   if (TOOLS_WITH_INSTITUTION.has(name)) {
     args = await resolveInstitutionInArgs(args)
   }
   switch (name) {
     case 'get_institution':
-      return await $fetch(`${base}/api/tools/get-institution`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/get-institution`, { method: 'GET', query: args, headers })
     case 'get_program_detail':
-      return await $fetch(`${base}/api/tools/get-program-detail`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/get-program-detail`, { method: 'GET', query: args, headers })
     case 'get_career_stats_detailed':
-      return await $fetch(`${base}/api/tools/career-stats-detailed`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/career-stats-detailed`, { method: 'GET', query: args, headers })
     case 'search_career_match':
-      return await $fetch(`${base}/api/tools/search-career-match`, { method: 'POST', body: args })
+      return await $fetch(`${base}/api/tools/search-career-match`, { method: 'POST', body: args, headers })
     case 'get_financial_stats':
-      return await $fetch(`${base}/api/tools/financial-stats`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/financial-stats`, { method: 'GET', query: args, headers })
     case 'rank_careers':
-      return await $fetch(`${base}/api/tools/rank-careers`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/rank-careers`, { method: 'GET', query: args, headers })
     case 'rank_institutions':
-      return await $fetch(`${base}/api/tools/rank-institutions`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/rank-institutions`, { method: 'GET', query: args, headers })
     case 'get_career_employability_by_institution':
-      return await $fetch(`${base}/api/tools/career-employability-by-institution`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/career-employability-by-institution`, { method: 'GET', query: args, headers })
     case 'get_filters_catalog':
-      return await $fetch(`${base}/api/tools/filters-catalog`, { method: 'GET' })
+      return await $fetch(`${base}/api/tools/filters-catalog`, { method: 'GET', headers })
     case 'compare_curriculums':
-      return await $fetch(`${base}/api/tools/compare-curriculums`, { method: 'POST', body: args })
+      return await $fetch(`${base}/api/tools/compare-curriculums`, { method: 'POST', body: args, headers })
     case 'compare_institutions':
-      return await $fetch(`${base}/api/tools/compare-institutions`, { method: 'GET', query: args })
+      return await $fetch(`${base}/api/tools/compare-institutions`, { method: 'GET', query: args, headers })
     default:
       throw new Error(`Unknown tool: ${name}`)
   }

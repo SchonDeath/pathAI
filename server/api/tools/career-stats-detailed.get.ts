@@ -9,10 +9,11 @@
  * Uso típico: "¿Cuánto gana un asistente ejecutivo en 2do año?
  *              ¿Cuántos egresan al año? ¿Cuál es la empleabilidad?"
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const { nombre_carrera_generica, tipo_institucion, area } =
     getQuery(event) as Record<string, string>
 
@@ -23,10 +24,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   let q = supabase
     .from('career_stats')

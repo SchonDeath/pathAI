@@ -15,8 +15,28 @@
           </NuxtLink>
 
           <div class="flex items-start gap-4">
-            <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-5xl shrink-0 bg-gradient-to-br from-blue-50 to-cyan-50">
-              {{ career?.emoji }}
+            <div
+              class="w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 border"
+              :class="careerIconTone(career)">
+              <svg v-if="careerIconKind(career) === 'business'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 20h16" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V8m5 8V4m5 12v-6" />
+              </svg>
+              <svg v-else-if="careerIconKind(career) === 'tech'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L6 12l3.75-5" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7L18 12l-3.75 5" />
+              </svg>
+              <svg v-else-if="careerIconKind(career) === 'health'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+              </svg>
+              <svg v-else-if="careerIconKind(career) === 'education'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9-4 9 4-9 4-9-4z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 10.5v4.25c0 .828 2.239 2.25 5 2.25s5-1.422 5-2.25V10.5" />
+              </svg>
+              <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M7 12h10M9 17h6" />
+              </svg>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-3 flex-wrap">
@@ -50,7 +70,7 @@
             v-for="(fact, i) in career.fun_facts"
             :key="i"
             class="shrink-0 flex items-start gap-2 bg-gradient-to-br from-primary-50 to-accent-50 border border-primary-100 rounded-2xl px-4 py-3 max-w-xs">
-            <span class="text-lg leading-none mt-0.5">💡</span>
+            <Lightbulb class="w-4 h-4 text-amber-500 mt-0.5" />
             <p class="text-sm text-slate-700 leading-snug">{{ fact }}</p>
           </div>
         </div>
@@ -71,7 +91,7 @@
             </div>
             <ul class="space-y-2">
               <li v-for="(pro, idx) in career?.pros" :key="idx" class="text-sm text-slate-700 flex items-start gap-2">
-                <span class="text-emerald-500 mt-0.5">✓</span>
+                <Check class="w-4 h-4 text-emerald-500 mt-0.5" />
                 {{ pro }}
               </li>
             </ul>
@@ -86,7 +106,7 @@
             </div>
             <ul class="space-y-2">
               <li v-for="(con, idx) in career?.cons" :key="idx" class="text-sm text-slate-700 flex items-start gap-2">
-                <span class="text-amber-500 mt-0.5">⚠</span>
+                <TriangleAlert class="w-4 h-4 text-amber-500 mt-0.5" />
                 {{ con }}
               </li>
             </ul>
@@ -186,7 +206,12 @@
 
                       <!-- Teoría -->
                       <div v-if="phase.theory?.length" class="pt-4 border-t border-slate-100">
-                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">📖 Teoría a dominar</h4>
+                        <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                          <svg class="w-4 h-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25278C10.8324 5.47675 9.43015 5 8 5C5.79086 5 4 6.79086 4 9V17C4 14.7909 5.79086 13 8 13C9.43015 13 10.8324 13.4768 12 14.2528M12 6.25278C13.1676 5.47675 14.5699 5 16 5C18.2091 5 20 6.79086 20 9V17C20 14.7909 18.2091 13 16 13C14.5699 13 13.1676 13.4768 12 14.2528M12 6.25278V14.2528" />
+                          </svg>
+                          Teoría a dominar
+                        </h4>
                         <div class="flex flex-wrap gap-2">
                           <span
                             v-for="(topic, tIdx) in phase.theory"
@@ -205,18 +230,37 @@
 
           <!-- Sueldo Tab -->
           <template v-if="activeTab === 'sueldo'">
-            <div v-if="dbSalary || career?.salary_range" class="space-y-6">
+            <div v-if="officialSalaryRange" class="space-y-6">
               <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card">
                 <div class="flex items-center justify-between mb-6">
-                  <h3 class="text-lg font-bold text-slate-900">Rangos salariales en Chile (CLP mensual)</h3>
-                  <span v-if="dbSalary" class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">Datos oficiales SIES</span>
-                  <span v-else class="text-xs px-2.5 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-100 font-medium">Estimación IA</span>
+                  <div>
+                    <h3 class="text-lg font-bold text-slate-900">Ingresos en Chile (CLP mensual)</h3>
+                    <p class="text-xs text-slate-500 mt-1">{{ officialSalaryMeta }}</p>
+                  </div>
+                  <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">Datos oficiales SIES</span>
                 </div>
                 <div class="space-y-5">
                   <div v-for="level in salaryLevels" :key="level.key" class="space-y-1.5">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2">
-                        <span class="text-lg">{{ level.emoji }}</span>
+                        <span class="w-8 h-8 rounded-xl border flex items-center justify-center"
+                          :class="{
+                            'border-emerald-200 bg-emerald-50 text-emerald-700': level.icon === 'junior',
+                            'border-blue-200 bg-blue-50 text-blue-700': level.icon === 'mid',
+                            'border-indigo-200 bg-indigo-50 text-indigo-700': level.icon === 'senior',
+                          }">
+                          <svg v-if="level.icon === 'junior'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21V12M12 12L8.5 8.5M12 12l3.5-3.5" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16c0-2.7614 2.23858-5 5-5s5 2.2386 5 5" />
+                          </svg>
+                          <svg v-else-if="level.icon === 'mid'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l5-5 4 4 7-7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 8h6v6" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.755 5.583 6.16.895-4.457 4.344 1.052 6.134L12 17.063 6.49 19.956l1.052-6.134L3.085 9.478l6.16-.895L12 3z" />
+                          </svg>
+                        </span>
                         <span class="font-semibold text-slate-800">{{ level.label }}</span>
                       </div>
                       <span class="font-bold text-slate-900">{{ formatCLP(activeSalary[level.key]) }}</span>
@@ -232,14 +276,18 @@
                   </div>
                 </div>
                 <p class="text-xs text-slate-500 mt-6 text-center">
-                  <template v-if="dbSalary">* Ingresos reales basados en egresados según datos SIES/MiFuturo. Pueden variar según institución y región.</template>
-                  <template v-else>* Estimaciones basadas en el mercado laboral chileno actual. Los valores pueden variar según empresa, ciudad y experiencia.</template>
+                  * Ingresos reales basados en egresados según datos SIES/MiFuturo. Pueden variar según institución y región. Kora no rellena sueldos cuando no hay dato oficial.
                 </p>
               </div>
 
-              <div class="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-3xl p-6 border border-emerald-100">
+              <div v-if="salaryGrowthPercent > 0" class="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-3xl p-6 border border-emerald-100">
                 <div class="flex items-start gap-3">
-                  <span class="text-2xl">📈</span>
+                  <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l5-5 4 4 7-7" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14 8h6v6" />
+                    </svg>
+                  </span>
                   <div>
                     <h4 class="font-bold text-slate-900 mb-1">Potencial de crecimiento</h4>
                     <p class="text-sm text-slate-600">Desde junior hasta senior, el sueldo puede crecer hasta <span class="font-bold text-emerald-700">{{ salaryGrowthPercent }}%</span>. Una de las carreras con mejor trayectoria salarial en Chile.</p>
@@ -248,7 +296,11 @@
               </div>
             </div>
             <div v-else class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card text-center text-slate-500">
-              <span class="text-4xl block mb-3">💼</span>
+              <span class="w-16 h-16 mx-auto mb-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 6V5a3 3 0 013-3h0a3 3 0 013 3v1m-9 0h12a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                </svg>
+              </span>
               <p>Información salarial no disponible para esta búsqueda.</p>
             </div>
           </template>
@@ -260,14 +312,22 @@
                 v-for="(book, idx) in career.books"
                 :key="idx"
                 class="bg-white rounded-3xl p-6 border border-slate-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
-                <div class="text-4xl mb-4">{{ book.emoji }}</div>
+                <div class="w-12 h-12 mb-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25278C10.8324 5.47675 9.43015 5 8 5C5.79086 5 4 6.79086 4 9V17C4 14.7909 5.79086 13 8 13C9.43015 13 10.8324 13.4768 12 14.2528M12 6.25278C13.1676 5.47675 14.5699 5 16 5C18.2091 5 20 6.79086 20 9V17C20 14.7909 18.2091 13 16 13C14.5699 13 13.1676 13.4768 12 14.2528M12 6.25278V14.2528" />
+                  </svg>
+                </div>
                 <h3 class="font-bold text-slate-900 text-base leading-snug">{{ book.title }}</h3>
                 <p class="text-sm text-primary-600 font-medium mt-1">{{ book.author }}</p>
                 <p class="text-sm text-slate-600 mt-3 leading-relaxed flex-1">{{ book.description }}</p>
               </div>
             </div>
             <div v-else class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card text-center text-slate-500">
-              <span class="text-4xl block mb-3">📚</span>
+              <span class="w-16 h-16 mx-auto mb-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25278C10.8324 5.47675 9.43015 5 8 5C5.79086 5 4 6.79086 4 9V17C4 14.7909 5.79086 13 8 13C9.43015 13 10.8324 13.4768 12 14.2528M12 6.25278C13.1676 5.47675 14.5699 5 16 5C18.2091 5 20 6.79086 20 9V17C20 14.7909 18.2091 13 16 13C14.5699 13 13.1676 13.4768 12 14.2528M12 6.25278V14.2528" />
+                </svg>
+              </span>
               <p>Recomendaciones de libros no disponibles para esta búsqueda.</p>
             </div>
           </template>
@@ -296,7 +356,12 @@
 
               <div class="bg-gradient-to-br from-violet-50 to-pink-50 rounded-3xl p-6 border border-violet-100">
                 <div class="flex items-start gap-3">
-                  <span class="text-2xl">🧠</span>
+                  <span class="w-10 h-10 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9.75a2.25 2.25 0 114.5 0v4.5a2.25 2.25 0 11-4.5 0v-4.5z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7 10.5A3.5 3.5 0 0110.5 7M17 10.5A3.5 3.5 0 0013.5 7M7.5 14.5A3.5 3.5 0 0011 18M16.5 14.5A3.5 3.5 0 0113 18" />
+                    </svg>
+                  </span>
                   <div>
                     <h4 class="font-bold text-slate-900 mb-1">¿No conoces tu tipo MBTI?</h4>
                     <p class="text-sm text-slate-600 mb-3">Descubre tu perfil de personalidad con un test gratuito y confirma si esta carrera es para ti.</p>
@@ -335,14 +400,24 @@
                   v-for="(prog, i) in dbPrograms"
                   :key="i"
                   class="bg-white rounded-2xl p-5 border border-slate-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex items-start gap-4">
-                  <div class="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center text-xl font-bold"
-                    :class="{
-                      'bg-blue-50 text-blue-600': prog.tipo_institucion === 'Universidades',
-                      'bg-emerald-50 text-emerald-600': prog.tipo_institucion === 'Institutos Profesionales',
-                      'bg-amber-50 text-amber-600': prog.tipo_institucion === 'Centros de Formación Técnica',
-                      'bg-violet-50 text-violet-600': !['Universidades','Institutos Profesionales','Centros de Formación Técnica'].includes(prog.tipo_institucion),
-                    }">
-                    {{ prog.tipo_institucion === 'Universidades' ? '🎓' : prog.tipo_institucion === 'Centros de Formación Técnica' ? '🏫' : '📚' }}
+                  <div class="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center bg-slate-50">
+                    <InstitutionLogo
+                      v-if="prog.institution_code"
+                      :institution-code="prog.institution_code"
+                      :institution-name="prog.nombre_institucion"
+                      class="w-11 h-11 object-contain rounded-xl"
+                    />
+                    <div v-else class="w-11 h-11 rounded-xl flex items-center justify-center"
+                      :class="{
+                        'bg-blue-50 text-blue-600': prog.tipo_institucion === 'Universidades',
+                        'bg-emerald-50 text-emerald-600': prog.tipo_institucion === 'Institutos Profesionales',
+                        'bg-amber-50 text-amber-600': prog.tipo_institucion?.includes('Formaci'),
+                        'bg-violet-50 text-violet-600': true,
+                      }">
+                      <GraduationCap v-if="prog.tipo_institucion === 'Universidades'" class="w-5 h-5" />
+                      <School v-else-if="prog.tipo_institucion?.includes('Formaci')" class="w-5 h-5" />
+                      <BookOpen v-else class="w-5 h-5" />
+                    </div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -403,7 +478,9 @@
                       'bg-amber-50 text-amber-600': uni.type === 'CFT',
                       'bg-violet-50 text-violet-600': !['Universidad','Instituto','DUOC','CFT'].includes(uni.type),
                     }">
-                    {{ uni.type === 'Universidad' ? '🎓' : uni.type === 'CFT' ? '🏫' : '📚' }}
+                    <GraduationCap v-if="uni.type === 'Universidad'" class="w-5 h-5" />
+                    <School v-else-if="uni.type === 'CFT'" class="w-5 h-5" />
+                    <BookOpen v-else class="w-5 h-5" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -432,7 +509,7 @@
             </div>
 
             <div v-else class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card text-center text-slate-500">
-              <span class="text-4xl block mb-3">🎓</span>
+              <span class="flex justify-center mb-3"><GraduationCap class="w-8 h-8 text-slate-500" /></span>
               <p>Información de universidades no disponible para esta búsqueda.</p>
             </div>
           </template>
@@ -466,7 +543,12 @@
               </div>
             </div>
             <div v-else class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card text-center text-slate-500">
-              <span class="text-4xl block mb-3">📋</span>
+              <span class="w-16 h-16 mx-auto mb-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 11h6M9 15h4" />
+                </svg>
+              </span>
               <p>Malla curricular no disponible para esta búsqueda.</p>
             </div>
           </template>
@@ -481,9 +563,12 @@
                   :key="i"
                   class="bg-white rounded-3xl p-6 border border-slate-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
                   <div class="flex items-center gap-3 mb-4">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-sky-100 text-sky-700"
                       style="background: linear-gradient(135deg, #eff6ff, #ecfeff)">
-                      {{ person.emoji }}
+                      <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 20a7 7 0 0114 0" />
+                      </svg>
                     </div>
                     <div class="min-w-0">
                       <h3 class="font-bold text-slate-900 text-sm leading-snug truncate">{{ person.name }}</h3>
@@ -501,7 +586,11 @@
               </div>
             </div>
             <div v-else class="bg-white rounded-3xl p-8 border border-slate-100 shadow-card text-center text-slate-500">
-              <span class="text-4xl block mb-3">🌟</span>
+              <span class="w-16 h-16 mx-auto mb-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.755 5.583 6.16.895-4.457 4.344 1.052 6.134L12 17.063 6.49 19.956l1.052-6.134L3.085 9.478l6.16-.895L12 3z" />
+                </svg>
+              </span>
               <p>Referentes no disponibles para esta búsqueda.</p>
             </div>
           </template>
@@ -516,12 +605,13 @@
               @click="saveCareer"
               class="px-8 py-3 rounded-2xl bg-white text-primary-600 font-bold hover:bg-slate-50 transition-colors"
               :class="{ 'opacity-75': isSaved }">
-              {{ isSaved ? '✓ Guardado' : '📌 Guardar Plan' }}
-            </button>
-            <button
-              @click="exportPDF"
-              class="px-8 py-3 rounded-2xl border-2 border-white text-white font-bold hover:bg-white/10 transition-colors">
-              📥 Descargar PDF
+              <span v-if="isSaved" class="inline-flex items-center gap-2"><Check class="w-4 h-4" />Guardado</span>
+              <span v-else class="inline-flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Guardar carrera
+              </span>
             </button>
           </div>
         </div>
@@ -571,11 +661,13 @@
 </template>
 
 <script setup lang="ts">
+import { BookOpen, Check, GraduationCap, Lightbulb, School, TriangleAlert } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 
 const route = useRoute()
 const router = useRouter()
 const store = useCareerStore()
+const supabase = useSupabaseClient()
 
 const activeTab = ref('sueldo')
 const expandedPhase = ref<number | null>(null)
@@ -583,14 +675,33 @@ const isChatOpen = ref(false)
 const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') isChatOpen.value = false }
 
 const TABS = [
-  { key: 'sueldo', label: '💰 Sueldo' },
-  { key: 'personalidad', label: '🧠 Personalidad' },
-  { key: 'universidades', label: '🎓 Dónde estudiar' },
-  { key: 'malla', label: '📋 Malla Curricular' },
+  { key: 'sueldo', label: 'Sueldo' },
+  { key: 'personalidad', label: 'Personalidad' },
+  { key: 'universidades', label: 'Dónde estudiar' },
+  { key: 'malla', label: 'Malla Curricular' },
 ]
 
 const career = computed(() => store.selectedCareer)
 const backLink = computed(() => `/results/${route.params.sessionId}`)
+
+function careerIconKind(careerData: any) {
+  const haystack = `${careerData?.title || ''} ${careerData?.tagline || ''} ${careerData?.description || ''} ${(careerData?.skills || []).join(' ')}`.toLowerCase()
+
+  if (/(comercial|negocio|finanza|marketing|ventas|gesti[oó]n|administraci[oó]n|econom|mercado|invest|estadistic|analista)/.test(haystack)) return 'business'
+  if (/(software|datos|inform[aá]tica|program|digital|sistemas|ia|tecnolog)/.test(haystack)) return 'tech'
+  if (/(salud|m[eé]dic|cl[ií]nic|enfermer|terapia|psicolog|nutri)/.test(haystack)) return 'health'
+  if (/(pedagog|educaci[oó]n|docencia|aprendizaje|formaci[oó]n)/.test(haystack)) return 'education'
+  return 'general'
+}
+
+function careerIconTone(careerData: any) {
+  const kind = careerIconKind(careerData)
+  if (kind === 'business') return 'border-amber-200 bg-amber-50 text-amber-700'
+  if (kind === 'tech') return 'border-sky-200 bg-sky-50 text-sky-700'
+  if (kind === 'health') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (kind === 'education') return 'border-violet-200 bg-violet-50 text-violet-700'
+  return 'border-slate-200 bg-slate-50 text-slate-700'
+}
 
 // ── Roadmap Progress ─────────────────────────────────────────────────────────
 const storageKey = computed(() => `roadmap-progress-${route.params.careerId}`)
@@ -626,25 +737,36 @@ const roadmapProgress = computed(() => {
 
 // ── Salary ────────────────────────────────────────────────────────────────────
 const salaryLevels = [
-  { key: 'junior' as const, label: 'Junior', emoji: '🌱', description: '0-2 años de experiencia', color: 'bg-emerald-400' },
-  { key: 'mid' as const, label: 'Semi-Senior', emoji: '🚀', description: '2-5 años de experiencia', color: 'bg-blue-500' },
-  { key: 'senior' as const, label: 'Senior', emoji: '⭐', description: '5+ años de experiencia', color: 'bg-gradient-to-r from-primary-600 to-accent-500' },
+  { key: 'junior' as const, icon: 'junior', label: '1° año post-titulación', description: 'Ingreso promedio bruto mensual al primer año', color: 'bg-emerald-400' },
+  { key: 'mid' as const, icon: 'mid', label: '3°/4° año post-titulación', description: 'Ingreso promedio bruto mensual intermedio', color: 'bg-blue-500' },
+  { key: 'senior' as const, icon: 'senior', label: '5° año post-titulación', description: 'Ingreso promedio bruto mensual al quinto año, si está disponible', color: 'bg-gradient-to-r from-primary-600 to-accent-500' },
 ]
 
-// Prefer DB salary over AI-generated salary
-const activeSalary = computed<{ junior: number; mid: number; senior: number }>(() => {
-  if (dbSalary.value) return dbSalary.value
-  const s = career.value?.salary_range
-  return { junior: s?.junior ?? 0, mid: s?.mid ?? 0, senior: s?.senior ?? 0 }
+const officialSalaryRange = computed(() => dbSalary.value?.salary_range ?? (
+  career.value?.salary_source === 'sies' ? career.value.salary_range : null
+))
+
+const officialSalaryMeta = computed(() => {
+  const salary = dbSalary.value
+  if (salary?.matched_career) return `${salary.salary_label}. Match: ${salary.matched_career}.`
+  if (career.value?.matched_career) return `${career.value.salary_label}. Match: ${career.value.matched_career}.`
+  return 'Ingresos oficiales SIES/MiFuturo por año post-titulación.'
 })
 
-function formatCLP(value: number) {
+const activeSalary = computed<{ junior: number | null; mid: number | null; senior: number | null }>(() => {
+  const s = officialSalaryRange.value
+  return { junior: s?.junior ?? null, mid: s?.mid ?? null, senior: s?.senior ?? null }
+})
+
+function formatCLP(value?: number | null) {
+  if (!value) return 'Sin dato'
   return `$${value.toLocaleString('es-CL')} CLP`
 }
 
-function salaryBarWidth(value: number) {
-  const max = activeSalary.value.senior
-  return max ? Math.round((value / max) * 100) : 100
+function salaryBarWidth(value?: number | null) {
+  if (!value) return 0
+  const max = activeSalary.value.senior || activeSalary.value.mid || activeSalary.value.junior
+  return max ? Math.round((value / max) * 100) : 0
 }
 
 const salaryGrowthPercent = computed(() => {
@@ -695,17 +817,20 @@ async function exportPDF() {
 }
 
 // ── DB Salary ─────────────────────────────────────────────────────────────────
-interface DbSalary { junior: number; mid: number; senior: number }
+interface DbSalary {
+  salary_range: { junior: number | null; mid: number | null; senior: number | null; currency: string }
+  salary_label: string
+  matched_career: string
+}
 const dbSalary = ref<DbSalary | null>(null)
 
 async function fetchDbSalary(title: string) {
   try {
-    const res = await $fetch<{ careers: { salary_junior?: number; salary_mid?: number; salary_senior?: number }[] }>(
-      `/api/careers?q=${encodeURIComponent(title)}&limit=5`
-    )
-    const match = res.careers?.find(c => c.salary_junior && c.salary_mid && c.salary_senior)
-    if (match?.salary_junior && match.salary_mid && match.salary_senior) {
-      dbSalary.value = { junior: match.salary_junior, mid: match.salary_mid, senior: match.salary_senior }
+    const res = await $fetch<{ salary: DbSalary | null }>('/api/careers/official-salary', {
+      query: { q: title },
+    })
+    if (res.salary) {
+      dbSalary.value = res.salary
     }
   } catch { /* fallback silently */ }
 }
@@ -720,9 +845,16 @@ interface DbProgram {
   sede: string
   arancel_anual?: number
   duracion_formal_semestres?: number
+  institution_code?: number | null
 }
 const dbPrograms = ref<DbProgram[]>([])
 const dbProgramsLoading = ref(false)
+
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  return token ? { Authorization: `Bearer ${token}` } : undefined
+}
 
 // ── Comparador desde Dónde estudiar ───────────────────────────────────────────
 const COMPARE_PROGRAMS_KEY = 'KoraChile:compare:programs'
@@ -767,6 +899,19 @@ async function addProgramToCompare(prog: DbProgram) {
       })
       localStorage.setItem(COMPARE_PROGRAMS_KEY, JSON.stringify(safe))
       compareProgramCodes.value = safe.map((x: any) => String(x.program_unique_code))
+      void useIntentTracker().track({
+        event_name: 'compare_added',
+        source: 'results',
+        program_unique_code: prog.program_unique_code,
+        institution_code: prog.institution_code,
+        career_generic_id: prog.career_generic_id,
+        metadata: {
+          nombre_carrera: prog.nombre_carrera,
+          nombre_institucion: prog.nombre_institucion,
+          sede: prog.sede,
+          region: prog.region,
+        },
+      })
     }
     await navigateTo('/compare?tab=programas')
   } catch { /* noop */ }
@@ -775,8 +920,14 @@ async function addProgramToCompare(prog: DbProgram) {
 async function fetchDbPrograms(title: string) {
   dbProgramsLoading.value = true
   try {
+    const headers = await authHeaders()
+    if (!headers) {
+      dbPrograms.value = []
+      return
+    }
     const res = await $fetch<{ results: DbProgram[] }>('/api/tools/search-career-match', {
       method: 'POST',
+      headers,
       body: { keywords: [title], limit: 12 },
     })
     dbPrograms.value = res.results ?? []
@@ -802,9 +953,7 @@ onBeforeMount(() => {
 onMounted(() => {
   if (import.meta.client) {
     loadCompareProgramCodes()
-    window.addEventListener('storage', (e) => {
-      if (e.key === COMPARE_PROGRAMS_KEY) loadCompareProgramCodes()
-    })
+    window.addEventListener('storage', handleCareerStorage)
     const saved = localStorage.getItem(storageKey.value)
     if (saved) {
       try {
@@ -821,5 +970,14 @@ onMounted(() => {
   window.addEventListener('keydown', onKeyDown)
 })
 
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown)
+  if (import.meta.client) {
+    window.removeEventListener('storage', handleCareerStorage)
+  }
+})
+
+function handleCareerStorage(e: StorageEvent) {
+  if (e.key === COMPARE_PROGRAMS_KEY) loadCompareProgramCodes()
+}
 </script>

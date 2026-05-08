@@ -5,8 +5,8 @@
  * Reemplaza el prefetch con ILIKE, que es frágil con nombres/tildes.
  */
 
-import { createClient } from '@supabase/supabase-js'
 import { embedText, toPgVector } from './embeddings'
+import { getSupabaseServiceClient } from './supabase-clients'
 
 export interface RetrievedItem {
   kind: 'institution' | 'career' | 'program'
@@ -17,17 +17,14 @@ export interface RetrievedItem {
 }
 
 function getClient() {
-  const config = useRuntimeConfig()
-  const url = config.public.supabaseUrl
   // Retrieval usa RPCs que solo deben exponerse con service_role
   // (nunca exponer la anon key para esto: evita que un cliente llame a
   // search_hybrid directamente saltando validaciones del endpoint).
-  const key = config.supabaseServiceKey
-  if (!url || !key) {
+  const client = getSupabaseServiceClient()
+  if (!client) {
     console.warn('[retrieve] service_role key no configurada; retrieval deshabilitado')
-    return null
   }
-  return createClient(url, key)
+  return client
 }
 
 /**
@@ -107,7 +104,7 @@ export function formatContext(items: RetrievedItem[]): string {
         pl.region,
         pl.jornada,
         `arancel ${arancel}`,
-        pl.puntaje_corte_ultimo ? `corte ${pl.puntaje_corte_ultimo}` : null,
+        pl.puntaje_promedio_matriculados ? `promedio PAES ${Math.round(pl.puntaje_promedio_matriculados)}` : null,
         pl.vacantes_semestre_1 ? `${pl.vacantes_semestre_1} vacantes` : null,
       ].filter(Boolean).join(' | ')
       lines.push(`- ${bits} [code:${p.ref_id}]`)

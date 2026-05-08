@@ -2,21 +2,31 @@
   <div class="min-h-screen flex flex-col bg-white">
     <AppHeader />
 
+    <PaesSimulatingModal :visible="loading" />
+
     <main class="flex-1 pt-24 pb-20 px-4 sm:px-6">
       <div class="max-w-5xl mx-auto space-y-10">
 
         <!-- ── Hero ── -->
-        <div class="text-center space-y-3 pt-4">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold uppercase tracking-wider">
-            Simulador PAES 2026
-          </span>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900">
-            ¿A qué carreras puedes entrar<br class="hidden sm:block" />
-            <span class="gradient-text"> con tu puntaje?</span>
-          </h1>
-          <p class="text-slate-500 max-w-lg mx-auto text-sm sm:text-base leading-relaxed">
-            Ingresa tus puntajes PAES y NEM y calcula en segundos los programas reales a los que accedes, con datos oficiales MINEDUC.
-          </p>
+        <div
+          class="relative rounded-3xl overflow-hidden"
+          style="background: url('/simularPaes.png') center center / cover no-repeat; min-height: 320px;"
+        >
+          <!-- overlay solo en la mitad izquierda -->
+          <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(15,23,42,0.82) 0%, rgba(15,23,42,0.60) 55%, transparent 100%);"></div>
+
+          <div class="relative z-10 flex flex-col justify-center px-8 sm:px-12 py-12 sm:py-14 max-w-xl space-y-4">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white text-xs font-semibold uppercase tracking-wider w-fit">
+              Simulador PAES 2026
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+              ¿A qué carreras puedes entrar<br />
+              <span class="text-sky-400"> con tu puntaje?</span>
+            </h1>
+            <p class="text-white/75 text-sm sm:text-base leading-relaxed">
+              Ingresa tus puntajes PAES y NEM y calcula en segundos los programas reales a los que accedes, con datos oficiales MINEDUC.
+            </p>
+          </div>
         </div>
 
         <!-- ── Formulario ── -->
@@ -69,9 +79,9 @@
 
             <!-- CTA -->
             <button
-              :disabled="!canSimulate || loading"
+              :disabled="loading"
               class="w-full sm:w-auto px-8 py-3 rounded-2xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              :class="canSimulate && !loading ? 'bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-200' : 'bg-slate-300'"
+              :class="!loading ? 'bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-200' : 'bg-slate-300'"
               @click="simulate"
             >
               <span v-if="loading" class="flex items-center gap-2">
@@ -301,7 +311,14 @@ const pageSize   = 30
 
 // ── Simular ──
 async function simulate() {
-  if (!canSimulate.value) return
+  if (!canSimulate.value) {
+    // Modo demo temporal: permite ver el modal sin llamar al backend.
+    loading.value = true
+    error.value = null
+    await new Promise(resolve => setTimeout(resolve, 2200))
+    loading.value = false
+    return
+  }
   loading.value = true
   error.value   = null
   results.value = null

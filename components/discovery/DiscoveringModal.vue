@@ -13,11 +13,11 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
       >
         <div
-          class="relative w-full max-w-3xl mx-4 rounded-3xl overflow-hidden shadow-2xl"
-          style="aspect-ratio: 16/9"
+          class="relative w-full max-w-4xl mx-4 rounded-3xl overflow-hidden shadow-2xl"
+          style="aspect-ratio: 16/10; min-height: 460px;"
         >
           <iframe
-            src="/compositions/discovering/index.html"
+            :src="discoveringSrc"
             frameborder="0"
             scrolling="no"
             style="width:100%;height:100%;border:none;display:block;"
@@ -31,4 +31,7 @@
 
 <script setup lang="ts">
 defineProps<{ visible: boolean }>()
+
+// Evita que el browser sirva una versión vieja del HTML del loader tras cambios visuales.
+const discoveringSrc = '/compositions/discovering/index.html?v=20260508-3'
 </script>

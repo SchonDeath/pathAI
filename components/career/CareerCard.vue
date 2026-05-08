@@ -1,20 +1,21 @@
 <template>
   <div
-    class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300 overflow-hidden group cursor-pointer flex"
+    class="bg-white rounded-[1.75rem] border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col sm:flex-row"
     :class="visible ? 'animate-scale-in' : 'opacity-0'"
     ref="cardRef"
     @click="goToRoadmap">
 
     <!-- Panel izquierdo: imagen / emoji -->
     <div
-      class="relative shrink-0 w-40 sm:w-48 flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.02]"
+      class="relative shrink-0 min-h-36 sm:w-48 flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.02]"
       :style="{ background: iconBg }">
-      <span class="text-6xl select-none">{{ career.emoji }}</span>
+      <div class="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_20%_20%,white_0,transparent_34%),radial-gradient(circle_at_80%_70%,white_0,transparent_30%)]"></div>
+      <GraduationCap class="relative w-14 h-14 text-primary-700 drop-shadow-sm" />
 
       <!-- Badge match score -->
-      <div class="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
-        <span class="text-xs font-bold text-primary-700">{{ career.match_score }}% Match</span>
+      <div class="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm border border-white/70">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-extrabold text-slate-800">{{ career.match_score }}% match</span>
       </div>
     </div>
 
@@ -22,8 +23,7 @@
     <div class="flex-1 min-w-0 p-5 flex flex-col justify-between">
       <!-- Cabecera -->
       <div>
-        <!-- Demanda -->
-        <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center justify-between mb-2 gap-3">
           <span v-if="career.job_demand" class="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
             :class="{
               'text-emerald-600': career.job_demand === 'Muy Alta',
@@ -31,14 +31,15 @@
               'text-amber-600': career.job_demand === 'Media',
               'text-slate-500': !['Muy Alta','Alta','Media'].includes(career.job_demand),
             }">
-            🔥 Demanda {{ career.job_demand }}
+            <Flame class="w-3 h-3" /> Demanda {{ career.job_demand }}
           </span>
+          <span class="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">Ruta recomendada</span>
         </div>
 
         <!-- Título -->
-        <h3 class="font-bold text-slate-900 text-lg leading-snug">{{ career.title }}</h3>
+        <h3 class="font-extrabold text-slate-950 text-xl leading-tight tracking-tight">{{ career.title }}</h3>
         <!-- Descripción -->
-        <p class="text-sm text-slate-500 mt-1 leading-snug line-clamp-2">{{ career.description || career.tagline }}</p>
+        <p class="text-sm text-slate-600 mt-2 leading-relaxed line-clamp-2">{{ career.description || career.tagline }}</p>
 
         <!-- Skills -->
         <div class="mt-3 flex flex-wrap gap-1.5">
@@ -52,21 +53,24 @@
         </div>
       </div>
 
-      <!-- Footer: sueldo + botón -->
-      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-        <div class="flex gap-5">
-          <div>
-            <p class="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Sueldo Junior</p>
-            <p class="text-sm font-bold text-slate-900 mt-0.5">
-              {{ career.salary_range?.junior ? `$${career.salary_range.junior.toLocaleString('es-CL')}` : '—' }}
-            </p>
+      <!-- Footer: sueldo oficial + botón -->
+      <div class="mt-5 pt-4 border-t border-slate-100 flex items-end justify-between gap-4 flex-wrap">
+        <div v-if="hasOfficialSalary" class="grid grid-cols-2 gap-2 min-w-0 flex-1">
+          <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+            <p class="text-[10px] font-bold tracking-widest text-emerald-700 uppercase">Ingreso 1° año</p>
+            <p class="text-sm font-extrabold text-slate-900 mt-0.5">{{ formatCLP(officialSalary?.junior) }}</p>
           </div>
-          <div v-if="career.salary_range?.senior">
-            <p class="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Sueldo Senior</p>
-            <p class="text-sm font-bold text-slate-900 mt-0.5">
-              ${{ career.salary_range.senior.toLocaleString('es-CL') }}
-            </p>
+          <div class="rounded-2xl bg-cyan-50 border border-cyan-100 px-3 py-2">
+            <p class="text-[10px] font-bold tracking-widest text-cyan-700 uppercase">Ingreso 5° año</p>
+            <p class="text-sm font-extrabold text-slate-900 mt-0.5">{{ formatCLP(officialSalary?.senior || officialSalary?.mid) }}</p>
           </div>
+          <p class="col-span-2 text-[11px] text-slate-500">
+            Fuente: {{ salarySourceLabel }}. No usamos estimaciones de IA para sueldos.
+          </p>
+        </div>
+        <div v-else class="rounded-2xl bg-slate-50 border border-slate-200 px-3 py-2 flex-1 min-w-[220px]">
+          <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Sueldo oficial</p>
+          <p class="text-sm font-semibold text-slate-700 mt-0.5">Sin dato SIES para esta recomendación</p>
         </div>
 
         <button class="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition-colors duration-200 group-hover:shadow-md">
@@ -81,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+import { Flame, GraduationCap } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 import type { CareerVariation } from '~/stores/career'
 
@@ -102,6 +107,29 @@ const iconBg = computed(() => {
   const idx = props.career.id ? parseInt(props.career.id, 10) % palettes.length : 0
   return palettes[isNaN(idx) ? 0 : idx]
 })
+
+const officialSalary = computed(() =>
+  props.career.salary_source === 'sies' ? props.career.salary_range : null
+)
+
+const hasOfficialSalary = computed(() => {
+  const salary = officialSalary.value
+  return !!salary && [salary.junior, salary.mid, salary.senior].some(v => typeof v === 'number' && v > 0)
+})
+
+const salarySourceLabel = computed(() => {
+  const year = props.career.salary_year ? ` ${props.career.salary_year}` : ''
+  return `SIES/MiFuturo${year}`
+})
+
+function formatCLP(value?: number | null) {
+  if (!value) return 'Sin dato'
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
 
 onMounted(() => {
   const observer = new IntersectionObserver(

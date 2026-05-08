@@ -7,89 +7,59 @@
 //   3. LLM (con tools específicas) → redacta respuesta.
 //   4. Guarda (pregunta, respuesta) en cache para futuros hits.
 //
-// Body: { messages: [{role,content}], careersContext?: {...} }
+// Body: { sessionId?: string, messages: [{role,content}], careersContext?: {...} }
 
 import { aiTools, runTool } from '~/server/utils/ai-tools'
 import { retrieveContext, formatContext } from '~/server/utils/hybrid-retrieval'
 import { checkSemanticCache, saveSemanticCache, isVolatileAnswer } from '~/server/utils/semantic-cache'
 import { requireAuth } from '~/server/utils/require-auth'
+import { classifyChatIntent } from '~/server/utils/ai/intent-router'
+import { getAiBudgetState } from '~/server/utils/ai/budget'
+import { normalizeSessionId, persistChatTurn } from '~/server/utils/ai/chat-persistence'
+import { captureLlmUsage, logAiUsageEvent, type CapturedLlmUsage } from '~/server/utils/ai/usage-logger'
+import { resolveGratuidad } from '~/server/utils/gratuidad'
+import { randomUUID } from 'node:crypto'
 
-const BASE_SYSTEM_PROMPT = `Eres KoraChile, asistente de orientación vocacional para Chile.
-Responde siempre en español. Tono cálido, directo y motivador. Sé conciso (2-4 párrafos).
+const BASE_SYSTEM_PROMPT = `Eres KoraChile, asistente de orientación vocacional para Chile. Responde en español, tono cálido y conciso (2-4 párrafos). Fuente: datos SIES/Mineduc 2026. Nunca inventes números — si la tool no devuelve el dato, dilo y sugiere mifuturo.cl.
 
-Tu trabajo: ayudar al usuario a descubrir y comparar carreras en Chile con datos reales.
+TOOLS — cuándo usar cada una:
+- Institución específica mencionada + sueldo/empleabilidad → get_career_employability_by_institution (devuelve rango textual exacto, cítalo tal cual).
+- Sueldo/empleabilidad sin institución → get_career_stats_detailed.
+- Puntaje, arancel, vacantes, duración, malla → get_program_detail o search_career_match.
+- Info de institución (sede, acreditación, matrícula, CRUCH) → get_institution; para CRUCH lee tipo_institucion_detalle.
+- Ranking/comparación → rank_careers / rank_institutions / compare_institutions.
+- Carrera en institución específica: usa parámetro "institution" en search_career_match. Si found_in_institution=false, muestra primero related_in_institution ("programas relacionados en esa institución") y luego results como alternativas.
 
-Cómo usar los datos:
-- Antes de hablar de sueldos, empleabilidad, aranceles, programas o instituciones, consulta la
-  herramienta correspondiente. Nunca inventes números.
-- **Elegir la tool correcta**:
-  · Si el usuario menciona una institución específica (AIEP, DUOC, UC, INACAP, UChile…) → SIEMPRE
-    usa get_career_employability_by_institution. Esta devuelve el rango textual exacto por
-    institución (ej: "De $600 mil a $700 mil").
-  · Si pregunta por la carrera en general sin institución → usa get_career_stats_detailed
-    (datos agregados por tipo de institución).
-- Los ingresos provienen de MiFuturo/SIES y corresponden al **Ingreso Promedio al 4° año** post-titulación.
-  Siempre comunícalo así: "al cuarto año de titulado/a".
-- Los ingresos pueden venir como rango (ej: "De $600 mil a $700 mil"). Cita el rango tal cual —
-  no calcules ni presentes un promedio.
-- **REGLA CRÍTICA**: Si la herramienta no devuelve stats (lista vacía o match sin resultados),
-  di: "No encontré datos SIES para esa carrera. Para info precisa visita mifuturo.cl."
-  Nunca estimes ni inventes valores cuando la herramienta no devolvió datos.
-- Para datos de una institución específica consulta siempre la ficha oficial.
-- **Salarios típicos por nivel** (alerta si el valor recibido se aleja mucho):
-  · CFT/IP técnico: $500k–$1.200k al 4° año.
-  · IP profesional: $700k–$1.600k al 4° año.
-  · Universidad: $900k–$3.000k+ al 4° año según carrera.
+REGLAS CRÍTICAS:
+- Ingresos = "Ingreso Promedio al 4° año post-titulación". Cita el rango tal cual, no calcules promedio.
+- Puntajes: solo puntaje_promedio_matriculados de la tool. Si es null → "No encontré puntaje PAES". No menciones puntajes en IPs/CFTs.
+- Si tool devuelve vacío → "No encontré datos SIES para esa carrera."
+- Nunca menciones nombres de funciones/tablas internas.
+- Financiamiento: usa arancel_referencia_becas (tope becas BES/BJG/BAES) y arancel_referencia_creditos (tope CAE). Calcula y muestra la brecha si corresponde.
+- Sin datos: gratuidad individual, fechas DEMRE, rankings QS/Times → "No tengo ese dato, revisa mifuturo.cl".
+- Follow-up corto ("y el sueldo?") → infiere carrera e institución del contexto y llama la tool antes de responder.`
 
-Datos de financiamiento que SÍ tienes (úsalos siempre que pregunten):
-- arancel_referencia_becas: tope máximo que cubren las becas estatales (BES, BJG, BAES, BEA).
-  Si el arancel real > arancel_referencia_becas, la diferencia (brecha_arancel_becas) la paga el alumno.
-- arancel_referencia_creditos: tope máximo que cubre el CAE o Fondo Solidario.
-  Si el arancel real > arancel_referencia_creditos, la diferencia (brecha_arancel_creditos) la paga el alumno.
-- Consulta get_program_detail o search_career_match para obtener estos valores de un programa concreto.
-- Ejemplo de respuesta: "El arancel de Ingeniería Civil UC es $6.500.000. La beca cubre hasta $4.700.000
-  (arancel de referencia MINEDUC 2026), por lo que pagarías $1.800.000 de tu bolsillo."
+/**
+ * Siempre retorna BASE_SYSTEM_PROMPT sin modificar.
+ * El careersContext se inyecta como segundo mensaje de sistema separado
+ * para que el prefijo estático sea siempre idéntico (activa prompt caching de OpenAI).
+ */
+function buildSystemPrompt(_careersContext?: any): string {
+  return BASE_SYSTEM_PROMPT
+}
 
-Temas SIN datos en el sistema (sé honesto):
-- Gratuidad (quién la recibe, montos, requisitos socioeconómicos)
-- Postulación abierta, fechas DEMRE del año en curso
-- Puntajes de corte del año en curso (solo tienes datos históricos si están en la ficha)
-- Rankings QS/Times, acreditación internacional
-Si el usuario pregunta por alguno de estos, responde: "No tengo datos oficiales sobre [tema]
-en mis registros. Te sugiero revisar el portal mifuturo.cl o el sitio oficial de la universidad."
-No inventes plazas, cupos ni porcentajes. No uses "sin embargo" ni muletillas para rellenar.
+/** Construye el mensaje de contexto de carreras para inyectar por separado. */
+function buildCareersContextMessage(careersContext: any): string | null {
+  if (!careersContext?.careers?.length) return null
 
-Cómo presentar:
-- Responde con el dato, no con el origen técnico. Di "según datos SIES/Mineduc" — nunca
-  menciones nombres de funciones, tablas ni herramientas internas.
-- Si comparas dos instituciones, presenta los datos de ambas en el mismo párrafo.
-- Cierra con una pregunta que ayude al usuario a profundizar.
-
-Ejemplo de respuesta bien formateada:
-"Según datos oficiales SIES 2025, un Ingeniero en Informática de la PUCV tiene una
-empleabilidad del 81,8% al primer año. Al cuarto año post-titulación, el rango de ingreso
-reportado es de $2.300.000 a $2.400.000 CLP (ingresos de carrera técnica/IP suelen ser
-considerablemente menores).
-¿Quieres compararlo con otra universidad o ver el arancel del programa?"
-`
-
-function buildSystemPrompt(careersContext: any): string {
-  if (!careersContext?.careers?.length) return BASE_SYSTEM_PROMPT
-
-  const careersList = careersContext.careers.map((c: any) => {
-    const salary = c.salary_range
-      ? `Salario junior: $${c.salary_range.junior?.toLocaleString('es-CL')} CLP`
+  const careersList = careersContext.careers.slice(0, 3).map((c: any) => {
+    const salary = c.salary_source === 'sies' && c.salary_range?.junior
+      ? `Ingreso SIES 1° año: $${c.salary_range.junior.toLocaleString('es-CL')} CLP`
       : ''
-    return `- ${c.title} (match: ${c.match_score}%): ${c.description}. Habilidades clave: ${c.skills?.join(', ')}. ${salary}. Demanda: ${c.job_demand}.`
+    return `- ${clipText(c.title, 80)} (match: ${Number(c.match_score) || 0}%): ${clipText(c.description, 200)}. Skills: ${(c.skills ?? []).slice(0, 4).map((s: any) => clipText(s, 30)).join(', ')}. ${salary}. Demanda: ${clipText(c.job_demand, 25)}.`
   }).join('\n')
 
-  return `${BASE_SYSTEM_PROMPT}
-
-CONTEXTO: Este usuario describió sus intereses como: "${careersContext.query}".
-La IA le recomendó estas 3 carreras:
-${careersList}
-
-Usa este contexto para personalizar. Puedes profundizar, comparar, o guiar según lo que pregunte.`
+  return `CONTEXTO DEL USUARIO: Describió sus intereses como "${clipText(careersContext.query, 400)}". Carreras recomendadas:\n${careersList}`
 }
 
 // ── helpers ───────────────────────────────────────────────
@@ -158,9 +128,16 @@ function inferTipoInstitucion(institutionName: string | null): string | null {
   return null
 }
 
-const MAX_TOOL_ROUNDS = 3
-const MAX_USER_TURNS = 6        // últimos 6 turnos user/assistant
+const MAX_TOOL_ROUNDS = 4
+const MAX_USER_TURNS = 5        // últimos 5 turnos user/assistant
 const MAX_TOOL_ROUND_HISTORY = 2 // conservar solo últimas 2 rondas de tools
+const MAX_REQUEST_MESSAGES = 20
+const MAX_TOOL_RESULT_CHARS = 3200
+
+function clipText(value: unknown, max = 600): string {
+  const text = String(value ?? '')
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
 
 type ChatMsg = {
   role: 'system' | 'user' | 'assistant' | 'tool'
@@ -272,13 +249,183 @@ function pruneToolHistory(messages: ChatMsg[]): ChatMsg[] {
   return out
 }
 
-async function callLLM(config: any, messages: ChatMsg[], tools: any) {
-  const payload = {
-    temperature: 0.7,
-    max_tokens: 900,
+function compactForPrompt(value: any, depth = 0): any {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string') return clipText(value, depth <= 1 ? 700 : 360)
+  if (typeof value === 'number' || typeof value === 'boolean') return value
+  if (depth >= 4) return Array.isArray(value) ? '[array omitido]' : '[objeto omitido]'
+
+  if (Array.isArray(value)) {
+    const maxItems = depth <= 1 ? 10 : 6
+    const out = value.slice(0, maxItems).map(item => compactForPrompt(item, depth + 1))
+    if (value.length > maxItems) out.push({ __truncated_items: value.length - maxItems })
+    return out
+  }
+
+  if (typeof value === 'object') {
+    const out: Record<string, any> = {}
+    const keys = Object.keys(value)
+    const maxKeys = depth <= 1 ? 36 : 20
+    for (const key of keys.slice(0, maxKeys)) {
+      if (/embedding|vector|raw|html|markdown|source_url/i.test(key)) continue
+      out[key] = compactForPrompt(value[key], depth + 1)
+    }
+    if (keys.length > maxKeys) out.__truncated_keys = keys.length - maxKeys
+    return out
+  }
+
+  return String(value)
+}
+
+function summarizeProgram(row: any) {
+  return {
+    program_unique_code: row?.program_unique_code,
+    nombre_carrera: clipText(row?.nombre_carrera, 140),
+    nombre_institucion: clipText(row?.nombre_institucion, 140),
+    institution_code: row?.institution_code ?? null,
+    tipo_institucion: row?.tipo_institucion ?? null,
+    region: row?.region ?? null,
+    sede: clipText(row?.sede, 90),
+    jornada: row?.jornada ?? null,
+    duracion_formal_semestres: row?.duracion_formal_semestres ?? null,
+    arancel_anual: row?.arancel_anual ?? null,
+    arancel_referencia_becas: row?.arancel_referencia_becas ?? null,
+    brecha_arancel_becas: row?.brecha_arancel_becas ?? null,
+    vacantes_semestre_1: row?.vacantes_semestre_1 ?? null,
+    rango_percentil_paes: row?.rango_percentil_paes ?? null,
+    puntaje_promedio_matriculados: row?.puntaje_promedio_matriculados ?? null,
+    anio_puntajes: row?.anio_puntajes ?? null,
+    stats: row?.stats ? compactForPrompt(row.stats, 2) : null,
+  }
+}
+
+function summarizeInstitution(row: any) {
+  return {
+    institution_code: row?.institution_code,
+    nombre_institucion: clipText(row?.nombre_institucion, 140),
+    tipo_institucion: row?.tipo_institucion,
+    direccion_sede_central: clipText(row?.direccion_sede_central, 160),
+    pagina_web: clipText(row?.pagina_web, 120),
+    acreditacion_estado: row?.acreditacion_estado,
+    acreditacion_anos: row?.acreditacion_anos,
+    acreditacion_vigencia_hasta: row?.acreditacion_vigencia_hasta,
+    matricula_pregrado_actual: row?.matricula_pregrado_actual,
+    titulados_pregrado_actual: row?.titulados_pregrado_actual,
+    retencion_1er_ano_pct: row?.retencion_1er_ano_pct,
+    duracion_real_semestres: row?.duracion_real_semestres,
+    promedio_nem: row?.promedio_nem,
+    promedio_paes: row?.promedio_paes,
+    m2_construidos: row?.m2_construidos,
+    volumenes_biblioteca: row?.volumenes_biblioteca,
+    laboratorios_talleres: row?.laboratorios_talleres,
+    computadores: row?.computadores,
+    casa_central: clipText(row?.casa_central, 160),
+  }
+}
+
+function summarizeToolResult(name: string, result: any) {
+  if (name === 'search_career_match' && Array.isArray(result?.results)) {
+    const maxResults = 8
+    return {
+      count: result.count,
+      source_count: result.source_count,
+      institutions_count: result.institutions_count,
+      institution_filter: result.institution_filter ?? null,
+      // Programas relacionados en la institución buscada (variantes del nombre)
+      related_in_institution: Array.isArray(result.related_in_institution)
+        ? result.related_in_institution
+        : [],
+      results: result.results.slice(0, maxResults).map(summarizeProgram),
+      truncated_results: Math.max(0, result.results.length - maxResults),
+    }
+  }
+
+  if (name === 'get_institution') {
+    if (result?.institution) return { match: result.match, institution: summarizeInstitution(result.institution) }
+    if (Array.isArray(result?.candidates)) {
+      return { match: result.match, candidates: result.candidates.slice(0, 5).map(summarizeInstitution) }
+    }
+  }
+
+  if (name === 'compare_institutions') {
+    return {
+      count: result?.count,
+      institutions: Array.isArray(result?.institutions)
+        ? result.institutions.slice(0, 4).map(summarizeInstitution)
+        : [],
+      rankings: result?.rankings ?? {},
+      employability_by_career: Array.isArray(result?.employability_by_career)
+        ? result.employability_by_career.slice(0, 12).map((row: any) => compactForPrompt(row, 2))
+        : [],
+      note: result?.note,
+    }
+  }
+
+  if (name === 'compare_curriculums') {
+    return {
+      requested: result?.requested ?? [],
+      missing: result?.missing ?? [],
+      pending_scrape: result?.pending_scrape ?? [],
+      results: Array.isArray(result?.results)
+        ? result.results.slice(0, 5).map((row: any) => ({
+            program_unique_code: row.program_unique_code,
+            nombre_carrera: clipText(row.nombre_carrera, 140),
+            institucion: clipText(row.institucion, 140),
+            sede: clipText(row.sede, 90),
+            jornada: row.jornada,
+            duracion_semestres: row.duracion_semestres,
+            arancel_anual: row.arancel_anual,
+            status: row.status,
+            source: row.source,
+            subjects_count: Array.isArray(row.subjects) ? row.subjects.length : 0,
+            subjects: Array.isArray(row.subjects) ? compactForPrompt(row.subjects.slice(0, 16), 2) : undefined,
+            fallback: row.fallback ? compactForPrompt(row.fallback, 2) : undefined,
+            message: row.message,
+          }))
+        : [],
+    }
+  }
+
+  if (name === 'get_filters_catalog') {
+    return {
+      tipos_institucion: result?.tipos_institucion ?? [],
+      areas_conocimiento: Array.isArray(result?.areas_conocimiento)
+        ? result.areas_conocimiento.slice(0, 80)
+        : [],
+      regiones: result?.regiones ?? [],
+      truncated_areas: Array.isArray(result?.areas_conocimiento)
+        ? Math.max(0, result.areas_conocimiento.length - 80)
+        : 0,
+    }
+  }
+
+  return compactForPrompt(result)
+}
+
+function stringifyToolResultForPrompt(name: string, result: any) {
+  const json = JSON.stringify(summarizeToolResult(name, result))
+  return json.length > MAX_TOOL_RESULT_CHARS
+    ? `${json.slice(0, MAX_TOOL_RESULT_CHARS)}… [resultado truncado para proteger memoria]`
+    : json
+}
+
+function withLLMMeta(data: any, provider: string, model: string) {
+  return { ...data, _kora: { provider, model } }
+}
+
+async function callLLM(config: any, messages: ChatMsg[], tools: any, toolChoice: 'auto' | 'none' = 'auto') {
+  // Cuando toolChoice='none' no enviamos tools para evitar que algunos
+  // providers rechacen la combinación tools+tool_choice:none.
+  const payload: any = {
+    temperature: 0.2,
+    max_tokens: 750,
     messages,
-    tools,
-    tool_choice: 'auto' as const,
+  }
+  if (toolChoice === 'none') {
+    // Sin tools: el modelo responde texto directamente con los datos ya en contexto.
+  } else {
+    payload.tools = tools
+    payload.tool_choice = 'auto'
   }
 
   if (config.githubToken) {
@@ -290,36 +437,16 @@ async function callLLM(config: any, messages: ChatMsg[], tools: any) {
       const msg = data?.choices?.[0]?.message
       if (!msg) return false
       const hasContent = typeof msg.content === 'string' && msg.content.trim().length > 0
+      // En modo síntesis (sin tools) aceptamos cualquier respuesta con contenido.
+      if (toolChoice === 'none') return hasContent
       const hasToolCalls = Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0
         && msg.tool_calls.every((tc: any) => tc?.function?.name && typeof tc.function.arguments === 'string')
       return hasContent || hasToolCalls
     }
 
-    // Primer intento: Meta-Llama-3.1-8B-Instruct (rápido y gratuito)
+    // Primer intento: GPT-4.1-mini
     try {
       const res = await fetch('https://models.github.ai/inference/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.githubToken}`,
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(20000),
-        body: JSON.stringify({ model: 'meta/Meta-Llama-3.1-8B-Instruct', ...payload }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        if (isUsable(data)) return data
-        console.warn('[Chat] GitHub Models (Meta-Llama) devolvió payload inutilizable, fallback...')
-      } else {
-        console.warn('[Chat] GitHub Models (Meta-Llama) HTTP', res.status)
-      }
-    } catch (e: any) {
-      console.warn('[Chat] GitHub Models (Meta-Llama) error:', e?.message)
-    }
-
-    // Segundo intento: GPT-4.1-mini (mayor capacidad, fallback)
-    try {
-      const res2 = await fetch('https://models.github.ai/inference/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${config.githubToken}`,
@@ -328,15 +455,59 @@ async function callLLM(config: any, messages: ChatMsg[], tools: any) {
         signal: AbortSignal.timeout(25000),
         body: JSON.stringify({ model: 'openai/gpt-4.1-mini', ...payload }),
       })
-      if (res2.ok) {
-        const data = await res2.json()
-        if (isUsable(data)) return data
+      if (res.ok) {
+        const data = await res.json()
+        if (isUsable(data)) return withLLMMeta(data, 'github_models', 'openai/gpt-4.1-mini')
         console.warn('[Chat] GitHub Models (GPT-4.1-mini) devolvió payload inutilizable, fallback...')
       } else {
-        console.warn('[Chat] GitHub Models (GPT-4.1-mini) HTTP', res2.status)
+        console.warn('[Chat] GitHub Models (GPT-4.1-mini) HTTP', res.status)
       }
     } catch (e: any) {
       console.warn('[Chat] GitHub Models (GPT-4.1-mini) error:', e?.message)
+    }
+
+    // Segundo intento: DeepSeek-V3-0324 (más económico)
+    try {
+      const res = await fetch('https://models.github.ai/inference/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.githubToken}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(30000),
+        body: JSON.stringify({ model: 'deepseek/DeepSeek-V3-0324', ...payload }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (isUsable(data)) return withLLMMeta(data, 'github_models', 'deepseek/DeepSeek-V3-0324')
+        console.warn('[Chat] GitHub Models (DeepSeek-V3-0324) devolvió payload inutilizable, fallback...')
+      } else {
+        console.warn('[Chat] GitHub Models (DeepSeek-V3-0324) HTTP', res.status)
+      }
+    } catch (e: any) {
+      console.warn('[Chat] GitHub Models (DeepSeek-V3-0324) error:', e?.message)
+    }
+
+    // Segundo intento: Meta-Llama-3.1-8B-Instruct (fallback rápido)
+    try {
+      const res2 = await fetch('https://models.github.ai/inference/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.githubToken}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(20000),
+        body: JSON.stringify({ model: 'meta/Meta-Llama-3.1-8B-Instruct', ...payload }),
+      })
+      if (res2.ok) {
+        const data = await res2.json()
+        if (isUsable(data)) return withLLMMeta(data, 'github_models', 'meta/Meta-Llama-3.1-8B-Instruct')
+        console.warn('[Chat] GitHub Models (Meta-Llama) devolvió payload inutilizable, fallback...')
+      } else {
+        console.warn('[Chat] GitHub Models (Meta-Llama) HTTP', res2.status)
+      }
+    } catch (e: any) {
+      console.warn('[Chat] GitHub Models (Meta-Llama) error:', e?.message)
     }
   }
 
@@ -381,15 +552,17 @@ async function callLLM(config: any, messages: ChatMsg[], tools: any) {
         signal: AbortSignal.timeout(25000),
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
-          temperature: 0.7,
+          temperature: 0.2,
           max_tokens: 700,
-          parallel_tool_calls: false,
+          ...(toolChoice !== 'none' && {
+            parallel_tool_calls: false,
+            tools: groqTools,
+            tool_choice: 'auto',
+          }),
           messages: sanitizeForGroq(messages),
-          tools: groqTools,
-          tool_choice: 'auto',
         }),
       })
-      if (res.ok) return await res.json()
+      if (res.ok) return withLLMMeta(await res.json(), 'groq', 'llama-3.1-8b-instant')
       const errTxt = await res.text()
       console.warn('[Chat] Groq (tools) error:', res.status, errTxt.slice(0, 200))
     } catch (e: any) {
@@ -415,12 +588,12 @@ Si no tienes datos precisos sobre puntajes o aranceles, dilo honestamente y sugi
         signal: AbortSignal.timeout(20000),
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
-          temperature: 0.7,
+          temperature: 0.2,
           max_tokens: 600,
           messages: fallbackMsgs,
         }),
       })
-      if (res2.ok) return await res2.json()
+      if (res2.ok) return withLLMMeta(await res2.json(), 'groq', 'llama-3.1-8b-instant')
       const txt2 = await res2.text()
       console.error('[Chat] Groq (fallback) error:', res2.status, txt2.slice(0, 200))
     } catch (e: any) {
@@ -432,14 +605,27 @@ Si no tienes datos precisos sobre puntajes o aranceles, dilo honestamente y sugi
 }
 
 export default defineEventHandler(async (event) => {
+  const startedAt = Date.now()
   // Seguridad: exige sesión válida + rate limit.
-  await requireAuth(event)
+  const auth = await requireAuth(event, {
+    rateLimit: {
+      scope: 'chat',
+      max: 12,
+      windowMs: 60_000,
+    },
+  })
 
   const config = useRuntimeConfig()
   const body = await readBody(event)
   const { messages, careersContext } = body
+  // Si el cliente no envía sesión (o envía un ID inválido), generamos una en backend.
+  // Así el chat funciona "out of the box" sin que el frontend tenga que gestionar UUID.
+  const sessionId = normalizeSessionId(body?.sessionId) ?? randomUUID()
   if (!Array.isArray(messages) || messages.length === 0) {
     throw createError({ statusCode: 400, message: 'Se requiere un array de mensajes.' })
+  }
+  if (messages.length > MAX_REQUEST_MESSAGES) {
+    throw createError({ statusCode: 400, message: `Demasiados mensajes en el request (máx ${MAX_REQUEST_MESSAGES}).` })
   }
   for (const msg of messages) {
     if (!msg.role || !msg.content || typeof msg.content !== 'string') {
@@ -457,11 +643,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'No hay API key configurada. Define APY_GIT (GitHub Models) o GROQ en las variables de entorno.' })
   }
 
-  const systemPrompt = buildSystemPrompt(careersContext)
-  const trimmedUser = trimUserHistory([
+  const systemPrompt = buildSystemPrompt()
+  const careersCtxMsg = buildCareersContextMessage(careersContext)
+  const seedMessages: ChatMsg[] = [
     { role: 'system', content: systemPrompt },
+    ...(careersCtxMsg ? [{ role: 'system' as const, content: careersCtxMsg }] : []),
     ...messages,
-  ])
+  ]
+  const trimmedUser = trimUserHistory(seedMessages)
   const conversation: ChatMsg[] = [...trimmedUser]
 
   // Detectar intención desde el último user msg y filtrar tools disponibles.
@@ -469,15 +658,52 @@ export default defineEventHandler(async (event) => {
   // con el texto ya normalizado ("PUCV" → "Pontificia Universidad Católica de Valparaíso").
   const rawLastUser = [...messages].reverse().find(m => m.role === 'user')?.content ?? ''
   const lastUser = resolveInstitutionAliases(rawLastUser)
+  const normalizedLastUser = lastUser
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const asksPaesOrScore = /\bpaes\b|puntaje|ponderaci|corte/.test(normalizedLastUser)
+  // Preguntas sobre características institucionales → no mostrar tarjetas de programas
+  const asksInstitutionMeta = /cruch|acreditaci|tipo de universidad|tipo de institucion|pertenece|inscrita|miembro|consejo de rectores/.test(normalizedLastUser)
+  const paesStopwords = new Set([
+    'que', 'cual', 'cuanto', 'cuantos', 'necesito', 'necesaria', 'necesarias',
+    'para', 'con', 'del', 'de', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas',
+    'puntaje', 'puntajes', 'paes', 'ponderacion', 'ponderaciones', 'corte', 'cortes',
+    'ingresar', 'entrar', 'admisio', 'admisiones', 'admision', 'necesitan',
+  ])
+  const paesQueryKeywords = asksPaesOrScore
+    ? normalizedLastUser
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean)
+        .filter((token) => !paesStopwords.has(token))
+        .slice(0, 5)
+    : []
+  const intent = classifyChatIntent(lastUser)
+  // Si el usuario ya tiene carreras en contexto (viene de /results),
+  // el LLM puede responder directamente sin buscar más en la BD.
+  if (intent.kind === 'career_recommendation' && careersCtxMsg) {
+    intent.maxToolRounds = 0
+    intent.maxToolCallsPerRound = 0
+    intent.maxToolCallsTotal = 0
+  }
+  const budget = await getAiBudgetState(auth.userId)
   const mentionedInstitution = detectMentionedInstitution(lastUser)
   const mentionedTipoInstitucion = inferTipoInstitucion(mentionedInstitution)
   const tools = pickTools(lastUser)
 
   const toolsUsed: string[] = []
+  const llmUsages: CapturedLlmUsage[] = []
+  let llmCallCount = 0
+  let totalToolCallCount = 0
+  let skippedToolCallCount = 0
+  // Datos completos de programas para cachear en el cliente (sin requests adicionales)
+  const programFullData: Record<string, any> = {}
   let programCards: Array<{
     code: string
     title: string
     institution: string
+    institution_code: number | null
     semesters: number | null
     cost: number | null
     type: string | null
@@ -487,6 +713,73 @@ export default defineEventHandler(async (event) => {
     vacantes: number | null
     titulados: number | null
   }> = []
+
+  const selectedToolNames = tools.map((t: any) => t.function?.name).filter(Boolean)
+
+  async function finalize(payload: {
+    reply: string
+    toolsUsed?: string[]
+    programCards?: typeof programCards
+    cached?: boolean
+  }, opts: { cacheHit?: boolean } = {}) {
+    const finalToolsUsed = payload.toolsUsed ?? toolsUsed
+    await Promise.all([
+      persistChatTurn({
+        userId: auth.userId,
+        sessionId,
+        userContent: rawLastUser,
+        assistantContent: payload.reply,
+      }),
+      logAiUsageEvent({
+        userId: auth.userId,
+        sessionId,
+        route: 'chat',
+        intent: intent.kind,
+        llmUsages,
+        cacheHit: opts.cacheHit ?? payload.cached ?? false,
+        toolsUsed: finalToolsUsed,
+        toolCallCount: totalToolCallCount,
+        llmCallCount,
+        latencyMs: Date.now() - startedAt,
+        metadata: {
+          complexity: intent.complexity,
+          needs_official_data: intent.needsOfficialData,
+          selected_tools: selectedToolNames,
+          skipped_tool_calls: skippedToolCallCount,
+          tool_limits: {
+            max_rounds: intent.maxToolRounds,
+            max_per_round: intent.maxToolCallsPerRound,
+            max_total: intent.maxToolCallsTotal,
+          },
+          budget,
+        },
+      }),
+    ])
+
+    return {
+      ...payload,
+      toolsUsed: finalToolsUsed,
+      programCards: payload.programCards ?? programCards,
+      // Datos completos para que el cliente los cachee en Pinia sin fetch extra
+      programFullData: Object.keys(programFullData).length ? programFullData : undefined,
+      sessionId,
+    }
+  }
+
+  if (intent.kind === 'greeting') {
+    return await finalize({
+      reply: '¡Hola! Soy KoraChile. Puedo ayudarte a comparar carreras, revisar sueldos y empleabilidad SIES/Mineduc, ver aranceles, puntajes, mallas o encontrar opciones según tus intereses. ¿Qué te gustaría explorar?',
+      toolsUsed: [],
+      programCards: [],
+    })
+  }
+
+  if (budget.mode === 'compact') {
+    conversation.push({
+      role: 'system',
+      content: 'Modo compacto por presupuesto: responde en máximo 2 párrafos. Usa herramientas solo si el usuario pide datos oficiales concretos y evita análisis largos salvo que sea indispensable.',
+    })
+  }
 
   // ── 1. CACHE SEMÁNTICO + EMBEDDING COMPARTIDO ─────────────────────
   // checkSemanticCache devuelve { hit, embedding } aunque no haya match, para
@@ -507,12 +800,12 @@ export default defineEventHandler(async (event) => {
       if (lookup) {
         sharedEmbedding = lookup.embedding
         if (lookup.hit) {
-          return {
+          return await finalize({
             reply: lookup.hit.answer,
             toolsUsed: ['semantic_cache'],
             programCards: [],
             cached: true,
-          }
+          }, { cacheHit: true })
         }
       }
     } catch (e: any) {
@@ -551,24 +844,54 @@ INSTRUCCIONES:
     console.warn('[Chat] retrieval error:', e?.message)
   }
 
-  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+  const maxToolRounds = Math.max(1, Math.min(MAX_TOOL_ROUNDS, intent.maxToolRounds || 1))
+
+  for (let round = 0; round < maxToolRounds; round++) {
+    const toolBudgetExhausted = totalToolCallCount >= intent.maxToolCallsTotal
+    const isLastRound = round === maxToolRounds - 1 || toolBudgetExhausted
+
+    // En la última ronda inyectamos un mensaje de síntesis explícito para
+    // que el modelo redacte la respuesta con los datos ya en contexto.
+    if (isLastRound) {
+      conversation.push({
+        role: 'system',
+        content: 'Ya tienes todos los datos de las herramientas. RESPONDE AHORA al usuario en español con esos datos. No llames más herramientas.',
+      })
+    }
+
     const pruned = pruneToolHistory(conversation)
-    const data = await callLLM(config, pruned, tools)
+    const data = await callLLM(config, pruned, tools, isLastRound ? 'none' : 'auto')
     if (!data) throw createError({ statusCode: 502, message: 'No se obtuvo respuesta de ningún proveedor de IA. Verifica que APY_GIT (GitHub Models) o GROQ estén configurados correctamente.' })
 
     const msg = data.choices?.[0]?.message
     if (!msg) throw createError({ statusCode: 502, message: 'Respuesta de IA vacía.' })
+    llmCallCount++
+    llmUsages.push(captureLlmUsage(data, pruned, msg))
 
     const toolCalls = msg.tool_calls
     if (toolCalls?.length) {
+      const remainingToolCalls = Math.max(0, intent.maxToolCallsTotal - totalToolCallCount)
+      const allowedThisRound = Math.min(intent.maxToolCallsPerRound, remainingToolCalls)
+      const limitedToolCalls = toolCalls.slice(0, allowedThisRound)
+      skippedToolCallCount += Math.max(0, toolCalls.length - limitedToolCalls.length)
+
+      if (!limitedToolCalls.length) {
+        conversation.push({
+          role: 'system',
+          content: 'Se alcanzó el presupuesto de herramientas para este turno. Responde ahora con los datos disponibles y, si falta algo, pide una pregunta más específica.',
+        })
+        continue
+      }
+
       conversation.push({
         role: 'assistant',
         content: msg.content || '',
-        tool_calls: toolCalls,
+        tool_calls: limitedToolCalls,
       })
+      totalToolCallCount += limitedToolCalls.length
 
       const results = await Promise.all(
-        toolCalls.map(async (tc: any) => {
+        limitedToolCalls.map(async (tc: any) => {
           const name = tc.function?.name
           let args: any = {}
           try { args = JSON.parse(tc.function?.arguments ?? '{}') }
@@ -593,14 +916,40 @@ INSTRUCCIONES:
             }
           }
 
+          // Guardrail PAES: si preguntan por puntaje y no dieron una institución,
+          // priorizamos universidades para evitar ruido de IP/CFT (sin corte PAES).
+          if (name === 'search_career_match' && asksPaesOrScore) {
+            if (!args.tipo_institucion) {
+              args.tipo_institucion = 'Universidades'
+            }
+            if (!Array.isArray(args.keywords) || !args.keywords.length) {
+              args.keywords = paesQueryKeywords.length ? paesQueryKeywords : [rawLastUser]
+            }
+            const requestedLimit = Number(args.limit || 10)
+            args.limit = Number.isFinite(requestedLimit)
+              ? Math.min(Math.max(requestedLimit, 10), 20)
+              : 12
+          }
+
           toolsUsed.push(name)
           try {
             const result = await runTool(name, args, event)
-            if (name === 'search_career_match' && Array.isArray(result?.results)) {
-              programCards = result.results.slice(0, 4).map((r: any) => ({
+            if (name === 'search_career_match' && Array.isArray(result?.results) && !asksInstitutionMeta) {
+              const list = asksPaesOrScore
+                ? result.results.filter((r: any) => {
+                    const isUniversity = String(r?.tipo_institucion || '').toLowerCase().includes('univers')
+                    const hasScore =
+                      r?.puntaje_promedio_matriculados !== null && r?.puntaje_promedio_matriculados !== undefined
+                    return isUniversity && hasScore
+                  })
+                : result.results
+
+              const cardSource = list.length ? list : result.results
+              programCards = cardSource.slice(0, 4).map((r: any) => ({
                 code: r.program_unique_code,
                 title: r.nombre_carrera,
                 institution: r.nombre_institucion,
+                institution_code: typeof r.institution_code === 'number' ? r.institution_code : null,
                 semesters: typeof r.duracion_formal_semestres === 'number' ? r.duracion_formal_semestres : null,
                 cost: typeof r.arancel_anual === 'number' ? r.arancel_anual : null,
                 type: r.tipo_institucion ?? null,
@@ -610,8 +959,23 @@ INSTRUCCIONES:
                 vacantes: typeof r.vacantes_semestre_1 === 'number' ? r.vacantes_semestre_1 : null,
                 titulados: typeof r.titulacion_total_2024 === 'number' ? r.titulacion_total_2024 : null,
               }))
+
+              // Capturar datos completos para cache en cliente (evita fetch extra en /compare)
+              for (const r of cardSource.slice(0, 4)) {
+                if (r?.program_unique_code && !programFullData[r.program_unique_code]) {
+                  const primerAnoPct = (r.matricula_primer_ano_2025 && r.matricula_total_2025 && r.matricula_total_2025 > 0)
+                    ? Math.round((r.matricula_primer_ano_2025 / r.matricula_total_2025) * 1000) / 10
+                    : null
+                  programFullData[r.program_unique_code] = {
+                    ...r,
+                    nombre_sede: r.nombre_sede ?? null,
+                    gratuidad: resolveGratuidad(r.institution_code, r.nombre_institucion),
+                    porcentaje_matricula_primer_ano_2025: primerAnoPct,
+                  }
+                }
+              }
             }
-            return { tool_call_id: tc.id, name, content: JSON.stringify(result).slice(0, 4000) }
+            return { tool_call_id: tc.id, name, content: stringifyToolResultForPrompt(name, result) }
           } catch (e: any) {
             return { tool_call_id: tc.id, name, content: JSON.stringify({ error: e?.message || 'tool failed' }) }
           }
@@ -623,6 +987,16 @@ INSTRUCCIONES:
           tool_call_id: r.tool_call_id,
           name: r.name,
           content: r.content,
+        })
+      }
+
+      // Tras recibir resultados de herramientas, sugerimos síntesis en la
+      // siguiente ronda. Si el modelo llama más tools, está bien — pero si
+      // ya tiene suficientes datos, este mensaje lo empuja a responder.
+      if (!isLastRound) {
+        conversation.push({
+          role: 'system',
+          content: 'Si ya tienes los datos necesarios para responder al usuario, hazlo ahora en español. Solo llama otra herramienta si aún te falta información específica.',
         })
       }
       continue
@@ -640,13 +1014,19 @@ INSTRUCCIONES:
       // internamente con try/catch + console.warn (ver semantic-cache.ts).
       saveSemanticCache(lastUser, reply, {
         tags: toolsUsed,
-        volatile: isVolatileAnswer(reply),
+        intent: intent.kind,
         precomputedEmbedding: sharedEmbedding,
       })
     }
 
-    return { reply, toolsUsed, programCards }
+    return await finalize({ reply, toolsUsed, programCards })
   }
 
-  throw createError({ statusCode: 502, message: 'La IA excedió el límite de rondas de herramientas.' })
+  // Si llegamos aquí, el modelo siguió llamando herramientas sin responder.
+  // Devolvemos una respuesta degradada con los datos ya en contexto.
+  return await finalize({
+    reply: 'Encontré algunos datos pero tuve dificultades para sintetizarlos. Por favor intenta reformular tu pregunta o consulta mifuturo.cl para información detallada.',
+    toolsUsed,
+    programCards,
+  })
 })

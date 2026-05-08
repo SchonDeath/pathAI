@@ -89,13 +89,14 @@
                 <h3 class="text-lg font-bold text-slate-900">{{ filteredPrograms[0].nombre_carrera }}</h3>
                 <p class="text-sm text-slate-600">{{ filteredPrograms[0].nombre_institucion }} — {{ filteredPrograms[0].nombre_sede || filteredPrograms[0].region }}</p>
                 <div class="flex flex-wrap gap-2 pt-1">
-                  <span v-if="gratuidadLabel(filteredPrograms[0])" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">✓ {{ gratuidadLabel(filteredPrograms[0]) }}</span>
+                  <span v-if="gratuidadLabel(filteredPrograms[0])" class="text-[11px] px-2 py-0.5 rounded-full font-semibold" :class="gratuidadBadgeClass(filteredPrograms[0])">{{ gratuidadPrefix(filteredPrograms[0]) }} {{ gratuidadLabel(filteredPrograms[0]) }}</span>
                   <span v-if="filteredPrograms[0].acreditacion_programa" class="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">Acreditado: {{ filteredPrograms[0].acreditacion_programa }}</span>
                 </div>
               </div>
               <div class="flex gap-2">
                 <button @click="toggleSaveFavorite(filteredPrograms[0])" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition" :class="isFavorite(filteredPrograms[0].program_unique_code) ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'">
-                  {{ isFavorite(filteredPrograms[0].program_unique_code) ? '★ Guardada' : '☆ Guardar' }}
+                  <span v-if="isFavorite(filteredPrograms[0].program_unique_code)" class="inline-flex items-center gap-1"><Star class="w-3.5 h-3.5 fill-current" />Guardada</span>
+                  <span v-else class="inline-flex items-center gap-1"><Star class="w-3.5 h-3.5" />Guardar</span>
                 </button>
                 <NuxtLink to="/chat" class="px-3 py-1.5 rounded-lg border border-primary-200 bg-primary-50 text-primary-700 text-xs font-semibold hover:bg-primary-100 transition">+ Comparar con otra</NuxtLink>
               </div>
@@ -104,7 +105,7 @@
               <div class="text-xs"><div class="text-slate-500">Arancel anual</div><div class="font-semibold text-slate-800">{{ formatMoney(filteredPrograms[0].arancel_anual) }}</div></div>
               <div class="text-xs"><div class="text-slate-500">Duración</div><div class="font-semibold text-slate-800">{{ filteredPrograms[0].duracion_formal_semestres ? filteredPrograms[0].duracion_formal_semestres + ' sem' : '—' }}</div></div>
               <div class="text-xs"><div class="text-slate-500">Jornada</div><div class="font-semibold text-slate-800">{{ filteredPrograms[0].jornada || '—' }}</div></div>
-              <div class="text-xs"><div class="text-slate-500">Puntaje corte</div><div class="font-semibold text-slate-800">{{ filteredPrograms[0].puntaje_corte_ultimo ?? '—' }}</div></div>
+              <div class="text-xs"><div class="text-slate-500">Puntaje ingreso</div><div class="font-semibold text-slate-800">{{ scoreLabel(filteredPrograms[0]) }}</div></div>
             </div>
           </div>
 
@@ -114,14 +115,30 @@
                 <tr class="border-b border-slate-200">
                   <th class="text-left py-3 pr-4 font-semibold text-slate-500 w-44">Criterio</th>
                   <th v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 text-left font-bold text-slate-900 min-w-[240px]">
-                    <div class="line-clamp-2">{{ p.nombre_carrera }}</div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <div class="w-7 h-7 rounded-md border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                        <img
+                          v-if="p.institution_code && logoCache.get(p.institution_code)"
+                          :src="logoCache.get(p.institution_code)!"
+                          :alt="p.nombre_institucion"
+                          class="w-full h-full object-contain p-0.5"
+                          loading="lazy">
+                        <svg v-else class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M22 8v5"/>
+                        </svg>
+                      </div>
+                      <div class="line-clamp-2">{{ p.nombre_carrera }}</div>
+                    </div>
                     <div class="text-xs font-medium text-slate-500 mt-1">{{ p.nombre_institucion }}</div>
                     <div class="flex flex-wrap gap-1 mt-2">
-                      <span v-if="gratuidadLabel(p)" class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">✓ {{ gratuidadLabel(p) }}</span>
+                      <span v-if="gratuidadLabel(p)" class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" :class="gratuidadBadgeClass(p)">{{ gratuidadPrefix(p) }} {{ gratuidadLabel(p) }}</span>
                       <span v-if="p.acreditacion_programa" class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">{{ p.acreditacion_programa }}</span>
                     </div>
                     <button @click="toggleSaveFavorite(p)" class="mt-2 w-full px-2 py-1 rounded-md border text-[11px] font-semibold transition" :class="isFavorite(p.program_unique_code) ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'">
-                      {{ isFavorite(p.program_unique_code) ? '★ Guardada' : '☆ Guardar favorita' }}
+                      <span v-if="isFavorite(p.program_unique_code)" class="inline-flex items-center gap-1"><Star class="w-3 h-3 fill-current" />Guardada</span>
+                      <span v-else class="inline-flex items-center gap-1"><Star class="w-3 h-3" />Guardar favorita</span>
                     </button>
                   </th>
                 </tr>
@@ -154,8 +171,8 @@
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Gratuidad</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
-                    <span v-if="gratuidadLabel(p)" class="text-xs font-semibold text-emerald-700">✓ {{ gratuidadLabel(p) }}</span>
-                    <span v-else class="text-xs text-slate-500">No aplica</span>
+                    <span v-if="gratuidadLabel(p)" class="text-xs font-semibold" :class="p?.gratuidad?.adscrita ? 'text-emerald-700' : 'text-slate-500'">{{ gratuidadPrefix(p) }} {{ gratuidadLabel(p) }}</span>
+                    <span v-else class="text-xs text-slate-400">Sin información</span>
                   </td>
                 </tr>
                 <tr class="hover:bg-slate-50">
@@ -163,8 +180,11 @@
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.acreditacion_programa || '—' }}</td>
                 </tr>
                 <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje corte último</td>
-                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.puntaje_corte_ultimo ?? '—' }}</td>
+                  <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje ingreso</td>
+                  <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
+                    <div class="font-semibold text-slate-800">{{ scoreLabel(p) }}</div>
+                    <div v-if="scoreDetail(p)" class="text-xs text-slate-500 mt-0.5">{{ scoreDetail(p) }}</div>
+                  </td>
                 </tr>
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje corte primero</td>
@@ -209,7 +229,8 @@
                   <td class="py-3 pr-4 text-slate-500 font-medium">Ingreso 1er / 4° año</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="employabilityMap[p.program_unique_code]">
-                      {{ formatMoney(employabilityMap[p.program_unique_code].i1) }} / {{ formatMoney(employabilityMap[p.program_unique_code].i4) }}
+                      {{ formatMoney(employabilityMap[p.program_unique_code].i1) }} / {{ fourthYearIncomeLabel(employabilityMap[p.program_unique_code]) }}
+                      <div class="text-xs text-slate-500 mt-0.5">{{ incomeSourceLabel(employabilityMap[p.program_unique_code]) }}</div>
                     </span>
                     <span v-else class="text-slate-500">—</span>
                   </td>
@@ -225,7 +246,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <h2 class="font-semibold text-slate-800">
-              🏆 Instituciones agregadas desde Ranking
+              <span class="inline-flex items-center gap-1.5"><Trophy class="w-4 h-4 text-amber-500" />Instituciones agregadas desde Ranking</span>
               <span class="text-slate-500 font-normal">({{ selectedInstitutions.length }}/4)</span>
             </h2>
             <div class="flex gap-2 flex-wrap">
@@ -244,7 +265,7 @@
           <div v-if="selectedInstitutions.length === 0" class="text-sm text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-6 text-center">
             Aún no agregas instituciones.
             <NuxtLink to="/ranking" class="text-accent-600 font-semibold hover:underline">Ir al ranking</NuxtLink>
-            y usa "⚖️ Agregar a comparador".
+            y usa "Agregar a comparador".
           </div>
 
           <div v-else class="overflow-x-auto">
@@ -279,7 +300,7 @@
                 <tr>
                   <td class="py-3 text-slate-500 font-medium">Acreditación</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-3">
-                    <span v-if="inst.acreditacion_anos" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">🏅 {{ inst.acreditacion_anos }} años</span>
+                    <span v-if="inst.acreditacion_anos" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold"><Award class="w-3 h-3" />{{ inst.acreditacion_anos }} años</span>
                     <span v-else class="text-slate-500">—</span>
                   </td>
                 </tr>
@@ -314,11 +335,20 @@
 <script setup lang="ts">
 useHead({ title: 'Comparar Carreras — KoraChile' })
 
+import { Award, Star, Trophy } from 'lucide-vue-next'
+import { PROGRAM_FAVORITES_STORAGE_KEY, useProgramFavorites } from '~/composables/useProgramFavorites'
+import { useIntentTracker } from '~/composables/useIntentTracker'
 import { useAuthStore } from '~/stores/auth'
+import { useProgramDetailStore } from '~/stores/programDetail'
+import { useInstitutionLogos } from '~/composables/useInstitutionLogos'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const programDetailStore = useProgramDetailStore()
 const supabase = useSupabaseClient()
+const { prefetch: prefetchLogos, logoCache } = useInstitutionLogos()
+const { track } = useIntentTracker()
+const programFavorites = useProgramFavorites()
 const COMPARE_PROGRAMS_KEY = 'KoraChile:compare:programs'
 const COMPARE_INSTITUTIONS_KEY = 'KoraChile:compare:institutions'
 
@@ -373,9 +403,15 @@ const programDetails = ref<any[]>([])
 const loadingPrograms = ref(false)
 const filterTipo = ref('')
 const filterRegion = ref('')
-const savedFavorites = ref<any[]>([])
-const employabilityMap = ref<Record<string, { e1: number|null; e2: number|null; i1: number|null; i4: number|null }>>({})
-const FAVORITES_KEY = 'KoraChile:saved:programs'
+const employabilityMap = ref<Record<string, {
+  e1: number | null
+  e2: number | null
+  i1: number | null
+  i4: number | null
+  i4Label?: string | null
+  source?: 'institucion' | 'generica'
+}>>({})
+const FAVORITES_KEY = PROGRAM_FAVORITES_STORAGE_KEY
 
 const filteredPrograms = computed(() => {
   return programDetails.value.filter(p => {
@@ -389,67 +425,43 @@ const availableTipos = computed(() => [...new Set(programDetails.value.map((p: a
 const availableRegiones = computed(() => [...new Set(programDetails.value.map((p: any) => p.region).filter(Boolean))])
 
 function gratuidadLabel(p: any) {
-  if (!p?.tipo_institucion) return null
-  const acr = String(p.acreditacion_programa || '').toLowerCase()
-  const tipo = String(p.tipo_institucion).toLowerCase()
-  // Heurística: programas acreditados en instituciones CRUCH / adheridas a gratuidad suelen aplicar.
-  if (tipo.includes('centros de formación') || tipo.includes('institutos profesionales')) return 'Aplica si la IES está adscrita'
-  if (tipo.includes('universidades') && acr && !acr.includes('no ')) return 'Aplica si U. adherida'
-  return null
+  if (p?.gratuidad?.adscrita === true) return 'Tiene gratuidad'
+  if (p?.gratuidad?.adscrita === false) return 'No registra gratuidad'
+  return 'Sin información'
+}
+
+function gratuidadPrefix(p: any) {
+  return p?.gratuidad?.adscrita ? 'Sí' : '—'
+}
+
+function gratuidadBadgeClass(p: any) {
+  return p?.gratuidad?.adscrita
+    ? 'bg-emerald-100 text-emerald-700'
+    : 'bg-slate-100 text-slate-500'
 }
 
 function loadFavorites() {
-  if (typeof window === 'undefined') return
-  try {
-    const raw = localStorage.getItem(FAVORITES_KEY)
-    savedFavorites.value = raw ? JSON.parse(raw) : []
-  } catch { savedFavorites.value = [] }
+  programFavorites.loadLocal()
 }
-function isFavorite(code: string) {
-  return savedFavorites.value.some((x: any) => x.program_unique_code === code)
-}
-async function toggleSaveFavorite(p: any) {
-  if (typeof window === 'undefined') return
-  const already = isFavorite(p.program_unique_code)
-  if (already) {
-    savedFavorites.value = savedFavorites.value.filter((x: any) => x.program_unique_code !== p.program_unique_code)
-  } else {
-    savedFavorites.value.push({
-      program_unique_code: p.program_unique_code,
-      nombre_carrera: p.nombre_carrera,
-      nombre_institucion: p.nombre_institucion,
-      tipo_institucion: p.tipo_institucion,
-      region: p.region,
-      arancel_anual: p.arancel_anual,
-      saved_at: new Date().toISOString(),
-    })
-  }
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(savedFavorites.value))
 
-  // Sync con Supabase si hay sesión (tabla saved)
-  const userId = authStore.profile?.id
-  if (userId) {
-    try {
-      if (already) {
-        await supabase
-          .from('saved')
-          .delete()
-          .eq('user_id', userId)
-          .eq('program_unique_code', p.program_unique_code)
-      } else {
-        await supabase
-          .from('saved')
-          .upsert({
-            user_id: userId,
-            program_unique_code: p.program_unique_code,
-            notes: `${p.nombre_carrera} · ${p.nombre_institucion}`,
-          }, { onConflict: 'user_id,program_unique_code' })
-      }
-    } catch (e) {
-      // Si la migración no se aplicó aún, queda en localStorage como respaldo
-      console.warn('[compare] No se pudo sincronizar favorito:', e)
-    }
-  }
+function isFavorite(code: string) {
+  return programFavorites.isFavorite(code)
+}
+
+async function toggleSaveFavorite(p: any) {
+  await programFavorites.toggle({
+    program_unique_code: p.program_unique_code,
+    institution_code: p.institution_code,
+    career_generic_id: p.career_generic_id,
+    nombre_carrera: p.nombre_carrera,
+    nombre_institucion: p.nombre_institucion,
+    nombre_sede: p.nombre_sede,
+    region: p.region,
+    comuna: p.comuna,
+    tipo_institucion: p.tipo_institucion,
+    arancel_anual: p.arancel_anual,
+    source: 'compare',
+  })
 }
 
 let debounce: ReturnType<typeof setTimeout>
@@ -484,6 +496,20 @@ function persistProgramQueue() {
 }
 
 function removeProgram(code: string) {
+  const removed = selectedPrograms.value.find(p => p.program_unique_code === code)
+  if (removed) {
+    void track({
+      event_name: 'compare_removed',
+      source: 'compare',
+      program_unique_code: removed.program_unique_code,
+      institution_code: removed.institution_code ?? null,
+      career_generic_id: removed.career_generic_id ?? null,
+      metadata: {
+        nombre_carrera: removed.nombre_carrera,
+        nombre_institucion: removed.nombre_institucion,
+      },
+    })
+  }
   selectedPrograms.value = selectedPrograms.value.filter(p => p.program_unique_code !== code)
   programDetails.value = programDetails.value.filter(p => p.program_unique_code !== code)
   persistProgramQueue()
@@ -502,13 +528,24 @@ async function reloadProgramDetails() {
   }
   loadingPrograms.value = true
   try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const authHeader = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
     const details = await Promise.all(selectedPrograms.value.map(async (p) => {
+      // Si ya fue pre-fetcheado desde el chat, usar cache directo (sin llamada API)
+      const cached = programDetailStore.get(p.program_unique_code)
+      if (cached) return cached
+
       try {
         const res = await $fetch('/api/tools/get-program-detail', {
           method: 'GET',
           query: { program_unique_code: p.program_unique_code },
+          headers: authHeader,
         }) as any
-        if (res?.match === 'exact' && res.program) return res.program
+        if (res?.match === 'exact' && res.program) {
+          // Guardar en store para no volver a fetchear en esta sesión
+          programDetailStore.set(p.program_unique_code, res.program)
+          return res.program
+        }
         // Fallback: mostrar lo que tenemos del queue si el detalle falla
         return {
           program_unique_code: p.program_unique_code,
@@ -533,32 +570,68 @@ async function reloadProgramDetails() {
     }))
 
     programDetails.value = details.filter(Boolean)
-    // Empleabilidad por carrera genérica (si hay)
+    employabilityMap.value = {}
+    // Empleabilidad e ingresos: primero por institución; fallback genérico por tipo.
     await Promise.all(programDetails.value.map(async (p: any) => {
-      if (!p?.area_carrera_generica || !p?.tipo_institucion) return
+      const metrics = {
+        e1: null as number | null,
+        e2: null as number | null,
+        i1: null as number | null,
+        i4: null as number | null,
+        i4Label: null as string | null,
+        source: 'generica' as 'institucion' | 'generica',
+      }
+
       try {
-        const stats = await $fetch('/api/tools/career-stats-detailed', {
-          method: 'GET',
-          query: {
-            nombre_carrera_generica: p.area_carrera_generica,
-            tipo_institucion: p.tipo_institucion,
-          },
-        }) as any
-        const s = Array.isArray(stats?.stats) ? stats.stats[0] : null
-        if (s) {
-          employabilityMap.value[p.program_unique_code] = {
-            e1: s.empleabilidad_pct?.primer_ano ?? null,
-            e2: s.empleabilidad_pct?.segundo_ano ?? null,
-            i1: s.ingresos_clp?.primer_ano ?? null,
-            i4: s.ingresos_clp?.cuarto_ano ?? null,
+        if (p?.area_carrera_generica && p?.tipo_institucion) {
+          const stats = await $fetch('/api/tools/career-stats-detailed', {
+            method: 'GET',
+            query: {
+              nombre_carrera_generica: p.area_carrera_generica,
+              tipo_institucion: p.tipo_institucion,
+            },
+            headers: authHeader,
+          }) as any
+          const s = Array.isArray(stats?.stats) ? stats.stats[0] : null
+          if (s) {
+            metrics.e1 = s.empleabilidad_pct?.primer_ano ?? null
+            metrics.e2 = s.empleabilidad_pct?.segundo_ano ?? null
+            metrics.i1 = s.ingresos_clp?.primer_ano ?? null
+            metrics.i4 = s.ingresos_clp?.cuarto_ano ?? null
+          }
+        }
+
+        if (p?.institution_code && (p?.career_generic_id || p?.nombre_carrera)) {
+          const byInstitution = await $fetch('/api/tools/career-employability-by-institution', {
+            method: 'GET',
+            query: {
+              institution_code: p.institution_code,
+              career_generic_id: p.career_generic_id,
+              nombre_carrera: p.nombre_carrera,
+              limit: 1,
+            },
+            headers: authHeader,
+          }) as any
+          const row = Array.isArray(byInstitution?.results) ? byInstitution.results[0] : null
+          if (row) {
+            metrics.e1 = row.empleabilidad_1_ano_pct ?? metrics.e1
+            metrics.e2 = row.empleabilidad_2_ano_pct ?? metrics.e2
+            metrics.i4 = row.ingreso_promedio_4to_ano_clp ?? metrics.i4
+            metrics.i4Label = row.ingreso_label ?? null
+            metrics.source = 'institucion'
           }
         }
       } catch {
         // silencio
       }
+
+      employabilityMap.value[p.program_unique_code] = metrics
     }))
   } finally {
     loadingPrograms.value = false
+    // Prefetch logos de las instituciones comparadas
+    const codes = programDetails.value.map((p: any) => p.institution_code).filter(Boolean)
+    if (codes.length) prefetchLogos(codes)
   }
 }
 
@@ -567,9 +640,43 @@ function formatMoney(v?: number | null) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v)
 }
 
+function fourthYearIncomeLabel(entry?: { i4: number | null; i4Label?: string | null }) {
+  if (!entry) return '—'
+  return entry.i4Label || formatMoney(entry.i4)
+}
+
+function incomeSourceLabel(entry?: { source?: 'institucion' | 'generica' }) {
+  return entry?.source === 'institucion'
+    ? '4° año por institución; 1er año genérico SIES'
+    : 'Datos genéricos por carrera SIES'
+}
+
+function formatScore(v?: number | null) {
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return null
+  return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 }).format(Number(v))
+}
+
+function scoreLabel(p: any) {
+  const corte = formatScore(p?.puntaje_corte_ultimo)
+  if (corte) return corte
+  const promedio = formatScore(p?.puntaje_promedio_matriculados)
+  return promedio ? `Promedio ${promedio}` : '—'
+}
+
+function scoreDetail(p: any) {
+  if (p?.puntaje_corte_ultimo !== null && p?.puntaje_corte_ultimo !== undefined) {
+    return p?.anio_puntajes ? `Corte último ${p.anio_puntajes}` : 'Corte último'
+  }
+  if (p?.puntaje_promedio_matriculados !== null && p?.puntaje_promedio_matriculados !== undefined) {
+    return p?.anio_puntajes ? `PAES promedio matriculados ${p.anio_puntajes}` : 'PAES promedio matriculados'
+  }
+  return null
+}
+
 onMounted(async () => {
+  await authStore.ensureHydrated()
   loadProgramQueue()
-  loadFavorites()
+  await programFavorites.hydrate()
   loadInstitutionQueue()
   if (selectedPrograms.value.length) {
     await reloadProgramDetails()

@@ -12,10 +12,11 @@
  *
  * La IA debe consumir este endpoint como tool y NO inventar ramos si status='pending_scrape'.
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const body = await readBody<{ programCodes?: string[] }>(event)
   const codes = Array.isArray(body?.programCodes) ? body!.programCodes.filter(Boolean) : []
 
@@ -26,10 +27,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Máx. 5 programas por comparación' })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   // 1. Programs (siempre disponibles)
   const { data: programs, error: pErr } = await supabase

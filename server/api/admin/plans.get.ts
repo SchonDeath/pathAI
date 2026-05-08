@@ -1,14 +1,10 @@
 /**
  * GET /api/admin/plans — catálogo público, pero aislamos el consumo al panel admin
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '~/server/utils/require-admin'
 
-export default defineEventHandler(async () => {
-  const config = useRuntimeConfig()
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+export default defineEventHandler(async (event) => {
+  const { supabase } = await requireAdmin(event)
   const { data, error } = await supabase
     .from('plans')
     .select('*')

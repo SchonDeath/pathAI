@@ -5,6 +5,24 @@
  */
 import { requireAdmin } from '~/server/utils/require-admin'
 
+function normalizeFeaturedUntil(value: string | null | undefined) {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  if (typeof value !== 'string') {
+    throw createError({ statusCode: 400, statusMessage: 'featured_until inválido' })
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const parsed = new Date(trimmed)
+  if (Number.isNaN(parsed.valueOf())) {
+    throw createError({ statusCode: 400, statusMessage: 'featured_until debe ser una fecha ISO válida' })
+  }
+
+  return parsed.toISOString()
+}
+
 export default defineEventHandler(async (event) => {
   const { supabase } = await requireAdmin(event)
   const code = Number(getRouterParam(event, 'code'))
@@ -16,10 +34,11 @@ export default defineEventHandler(async (event) => {
     featured_until?: string | null
     plan_slug?: string
   }>(event) || {}
+  const featuredUntil = normalizeFeaturedUntil(body.featured_until)
 
-  // Si viene plan_slug, tomar priority/features desde catalog
+  // Si viene plan_slug sin priority manual, tomar priority/features desde catalog.
   let computedPriority = body.priority
-  if (body.plan_slug) {
+  if (body.plan_slug && computedPriority === undefined) {
     const { data: plan } = await supabase
       .from('plans')
       .select('priority')
@@ -32,7 +51,7 @@ export default defineEventHandler(async (event) => {
   const patch: Record<string, any> = {}
   if (body.is_featured !== undefined)   patch.is_featured = body.is_featured
   if (computedPriority !== undefined)   patch.priority = computedPriority
-  if (body.featured_until !== undefined) patch.featured_until = body.featured_until
+  if (featuredUntil !== undefined) patch.featured_until = featuredUntil
 
   if (!Object.keys(patch).length) {
     throw createError({ statusCode: 400, statusMessage: 'Sin cambios' })
@@ -59,7 +78,7 @@ export default defineEventHandler(async (event) => {
     await supabase.from('institution_subscriptions').insert({
       institution_code: code,
       plan_slug: body.plan_slug,
-      expires_at: body.featured_until ?? null,
+      expires_at: featuredUntil ?? null,
       is_active: true,
     })
   }

@@ -8,7 +8,8 @@
  * Uso: "¿Qué universidades tienen más años de acreditación?"
  *      "¿Cuáles tienen mejor infraestructura?"
  */
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 const METRIC_MAP: Record<string, string> = {
   acreditacion: 'acreditacion_anos',
@@ -25,7 +26,7 @@ const METRIC_MAP: Record<string, string> = {
 }
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const q = getQuery(event) as Record<string, string>
   const metric = METRIC_MAP[q.metric ?? 'acreditacion']
   if (!metric) {
@@ -35,12 +36,10 @@ export default defineEventHandler(async (event) => {
     })
   }
   const order = q.order === 'asc' ? { ascending: true } : { ascending: false }
+  const prioritizeFeatured = q.prioritize_featured === '1' || q.prioritize_featured === 'true'
   const limit = Math.min(Math.max(Number(q.limit ?? 10), 1), 25)
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   let query = supabase
     .from('institutions')
@@ -48,10 +47,12 @@ export default defineEventHandler(async (event) => {
              direccion_sede_central, acreditacion_anos,
              is_featured, priority, ${metric}`)
     .not(metric, 'is', null)
-    // Destacados primero (priority desc), luego la métrica solicitada
-    .order('priority', { ascending: false })
     .order(metric, { ...order, nullsFirst: false })
+    .order('nombre_institucion', { ascending: true })
     .limit(limit)
+
+  // Modo opcional para priorizar destacados (monetización) sin sesgar por defecto.
+  if (prioritizeFeatured) query = query.order('priority', { ascending: false })
 
   if (q.tipo_institucion) query = query.eq('tipo_institucion', q.tipo_institucion)
 

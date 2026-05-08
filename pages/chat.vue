@@ -2,13 +2,13 @@
   <div class="h-screen chat-starfield overflow-hidden">
     <AppHeader />
 
-    <!-- ── Sidebar fijo: en desktop arranca desde el tope; en mobile, debajo del AppHeader ── -->
-    <div class="fixed top-16 sm:top-0 left-0 bottom-0 z-[60] flex">
+    <!-- ── Sidebar teleportado al body para evitar clipping por overflow-hidden ── -->
+    <Teleport to="body">
       <!-- Panel deslizable -->
       <aside
-        class="sidebar-panel overflow-hidden flex flex-col sidebar-glass"
-        :class="showSidebar ? 'w-72 border-r border-slate-200/70' : 'w-0'">
-        <div class="w-72 flex flex-col h-full">
+        class="sidebar-panel overflow-hidden flex flex-col sidebar-glass border-r border-slate-200/70"
+        :class="showSidebar ? 'translate-x-0' : '-translate-x-full'">
+        <div class="w-full flex flex-col h-full">
           <div class="flex items-center gap-2 px-4 h-16 border-b border-slate-200/70 shrink-0">
             <svg class="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"/></svg>
             <h2 class="font-bold text-slate-800 text-sm flex-1">Conversaciones</h2>
@@ -102,25 +102,47 @@
         </div><!-- fin w-64 -->
       </aside>
 
-      <!-- Tab minimal cuando sidebar está cerrado (solo desktop; en mobile usamos botón en el header del chat) -->
+      <!-- Sidebar colapsado: strip vertical con iconos (solo desktop) -->
       <Transition name="fade-icon">
-        <div v-if="!showSidebar" class="hidden sm:flex fixed top-0 left-0 h-16 z-[61] items-center pl-1">
+        <div v-if="!showSidebar" class="hidden sm:flex fixed top-0 left-0 bottom-0 w-14 z-[61] flex-col items-center gap-1 pt-3 border-r border-slate-200/70 sidebar-glass">
+          <!-- Abrir sidebar -->
           <button
             @click="showSidebar = true"
-            title="Abrir historial"
-            class="flex items-center justify-center w-8 h-8 rounded-r-xl bg-white/80 backdrop-blur-sm border border-l-0 border-slate-200/80 shadow-sm text-primary-500 hover:bg-white transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+            title="Abrir panel"
+            aria-label="Abrir panel de conversaciones"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/>
+            </svg>
+          </button>
+          <!-- Nueva conversación -->
+          <button
+            @click="startNewChat()"
+            title="Nueva conversación"
+            aria-label="Nueva conversación"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+          </button>
+          <!-- Historial -->
+          <button
+            @click="showSidebar = true"
+            title="Ver historial"
+            aria-label="Ver historial de conversaciones"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </button>
         </div>
       </Transition>
-    </div><!-- fin sidebar fijo -->
+    </Teleport><!-- fin sidebar teleportado -->
 
     <!-- Modal confirmar eliminar TODAS las conversaciones -->
     <Transition name="msg">
       <div v-if="deleteAllConfirm" class="fixed inset-0 z-[70] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="delete-all-title" ref="deleteAllModalEl">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="deleteAllConfirm = false"></div>
+        <div class="absolute inset-0 bg-black/60" @click="deleteAllConfirm = false"></div>
         <div class="relative rounded-2xl p-5 max-w-xs w-full space-y-4 modal-glass">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-full bg-red-400/10 flex items-center justify-center shrink-0">
@@ -152,7 +174,7 @@
     <!-- Modal de confirmación de borrado -->
     <Transition name="msg">
       <div v-if="deleteConfirmId" class="fixed inset-0 z-[70] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="delete-one-title" ref="deleteOneModalEl">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="deleteConfirmId = null"></div>
+        <div class="absolute inset-0 bg-black/60" @click="deleteConfirmId = null"></div>
         <div class="relative rounded-2xl p-5 max-w-xs w-full space-y-4 modal-glass">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 rounded-full bg-red-400/10 flex items-center justify-center shrink-0">
@@ -181,29 +203,47 @@
       </div>
     </Transition>
 
-    <!-- Backdrop móvil cuando sidebar está abierto -->
-    <Transition name="fade-icon">
-      <div
-        v-if="showSidebar"
-        class="fixed inset-0 z-[59] bg-black/40 backdrop-blur-sm sm:hidden"
-        @click="showSidebar = false"
-      />
-    </Transition>
+    <!-- Backdrop móvil (teleportado junto al sidebar) -->
+    <Teleport to="body">
+      <Transition name="fade-icon">
+        <div
+          v-if="showSidebar"
+          class="fixed inset-0 z-[59] bg-black/50 sm:hidden"
+          @click="showSidebar = false"
+        />
+      </Transition>
+    </Teleport>
 
-    <!-- ── Contenido principal (offset dinámico por sidebar solo en desktop) ── -->
+    <!-- ── Contenido principal (el sidebar es fixed, no desplaza el layout) ── -->
     <main
-      class="absolute top-16 right-0 bottom-0 overflow-hidden px-3 sm:px-4 pb-4 sm:pb-6 pt-4 sm:pt-6"
-      :style="{ left: isMobile ? '0px' : (showSidebar ? 288 : 0) + 'px' }">
-      <div class="mx-auto w-full h-full max-w-4xl">
+      class="absolute top-16 left-0 right-0 bottom-0 overflow-hidden px-3 sm:px-4 pb-4 sm:pb-6 pt-4 sm:pt-6">
+      <div class="mx-auto w-full h-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
         <section class="relative h-full flex flex-col overflow-hidden rounded-3xl chat-glass-card">
 
           <!-- Header -->
-          <div class="border-b border-slate-200/70 bg-white/50 backdrop-blur-sm flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
+          <div class="border-b border-slate-200/70 bg-white/80 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
             <div class="text-left min-w-0">
-              <h1 class="text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">
-                <span style="background: linear-gradient(135deg, #1A73E8, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Habla con Kora</span>
-              </h1>
+              <div class="flex items-center gap-3 min-w-0">
+              
+                <h1 class="text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">
+                  
+                  <span style="background: linear-gradient(135deg, #1A73E8, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Habla con Kora</span>
+                </h1>
+
+                
+              </div>
               <p class="text-xs sm:text-sm text-slate-500 leading-snug hidden sm:block">Acá te ayudo a descubrir tu carrera ideal o saber sobre instituciones</p>
+
+              <div class="sm:hidden mt-1 inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-2.5 py-1 shadow-sm">
+                <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-cyan-100 bg-cyan-50 shrink-0">
+                  <MascotIcon />
+                </div>
+                <span class="text-xs font-semibold text-slate-900">Kora</span>
+                <span class="text-xs text-emerald-600 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  en línea
+                </span>
+              </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <!-- Botón historial (solo mobile, abre sidebar) -->
@@ -245,14 +285,14 @@
             <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-slate-200/80">
               <MascotIcon />
             </div>
-            <div class="bg-white/75 backdrop-blur-sm border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm max-w-[85%] space-y-3 px-4 py-3">
+            <div class="bg-white/90 border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm max-w-[85%] space-y-3 px-4 py-3">
               <p class="text-slate-700 text-sm leading-relaxed">
                 <template v-if="careersContext">
-                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con <strong>{{ careersContext.query }}</strong>. 👋<br><br>
+                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con <strong>{{ careersContext.query }}</strong>.<br><br>
                   Te sugería <strong>{{ careersContext.careers.map(c => c.title).join(', ') }}</strong>. ¿Quieres profundizar en alguna, comparar opciones, o preguntar algo específico?
                 </template>
                 <template v-else>
-                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Soy KoraChile, tu orientador vocacional. 👋<br><br>
+                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Soy KoraChile, tu orientador vocacional.<br><br>
                   Cuéntame: ¿qué materias o actividades te gustan más? ¿Tienes alguna carrera en mente o estás comenzando desde cero?
                 </template>
               </p>
@@ -317,8 +357,8 @@
               'rounded-2xl max-w-[85%] leading-relaxed',
               compactMode ? 'px-3 py-2.5 text-[13px]' : 'px-4 py-3 text-sm',
               msg.role === 'user'
-                ? 'bg-primary-600 backdrop-blur-sm border border-primary-500/30 text-white rounded-tr-sm'
-                : 'bg-white/75 backdrop-blur-sm border border-slate-200/70 text-slate-800 rounded-tl-sm shadow-sm'
+                ? 'bg-primary-600 border border-primary-500/30 text-white rounded-tr-sm'
+                : 'bg-white/90 border border-slate-200/70 text-slate-800 rounded-tl-sm shadow-sm'
             ]">
               <div
                 v-if="msg.role === 'assistant'"
@@ -332,38 +372,53 @@
                 <div
                   v-for="card in latestProgramCards.slice(0, 4)"
                   :key="card.code"
-                  class="rounded-xl border border-slate-200/80 bg-white/65 backdrop-blur-sm p-3 space-y-2 hover:border-primary-300 hover:bg-white/90 hover:shadow-sm transition-all duration-200">
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="font-semibold text-slate-800 text-xs sm:text-sm leading-tight line-clamp-2">{{ card.title }}</div>
-                    <span v-if="card.type" class="shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary-100 text-primary-700 border border-primary-200">{{ shortType(card.type) }}</span>
+                  class="rounded-xl border border-slate-200/80 bg-white/90 p-3 flex flex-col gap-2 hover:border-primary-300 hover:bg-white hover:shadow-sm transition-all duration-200">
+                  <!-- Cabecera: logo + título + badge tipo -->
+                  <div class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                      <img
+                        v-if="card.institution_code && logoCache.get(card.institution_code)"
+                        :src="logoCache.get(card.institution_code)!"
+                        :alt="card.institution"
+                        class="w-full h-full object-contain p-0.5"
+                        loading="lazy">
+                      <svg v-else class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 8v5"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-start justify-between gap-1">
+                      <div class="font-semibold text-slate-800 text-xs sm:text-sm leading-tight line-clamp-2">{{ card.title }}</div>
+                      <span
+                        v-if="card.type"
+                        class="shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary-100 text-primary-700 border border-primary-200"
+                        :title="institutionTypeTitle(card.type)">
+                        {{ institutionTypeBadge(card.type) }}
+                      </span>
+                    </div>
                   </div>
+                  <!-- Institución + región -->
                   <div class="text-xs text-slate-500 flex items-center gap-1.5">
-                    <span class="line-clamp-1">🏛 {{ card.institution }}</span>
+                    <span class="line-clamp-1">{{ card.institution }}</span>
                     <span v-if="card.region" class="text-slate-300">·</span>
                     <span v-if="card.region" class="shrink-0 text-slate-500">{{ card.region }}</span>
                   </div>
-                  <div class="flex flex-wrap gap-1.5 text-[11px]">
-                    <span v-if="card.semesters" class="px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200">🗓 {{ card.semesters }} sem</span>
-                    <span v-if="card.cost" class="px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200">💸 {{ formatClp(card.cost) }}</span>
-                    <span v-if="card.jornada" class="px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200">⏰ {{ card.jornada }}</span>
-                    <span v-if="card.vacantes" class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">✅ {{ card.vacantes }} vacantes</span>
-                    <span v-if="card.titulados" class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">🎓 {{ card.titulados }} titulados/año</span>
+                  <!-- Pills de datos -->
+                  <div class="flex flex-wrap gap-1.5 text-[11px] flex-1 items-start content-start">
+                    <span v-if="card.semesters" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><CalendarDays class="w-3 h-3" />{{ card.semesters }} sem</span>
+                    <span v-if="card.cost" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><Banknote class="w-3 h-3" />{{ formatClp(card.cost) }}</span>
+                    <span v-if="card.jornada" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><Clock3 class="w-3 h-3" />{{ card.jornada }}</span>
+                    <span v-if="card.vacantes" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 class="w-3 h-3" />{{ card.vacantes }} vacantes</span>
+                    <span v-if="card.titulados" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"><GraduationCap class="w-3 h-3" />{{ card.titulados }} titulados/año</span>
                   </div>
-                  <div class="flex gap-1.5 pt-0.5">
-                    <button
-                      @click="addProgramToCompare(card)"
-                      :disabled="isProgramQueued(card.code)"
-                      class="flex-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200"
-                      :class="isProgramQueued(card.code)
-                        ? 'border-primary-300 bg-primary-100 text-primary-700 cursor-default'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'">
-                      {{ isProgramQueued(card.code) ? '✓ En comparador' : '+ Comparar' }}
-                    </button>
+                  <!-- Acción única: profundizar sin vender comparación desde el chat -->
+                  <div class="mt-auto pt-1">
                     <button
                       @click="viewProgramDetails(card)"
                       title="Ver información completa"
-                      class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200">
-                      Ver más
+                      class="w-full px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200">
+                      Ver detalle
                     </button>
                   </div>
                 </div>
@@ -374,19 +429,10 @@
         </TransitionGroup>
 
         <!-- Typing indicator -->
-        <div v-if="loading" class="flex gap-3 msg-enter">
-          <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-slate-200/80">
-            <MascotIcon />
-          </div>
-          <div class="bg-white/75 backdrop-blur-sm border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="flex gap-1 items-center">
-                <span class="typing-dot"></span>
-                <span class="typing-dot" style="animation-delay: 150ms"></span>
-                <span class="typing-dot" style="animation-delay: 300ms"></span>
-              </div>
-              <span class="text-xs text-slate-500 italic">Generando…</span>
-            </div>
+        <div v-if="loading" class="msg-enter pt-1">
+          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 shadow-sm">
+            <span class="kora-thinking-dot" aria-hidden="true"></span>
+            <span class="text-xs text-slate-600">Kora está pensando...</span>
           </div>
         </div>
           </div>
@@ -396,7 +442,7 @@
             <button
               v-if="!isNearBottom"
               @click="() => { scrollToBottom(); hasNewBelow = false }"
-              class="absolute right-6 bottom-[92px] z-10 px-3 py-1.5 rounded-full bg-primary-600/90 backdrop-blur-sm hover:bg-primary-600 border border-primary-500/20 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5">
+              class="absolute right-6 bottom-[92px] z-10 px-3 py-1.5 rounded-full bg-primary-600/95 hover:bg-primary-600 border border-primary-500/20 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5">
               <span v-if="hasNewBelow" class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
               Ir al final ↓
             </button>
@@ -409,7 +455,7 @@
 
           <!-- Input -->
           <div :class="[
-            'pt-1 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm',
+            'pt-1 border-t border-slate-200/60 bg-white/85',
             compactMode ? 'px-3 sm:px-4 pb-3' : 'px-4 sm:px-6 pb-4'
           ]">
             <div class="bg-white/80 border border-slate-200 rounded-2xl flex items-end gap-2 p-2 focus-within:border-primary-400/70 transition-colors shadow-sm">
@@ -425,10 +471,11 @@
               <button
                 @click="send()"
                 :disabled="loading || !input.trim()"
-                class="flex-shrink-0 w-10 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors border border-primary-500/20">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                class="flex-shrink-0 h-10 px-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center gap-1.5 text-sm font-semibold transition-colors border border-primary-500/20">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                 </svg>
+                <span class="hidden sm:inline">Enviar</span>
               </button>
             </div>
             <p class="text-xs text-slate-500/70 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
@@ -440,7 +487,7 @@
       <Transition name="msg">
         <div
           v-if="showLoginGate"
-          class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/45"
           role="dialog"
           aria-modal="true"
           aria-labelledby="login-gate-title"
@@ -482,9 +529,12 @@
 </template>
 
 <script setup lang="ts">
+import { Banknote, CalendarDays, CheckCircle2, Clock3, GraduationCap } from 'lucide-vue-next'
 definePageMeta({ middleware: 'auth' })
 import { marked } from 'marked'
 import { useAuthStore } from '~/stores/auth'
+import { useProgramDetailStore } from '~/stores/programDetail'
+import { useFocusTrap } from '~/composables/useFocusTrap'
 
 // Configura marked para generar HTML seguro (sin script tags)
 marked.setOptions({ breaks: true, gfm: true })
@@ -514,6 +564,8 @@ interface ProgramCard {
   code: string
   title: string
   institution: string
+  institution_code: number | null
+  career_generic_id?: string | null
   semesters: number | null
   cost: number | null
   type: string | null
@@ -526,7 +578,9 @@ interface ProgramCard {
 
 const store = useCareerStore()
 const authStore = useAuthStore()
+const programDetailStore = useProgramDetailStore()
 const supabase = useSupabaseClient()
+const { prefetch: prefetchLogos, logoCache } = useInstitutionLogos()
 const router = useRouter()
 const messages = ref<Message[]>([])
 const input = ref('')
@@ -672,7 +726,6 @@ async function deleteAllSessions() {
     deleteAllConfirm.value = false
   }
 }
-const compareProgramCodes = ref<string[]>([])
 const COMPARE_PROGRAMS_KEY = 'KoraChile:compare:programs'
 const PROGRAM_CARDS_SESSION_PREFIX = 'KoraChile:chat:program-cards:'
 
@@ -778,7 +831,7 @@ function buildComparePrompt(): string {  // Busca el último mensaje del usuario
   return `En base a lo que discutimos sobre "${topic}", compara con una opción alternativa similar y explica pros/contras de cada una.`
 }
 
-const MAX_CONTEXT_MESSAGES = 14
+const MAX_CONTEXT_MESSAGES = 10
 
 const userAvatar = computed(() => authStore.profile?.avatar_url || null)
 const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'Tú')
@@ -794,6 +847,8 @@ const careersContext = computed(() => {
       description: v.description,
       skills: v.skills,
       salary_range: v.salary_range,
+      salary_source: v.salary_source,
+      salary_label: v.salary_label,
       pros: v.pros,
       cons: v.cons,
       match_score: v.match_score,
@@ -814,14 +869,13 @@ async function send(customText?: string | Event) {
   }
 
   error.value = null
+  ensureSessionId()
   const userMsg: Message = { id: makeId(), role: 'user', content: text }
   messages.value.push(userMsg)
   if (!customText) input.value = ''
   await nextTick()
   autoResize()
   scrollToBottom()
-
-  await persistMessages([userMsg])
 
   loading.value = true
   try {
@@ -839,21 +893,40 @@ async function send(customText?: string | Event) {
       loading.value = false
       return
     }
-    const data = await $fetch<{ reply: string; programCards?: ProgramCard[] }>('/api/chat', {
+    const data = await $fetch<{ reply: string; sessionId?: string; programCards?: ProgramCard[]; programFullData?: Record<string, any> }>('/api/chat', {
       method: 'POST',
       signal: currentAbortController.value.signal,
       headers: { Authorization: `Bearer ${accessToken}` },
       body: {
+        sessionId: activeSessionId.value,
         messages: contextMessages,
-        careersContext: careersContext.value,
+        // Solo enviar careersContext en el primer mensaje de la sesión:
+        // el servidor guarda el historial en Supabase, así que después del
+        // primer turno ya tiene el contexto y re-enviarlo gasta tokens extra.
+        careersContext: messages.value.filter(m => m.role === 'assistant').length <= 1
+          ? careersContext.value
+          : null,
       },
     })
+
+    if (data.sessionId && data.sessionId !== activeSessionId.value) {
+      activeSessionId.value = data.sessionId
+      if (authStore.profile?.id && typeof window !== 'undefined') {
+        localStorage.setItem(`KoraChile:chat:session:${authStore.profile.id}`, activeSessionId.value)
+      }
+    }
 
     const aiMsg: Message = { id: makeId(), role: 'assistant', content: data.reply }
     messages.value.push(aiMsg)
     latestProgramCards.value = Array.isArray(data.programCards) ? data.programCards : []
+    // Guardar datos completos en Pinia para que /compare no necesite fetch extra
+    if (data.programFullData) {
+      for (const [code, detail] of Object.entries(data.programFullData)) {
+        programDetailStore.set(code, detail)
+      }
+    }
+    prefetchLogos(latestProgramCards.value.map(c => c.institution_code))
     persistLatestProgramCards()
-    await persistMessages([aiMsg])
     await nextTick()
     if (isNearBottom.value) scrollToBottom()
     else hasNewBelow.value = true
@@ -861,7 +934,12 @@ async function send(customText?: string | Event) {
     focusInput()
   } catch (e: any) {
     if ((e as any)?.name === 'AbortError' || (e as any)?.cause?.name === 'AbortError') return
-    error.value = e?.data?.message || 'Error al conectar con la IA. Intenta de nuevo.'
+    error.value =
+      e?.data?.message ||
+      e?.data?.statusMessage ||
+      e?.statusMessage ||
+      e?.message ||
+      'Error al conectar con la IA. Intenta de nuevo.'
     messages.value.pop() // quita el mensaje del usuario si falló
   } finally {
     loading.value = false
@@ -958,7 +1036,7 @@ async function loadHistory() {
     .eq('user_id', authStore.profile.id)
     .eq('session_id', activeSessionId.value)
     .order('created_at', { ascending: true })
-    .limit(120)
+    .limit(60)
 
   if (!loadError && data?.length) {
     messages.value = data.map((m: any) => ({
@@ -1105,39 +1183,49 @@ function formatClp(n: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 }
 
-function shortType(t: string) {
-  if (t.includes('Centros')) return 'CFT'
-  if (t.includes('Institutos')) return 'IP'
-  if (t.includes('Universidades')) return 'U'
+function institutionTypeBadge(t: string) {
+  const s = t.toLowerCase()
+  if (s.includes('centros') || s.includes('cft')) return 'CFT'
+  if (s.includes('institutos') || s.includes('ip')) return 'IP'
+  if (s.includes('univers')) return 'Universidad'
   return t
 }
 
-function loadComparePrograms() {
-  if (typeof window === 'undefined') return
-  try {
-    const raw = localStorage.getItem(COMPARE_PROGRAMS_KEY)
-    if (!raw) return
-    const arr = JSON.parse(raw)
-    if (Array.isArray(arr)) {
-      compareProgramCodes.value = arr
-        .map((x: any) => String(x?.program_unique_code || x?.code || ''))
-        .filter(Boolean)
-    }
-  } catch {
-    compareProgramCodes.value = []
+function institutionTypeTitle(t: string) {
+  const s = t.toLowerCase()
+  if (s.includes('centros') || s.includes('cft')) {
+    return 'Centro de Formacion Tecnica (CFT) - valor entregado por el servicio.'
   }
-}
-
-function isProgramQueued(code: string) {
-  return compareProgramCodes.value.includes(code)
+  if (s.includes('institutos') || s.includes('ip')) {
+    return 'Instituto Profesional (IP) - valor entregado por el servicio.'
+  }
+  if (s.includes('univers')) {
+    return 'Universidad - valor entregado por el servicio.'
+  }
+  return `Tipo de institucion: ${t} - valor entregado por el servicio.`
 }
 
 async function viewProgramDetails(card: ProgramCard) {
-  // Agrega (si no está) y navega a compare con foco en ese programa
-  await addProgramToCompare(card)
+  await queueProgramForDetail(card)
+
+  void useIntentTracker().track({
+    event_name: 'program_view',
+    source: 'chat',
+    program_unique_code: card.code,
+    institution_code: card.institution_code,
+    career_generic_id: card.career_generic_id,
+    metadata: {
+      nombre_carrera: card.title,
+      nombre_institucion: card.institution,
+      region: card.region,
+      via: 'chat_card',
+    },
+  })
+
+  await router.push('/compare?tab=programas')
 }
 
-async function addProgramToCompare(card: ProgramCard) {
+async function queueProgramForDetail(card: ProgramCard) {
   if (typeof window === 'undefined') return
   try {
     const raw = localStorage.getItem(COMPARE_PROGRAMS_KEY)
@@ -1156,12 +1244,9 @@ async function addProgramToCompare(card: ProgramCard) {
         region: card.region,
       })
       localStorage.setItem(COMPARE_PROGRAMS_KEY, JSON.stringify(safe))
-      compareProgramCodes.value = safe.map((x: any) => String(x.program_unique_code))
     }
-
-    await router.push('/compare?tab=programas')
   } catch (e: any) {
-    console.warn('[chat] compare programs nav failed:', e?.message)
+    console.warn('[chat] queue program detail failed:', e?.message)
   }
 }
 
@@ -1176,11 +1261,7 @@ onMounted(async () => {
   await authStore.ensureHydrated()
   applyResponsiveCompact()
   window.addEventListener('resize', applyResponsiveCompact)
-  loadComparePrograms()
   refreshChips()
-  window.addEventListener('storage', (e) => {
-    if (e.key === COMPARE_PROGRAMS_KEY) loadComparePrograms()
-  })
   await Promise.all([loadHistory(), loadSessions()])
   await nextTick()
   focusInput()
@@ -1228,35 +1309,22 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(2px 2px at 12% 18%, rgba(59,130,246,0.45) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 88% 12%, rgba(99,102,241,0.35) 0%, transparent 100%),
-    radial-gradient(2.5px 2.5px at 45% 55%, rgba(147,197,253,0.5) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 72% 78%, rgba(59,130,246,0.3) 0%, transparent 100%),
-    radial-gradient(2px 2px at 28% 88%, rgba(99,102,241,0.25) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 93% 48%, rgba(147,197,253,0.4) 0%, transparent 100%),
-    radial-gradient(2px 2px at 8% 65%, rgba(59,130,246,0.35) 0%, transparent 100%),
-    radial-gradient(2.5px 2.5px at 58% 8%, rgba(99,102,241,0.4) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 3% 38%, rgba(147,197,253,0.3) 0%, transparent 100%),
-    radial-gradient(2px 2px at 78% 32%, rgba(59,130,246,0.25) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 22% 52%, rgba(196,181,253,0.4) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 62% 92%, rgba(147,197,253,0.35) 0%, transparent 100%),
-    radial-gradient(2px 2px at 40% 30%, rgba(99,102,241,0.2) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 95% 75%, rgba(59,130,246,0.3) 0%, transparent 100%);
+    radial-gradient(2px 2px at 12% 18%, rgba(59,130,246,0.4) 0%, transparent 100%),
+    radial-gradient(2px 2px at 45% 55%, rgba(147,197,253,0.45) 0%, transparent 100%),
+    radial-gradient(2px 2px at 72% 78%, rgba(59,130,246,0.28) 0%, transparent 100%),
+    radial-gradient(2px 2px at 22% 52%, rgba(196,181,253,0.28) 0%, transparent 100%);
   pointer-events: none;
   z-index: 0;
 }
 
 /* ── Card glass principal del chat ── */
 .chat-glass-card {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   box-shadow:
-    0 0 40px rgba(99, 102, 241, 0.07),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
-    0 20px 60px rgba(59, 130, 246, 0.06),
-    0 4px 24px rgba(0, 0, 0, 0.05);
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 12px 30px rgba(59, 130, 246, 0.06),
+    0 2px 12px rgba(0, 0, 0, 0.04);
 }
 /* Glow azul en la parte superior */
 .chat-glass-card::before {
@@ -1275,18 +1343,14 @@ onBeforeUnmount(() => {
 
 /* ── Sidebar glass ── */
 .sidebar-glass {
-  background: rgba(240, 245, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(240, 245, 255, 0.96);
 }
 
 /* ── Modal glass ── */
 .modal-glass {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(59, 130, 246, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(59, 130, 246, 0.05);
 }
 
 /* ── Markdown renderizado en burbujas del asistente (tema glass) ── */
@@ -1327,24 +1391,22 @@ onBeforeUnmount(() => {
 .fade-icon-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .fade-icon-enter-from, .fade-icon-leave-to { opacity: 0; transform: scale(0.6); }
 
-/* ── Sidebar: animación profesional ── */
+/* ── Sidebar: desliza desde la izquierda en todas las pantallas ── */
 .sidebar-panel {
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 288px; /* w-72 */
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  z-index: 61;
 }
-.sidebar-panel > div {
-  opacity: 1;
-  transform: translateX(0);
-  transition:
-    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1) 0.08s,
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.sidebar-panel.w-0 > div {
-  opacity: 0;
-  transform: translateX(-12px);
-  transition:
-    opacity 0.15s cubic-bezier(0.4, 0, 1, 1),
-    transform 0.25s cubic-bezier(0.4, 0, 1, 1);
+@media (min-width: 640px) {
+  .sidebar-panel {
+    width: 288px;
+  }
 }
 
 .toggle-strip {
@@ -1431,6 +1493,30 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: rgba(26, 115, 232, 0.65);
   animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+.kora-thinking-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #0ea5e9;
+  box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45);
+  animation: kora-thinking-pulse 1.3s ease-out infinite;
+}
+
+@keyframes kora-thinking-pulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
 }
 @keyframes typing-bounce {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }

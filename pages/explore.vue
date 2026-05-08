@@ -41,11 +41,12 @@
               :key="cat.value"
               @click="selectCategory(cat.value)"
               :class="[
-                'px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors border',
+                'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors border',
                 selectedCategory === cat.value
                   ? 'bg-primary-600 text-white border-primary-600'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-primary-400 hover:text-primary-600'
               ]">
+              <component v-if="cat.icon" :is="cat.icon" class="w-3.5 h-3.5" />
               {{ cat.label }}
             </button>
           </div>
@@ -63,7 +64,7 @@
 
         <!-- Empty -->
         <div v-else-if="careers.length === 0" class="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm space-y-4">
-          <div class="text-5xl">🔍</div>
+          <div class="flex justify-center"><Search class="w-12 h-12 text-slate-400" /></div>
           <h2 class="text-xl font-bold text-slate-900">Sin resultados</h2>
           <p class="text-slate-500">Prueba otra búsqueda o categoría.</p>
           <button @click="resetFilters" class="btn-primary">Ver todas</button>
@@ -91,7 +92,9 @@
 
             <!-- Header -->
             <div class="flex items-start gap-3 pr-10">
-              <span class="text-4xl shrink-0">{{ career.emoji }}</span>
+              <div class="shrink-0 rounded-xl bg-primary-50 border border-primary-100 p-2">
+                <component :is="careerCategoryIcon(career.category)" class="w-6 h-6 text-primary-600" />
+              </div>
               <div class="min-w-0">
                 <h3 class="font-bold text-slate-900 group-hover:text-primary-600 transition-colors leading-tight">
                   {{ career.title }}
@@ -124,7 +127,7 @@
             <!-- Salary range from DB -->
             <div v-if="career.salary_junior || career.salary_mid || career.salary_senior" class="bg-gradient-to-br from-emerald-50 to-cyan-50 border border-emerald-100 rounded-xl p-3 space-y-2">
               <div class="flex items-center justify-between text-[11px] font-semibold text-emerald-700">
-                <span>💼 Sueldo SIES</span>
+                <span class="inline-flex items-center gap-1"><Wallet class="w-3.5 h-3.5" />Sueldo SIES</span>
                 <span class="text-slate-500 font-normal">CLP/mes</span>
               </div>
               <div class="grid grid-cols-3 gap-1.5 text-center">
@@ -207,21 +210,33 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from 'vue'
+import { BarChart3, BookText, FlaskConical, HeartPulse, Laptop, Palette, Scale, Search, Sparkles, Wallet } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 import { useCareerCatalogStore } from '~/stores/careerCatalog'
 
 useHead({ title: 'Explorar Carreras — KoraChile' })
 
 const CATEGORIES = [
-  { label: 'Todas', value: '' },
-  { label: '💻 Tecnología', value: 'tecnologia' },
-  { label: '🏥 Salud', value: 'salud' },
-  { label: '📊 Negocios', value: 'negocios' },
-  { label: '🎨 Arte & Diseño', value: 'arte' },
-  { label: '⚗️ Ciencias', value: 'ciencias' },
-  { label: '⚖️ Derecho', value: 'derecho' },
-  { label: '📚 Educación', value: 'educacion' },
+  { label: 'Todas', value: '', icon: null },
+  { label: 'Tecnología', value: 'tecnologia', icon: Laptop },
+  { label: 'Salud', value: 'salud', icon: HeartPulse },
+  { label: 'Negocios', value: 'negocios', icon: BarChart3 },
+  { label: 'Arte y Diseño', value: 'arte', icon: Palette },
+  { label: 'Ciencias', value: 'ciencias', icon: FlaskConical },
+  { label: 'Derecho', value: 'derecho', icon: Scale },
+  { label: 'Educación', value: 'educacion', icon: BookText },
 ]
+
+const CATEGORY_ICON_MAP: Record<string, Component> = {
+  tecnologia: Laptop,
+  salud: HeartPulse,
+  negocios: BarChart3,
+  arte: Palette,
+  ciencias: FlaskConical,
+  derecho: Scale,
+  educacion: BookText,
+}
 
 const store = useCareerStore()
 const catalogStore = useCareerCatalogStore()
@@ -285,6 +300,10 @@ function resetFilters() {
   selectedCategory.value = ''
   offset.value = 0
   fetchCareers()
+}
+
+function careerCategoryIcon(category?: string | null): Component {
+  return CATEGORY_ICON_MAP[category || ''] || Sparkles
 }
 
 function goToPage(p: number) {

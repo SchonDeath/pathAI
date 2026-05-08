@@ -45,7 +45,11 @@ export const useAuthStore = defineStore('auth', () => {
   const profile = ref<AuthProfile | null>(initial.profile)
   const cachedAt = ref<number>(initial.cachedAt)
   const loading = ref(false)
-  const hydrated = ref(false)
+  // Si hay perfil fresco en localStorage, ya estamos "hydrated" sin esperar Supabase.
+  // Esto evita el parpadeo de nav en F5 para usuarios con sesión activa.
+  const hydrated = ref(
+    initial.profile !== null && (Date.now() - initial.cachedAt < TTL_MS)
+  )
 
   const isAuthenticated = computed(() => !!profile.value)
   const isAdmin = computed(() => profile.value?.role === 'admin')

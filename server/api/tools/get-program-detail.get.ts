@@ -11,10 +11,13 @@
  * Uso típico: "¿Qué puntaje de corte tiene Ingeniería Comercial UDP?"
  *             "¿Cuántas vacantes tiene la sede Alameda de la USACH?"
  */
-import { createClient } from '@supabase/supabase-js'
 import { resolveInstitution } from '~/server/utils/institution-resolver'
+import { requireAuth } from '~/server/utils/require-auth'
+import { resolveGratuidad } from '~/server/utils/gratuidad'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
+  await requireAuth(event, { skipRateLimit: true })
   const config = useRuntimeConfig()
   const UF_REF_CLP = Number(config.public?.ufReferenceClp ?? 39000)
 
@@ -30,6 +33,7 @@ export default defineEventHandler(async (event) => {
 
   const enrichProgram = (p: any) => ({
     ...p,
+    gratuidad: resolveGratuidad(p.institution_code, p.nombre_institucion),
     arancel_anual_uf_aprox: toUf(p.arancel_anual),
     matricula_anual_uf_aprox: toUf(p.matricula_anual),
     costo_titulacion_uf_aprox: toUf(p.costo_titulacion),
@@ -59,10 +63,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   const cols = `
     program_unique_code, nombre_carrera, nombre_institucion, nombre_sede,
@@ -78,14 +79,16 @@ export default defineEventHandler(async (event) => {
     brecha_arancel_becas, brecha_arancel_creditos,
     matricula_total_2025, matricula_primer_ano_2025,
     titulacion_total_2024,
-    promedio_nem, puntaje_corte_ultimo, puntaje_corte_primero,
+    promedio_nem, rango_percentil_paes,
     puntaje_promedio_matriculados, anio_puntajes,
     pond_nem, pond_ranking, pond_lenguaje, pond_matematicas,
     pond_matematicas_2, pond_historia, pond_ciencias, pond_otros,
-    institution_code, career_generic_id, vigencia
+    institution_code, career_generic_id
   `
 
-  let q = supabase.from('programs').select(cols).eq('is_current', true).limit(10)
+  let q = supabase.from('programs').select(cols)
+    .order('puntaje_promedio_matriculados', { ascending: false, nullsFirst: false })
+    .limit(10)
 
   if (program_unique_code) {
     q = q.eq('program_unique_code', program_unique_code)
@@ -126,7 +129,10 @@ export default defineEventHandler(async (event) => {
         p.matricula_primer_ano_2025,
         p.matricula_total_2025,
       ),
-      puntaje_corte_ultimo: p.puntaje_corte_ultimo,
+      rango_percentil_paes: p.rango_percentil_paes,
+      puntaje_promedio_matriculados: p.puntaje_promedio_matriculados,
+      anio_puntajes: p.anio_puntajes,
+      gratuidad: resolveGratuidad(p.institution_code, p.nombre_institucion),
     })),
     uf_referencia_clp: UF_REF_CLP,
   }

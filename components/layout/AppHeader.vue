@@ -1,7 +1,7 @@
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 transition-[background-color,border-color,box-shadow] duration-300"
     :class="scrolled ? 'bg-white/95 shadow-sm border-b border-slate-100' : 'header-gradient'">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <NuxtLink to="/" class="flex items-center gap-2.5 group">
         <!-- KoraChile mascota -->
         <div class="w-9 h-9 shrink-0 rounded-full overflow-hidden ring-2 ring-white shadow-sm">
@@ -22,22 +22,24 @@
             width: `${indicator.width}px`,
           }"></span>
 
-        <NuxtLink to="/chat"
-          class="nav-link">
-          <span class="relative z-10 flex items-center gap-1.5">💬 Chat con Kora</span>
-        </NuxtLink>
-        <NuxtLink to="/ranking"
-          class="nav-link">
-          <span class="relative z-10 flex items-center gap-1.5">🏆 Ranking</span>
-        </NuxtLink>
-        <NuxtLink v-if="user" to="/compare"
-          class="nav-link">
-          <span class="relative z-10 flex items-center gap-1.5">⚖️ Comparar</span>
-        </NuxtLink>
-        <NuxtLink v-if="user" to="/paes-simulator"
-          class="nav-link">
-          <span class="relative z-10 flex items-center gap-1.5">🎯 Simular PAES</span>
-        </NuxtLink>
+        <template v-if="authReady">
+          <NuxtLink v-if="user" to="/chat"
+            class="nav-link">
+            <span class="relative z-10 flex items-center gap-1.5"><MessageCircle class="w-4 h-4" />Chat con Kora</span>
+          </NuxtLink>
+          <NuxtLink v-if="user" to="/ranking"
+            class="nav-link">
+            <span class="relative z-10 flex items-center gap-1.5"><Trophy class="w-4 h-4" />Ranking</span>
+          </NuxtLink>
+          <NuxtLink v-if="user" to="/compare"
+            class="nav-link">
+            <span class="relative z-10 flex items-center gap-1.5"><Scale class="w-4 h-4" />Comparar</span>
+          </NuxtLink>
+          <NuxtLink v-if="user" to="/paes-simulator"
+            class="nav-link">
+            <span class="relative z-10 flex items-center gap-1.5"><Target class="w-4 h-4" />Simular PAES</span>
+          </NuxtLink>
+        </template>
         <!-- PAES dropdown -->
         <div class="relative" ref="paesMenuEl">
           <button
@@ -47,7 +49,8 @@
             :aria-expanded="paesOpen"
             aria-label="Calendario PAES">
             <span class="relative z-10 flex items-center gap-1.5">
-              📅 PAES
+              <CalendarDays class="w-4 h-4" />
+              PAES
               <svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" :class="paesOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
@@ -71,7 +74,7 @@
           <template v-if="user">
             <NuxtLink v-if="isAdmin" to="/admin"
               class="nav-link nav-link-admin">
-              <span class="relative z-10 flex items-center gap-1.5">⚙️ Admin</span>
+              <span class="relative z-10 flex items-center gap-1.5"><Shield class="w-4 h-4" />Admin</span>
             </NuxtLink>
             <!-- Botón de usuario con dropdown -->
             <div class="relative" ref="userMenuEl">
@@ -101,13 +104,13 @@
                     to="/profile"
                     @click="userMenuOpen = false"
                     class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition rounded-xl mx-1">
-                    <span>👤</span> Mi perfil
+                    <UserRound class="w-4 h-4" /> Mi perfil
                   </NuxtLink>
                   <div class="border-t border-slate-100 my-1"></div>
                   <button
                     @click="logout"
                     class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition rounded-xl mx-1">
-                    <span>🚪</span> Cerrar sesión
+                    <LogOut class="w-4 h-4" /> Cerrar sesión
                   </button>
                 </div>
               </Transition>
@@ -151,13 +154,15 @@
         id="mobile-menu"
         class="md:hidden px-4 pb-4">
         <div class="rounded-2xl border border-slate-200 bg-white shadow-card p-2 flex flex-col">
-          <NuxtLink to="/chat" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">💬 Chat con Kora</NuxtLink>
-          <NuxtLink to="/ranking" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">🏆 Ranking</NuxtLink>
-          <NuxtLink v-if="user" to="/compare" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">⚖️ Comparar</NuxtLink>
-          <NuxtLink v-if="user" to="/paes-simulator" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">🎯 Simular PAES</NuxtLink>
+          <template v-if="authReady">
+            <NuxtLink v-if="user" to="/chat" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><MessageCircle class="w-4 h-4" />Chat con Kora</NuxtLink>
+            <NuxtLink v-if="user" to="/ranking" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Trophy class="w-4 h-4" />Ranking</NuxtLink>
+            <NuxtLink v-if="user" to="/compare" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Scale class="w-4 h-4" />Comparar</NuxtLink>
+            <NuxtLink v-if="user" to="/paes-simulator" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Target class="w-4 h-4" />Simular PAES</NuxtLink>
+          </template>
           <!-- PAES móvil: toggle inline -->
           <button @click="paesOpenMobile = !paesOpenMobile" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition flex items-center justify-between" :aria-expanded="paesOpenMobile" aria-label="Calendario PAES">
-            <span>📅 PAES</span>
+            <span class="inline-flex items-center gap-2"><CalendarDays class="w-4 h-4" />PAES</span>
             <svg class="w-4 h-4 text-slate-500 transition-transform" :class="paesOpenMobile ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div v-if="paesOpenMobile" class="px-1 pb-1">
@@ -165,9 +170,9 @@
           </div>
           <template v-if="authReady">
             <template v-if="user">
-              <NuxtLink v-if="isAdmin" to="/admin" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-amber-700 hover:bg-amber-50 transition">⚙️ Admin</NuxtLink>
-              <NuxtLink to="/profile" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">👤 {{ user.name?.split(' ')[0] || 'Mi perfil' }}</NuxtLink>
-              <button @click="logout" class="px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition text-left">🚪 Cerrar sesión</button>
+              <NuxtLink v-if="isAdmin" to="/admin" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-amber-700 hover:bg-amber-50 transition inline-flex items-center gap-2"><Shield class="w-4 h-4" />Admin</NuxtLink>
+              <NuxtLink to="/profile" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><UserRound class="w-4 h-4" />{{ user.name?.split(' ')[0] || 'Mi perfil' }}</NuxtLink>
+              <button @click="logout" class="px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition text-left inline-flex items-center gap-2"><LogOut class="w-4 h-4" />Cerrar sesión</button>
             </template>
             <template v-else>
               <NuxtLink to="/login" @click="menuOpen = false" class="mt-1 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 transition text-center">Iniciar sesión</NuxtLink>
@@ -180,6 +185,7 @@
 </template>
 
 <script setup lang="ts">
+import { CalendarDays, LogOut, MessageCircle, Scale, Shield, Target, Trophy, UserRound } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 const { y } = useWindowScroll()

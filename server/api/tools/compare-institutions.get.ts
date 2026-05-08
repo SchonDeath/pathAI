@@ -10,10 +10,39 @@
  * Uso típico: "¿Cuál tiene mejor infraestructura, UDP o la U. Central?"
  *             "¿Cuál tiene más años de acreditación?"
  */
-import { createClient } from '@supabase/supabase-js'
+import { resolveInstitution } from '~/server/utils/institution-resolver'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
+
+function normalizeText(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function scoreInstitutionName(input: string, candidate: string) {
+  const a = normalizeText(input)
+  const b = normalizeText(candidate)
+  if (!a || !b) return 0
+  if (a === b) return 100
+  if (b.startsWith(a)) return 80
+  if (b.includes(a)) return 65
+
+  const aTokens = a.split(' ').filter(t => t.length >= 3)
+  const bTokens = new Set(b.split(' ').filter(t => t.length >= 3))
+  let overlap = 0
+  for (const t of aTokens) {
+    if (bTokens.has(t)) overlap += 1
+  }
+  return overlap * 10
+}
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const { nombres, institution_codes, nombre_carrera } = getQuery(event) as Record<string, string>
 
   if (!nombres && !institution_codes) {
@@ -23,10 +52,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   const cols = `
     institution_code, nombre_institucion, tipo_institucion,
@@ -52,14 +78,51 @@ export default defineEventHandler(async (event) => {
     if (error) throw createError({ statusCode: 500, statusMessage: error.message })
     rows = data ?? []
   } else {
+    if (!nombres) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Entrega `nombres` (CSV) cuando no envías `institution_codes`.',
+      })
+    }
     const names = nombres.split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+    const selectedCodes: number[] = []
+    const seenCodes = new Set<number>()
+
     for (const n of names) {
-      const { data } = await supabase
+      const resolved = await resolveInstitution(supabase, n)
+      if (resolved?.institution_code && !seenCodes.has(resolved.institution_code)) {
+        selectedCodes.push(resolved.institution_code)
+        seenCodes.add(resolved.institution_code)
+        continue
+      }
+
+      const { data: candidates, error } = await supabase
+        .from('institutions')
+        .select('institution_code, nombre_institucion')
+        .ilike('nombre_institucion', `%${n}%`)
+        .limit(8)
+
+      if (error) throw createError({ statusCode: 500, statusMessage: error.message })
+      if (!candidates?.length) continue
+
+      const best = [...candidates]
+        .sort((a, b) => scoreInstitutionName(n, b.nombre_institucion) - scoreInstitutionName(n, a.nombre_institucion))[0]
+
+      if (best?.institution_code && !seenCodes.has(best.institution_code)) {
+        selectedCodes.push(best.institution_code)
+        seenCodes.add(best.institution_code)
+      }
+    }
+
+    if (selectedCodes.length) {
+      const { data, error } = await supabase
         .from('institutions')
         .select(cols)
-        .ilike('nombre_institucion', `%${n}%`)
-        .limit(1)
-      if (data?.[0]) rows.push(data[0])
+        .in('institution_code', selectedCodes)
+
+      if (error) throw createError({ statusCode: 500, statusMessage: error.message })
+      const byCode = new Map((data ?? []).map(r => [r.institution_code, r]))
+      rows = selectedCodes.map(code => byCode.get(code)).filter(Boolean)
     }
   }
 
@@ -87,25 +150,27 @@ export default defineEventHandler(async (event) => {
 
   let employability_by_career: any[] = []
   if (nombre_carrera) {
-    const institutionNames = rows
-      .map(r => r.nombre_institucion)
-      .filter(Boolean)
+    const institutionCodes = rows
+      .map(r => Number(r.institution_code))
+      .filter((code) => Number.isFinite(code))
 
-    if (institutionNames.length) {
-      const { data: empRows } = await supabase
+    if (institutionCodes.length) {
+      const { data: empRows, error: empError } = await supabase
         .from('career_employability')
         .select(`
+          institution_code,
           nombre_institucion,
-          nombre_carrera_titulo,
+          nombre_carrera_generica,
           empleabilidad_1_ano_pct,
           empleabilidad_2_ano_pct,
           ingreso_label,
-          ingreso_min_clp,
-          ingreso_max_clp
+          ingreso_promedio_4to_ano_clp
         `)
-        .ilike('nombre_carrera_titulo', `%${nombre_carrera}%`)
-        .in('nombre_institucion', institutionNames)
+        .ilike('nombre_carrera_generica', `%${nombre_carrera}%`)
+        .in('institution_code', institutionCodes)
         .limit(40)
+
+      if (empError) throw createError({ statusCode: 500, statusMessage: empError.message })
 
       employability_by_career = empRows ?? []
     }

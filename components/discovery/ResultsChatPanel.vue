@@ -1,26 +1,28 @@
 <template>
   <aside
-    class="bg-white/95 border border-slate-200 shadow-sm flex flex-col overflow-hidden transition-all duration-300"
-    :class="mode === 'modal' ? 'rounded-3xl h-[min(78vh,700px)]' : 'rounded-3xl h-[calc(100vh-7rem)] lg:sticky lg:top-24'">
+    class="results-chat-shell relative flex flex-col overflow-hidden transition-all duration-300"
+    :class="mode === 'modal' ? 'rounded-[1.75rem] h-[min(78vh,700px)]' : 'results-chat-sidebar rounded-[2rem] h-[min(78vh,820px)] xl:h-[calc(100vh-7rem)]'">
 
-    <!-- Header -->
-    <div class="px-5 py-4 border-b border-slate-100 bg-white/90 flex items-center justify-between gap-3">
+    <div class="results-chat-header flex items-center justify-between gap-3 border-b border-slate-200/70 px-5 py-4">
       <div>
-        <h2 class="text-base font-bold text-slate-900 leading-tight">Habla con Kora</h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Contexto: <strong class="text-slate-700">{{ careerTitles.length }} carreras recomendadas</strong>
+        <div class="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-gradient-to-r from-primary-50 to-accent-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-700 shadow-sm">
+          Kora chat
+        </div>
+        <h2 class="mt-2 text-base font-semibold leading-tight text-slate-900">Habla con Kora sobre tus resultados</h2>
+        <p class="mt-0.5 text-xs text-slate-500">
+          Contexto cargado: <strong class="text-slate-700">{{ careerTitles.length }} rutas</strong>
         </p>
       </div>
       <div class="flex items-center gap-2">
         <button
           @click="resetChat"
-          class="px-3 py-1.5 rounded-full text-xs font-semibold border border-primary-200 text-primary-700 hover:bg-primary-50 transition">
+          class="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
           Nuevo chat
         </button>
         <button
           v-if="mode === 'modal'"
           @click="emit('close')"
-          class="w-7 h-7 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition flex items-center justify-center"
+          class="flex h-7 w-7 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           aria-label="Cerrar chat">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -29,20 +31,43 @@
       </div>
     </div>
 
-    <!-- Messages -->
-    <div ref="messagesEl" @scroll="handleScroll" class="relative flex-1 overflow-y-auto px-4 pt-4 pb-3 space-y-4">
+    <div class="px-4 pt-3 pb-2 border-b border-slate-200/60 bg-white/70">
+      <div class="rounded-2xl border border-slate-200/80 bg-white/90 px-3.5 py-2.5 flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-cyan-50 ring-2 ring-cyan-100">
+            <MascotIcon />
+          </div>
+          <div class="min-w-0">
+            <p class="font-semibold leading-tight text-slate-900">Kora</p>
+            <p class="inline-flex items-center gap-1.5 text-xs text-emerald-600">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              en lÃ­nea
+            </p>
+          </div>
+        </div>
+        <div class="inline-flex items-center gap-1.5" aria-label="Indicador de actividad">
+          <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+          <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+          <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+        </div>
+      </div>
+    </div>
 
-      <!-- Bienvenida -->
+    <div ref="messagesEl" @scroll="handleScroll" class="results-chat-body relative flex-1 space-y-4 overflow-y-auto px-4 pt-4 pb-3">
+
       <div v-if="messages.length === 0" class="flex gap-3 msg-enter">
-        <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-white">
+        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full shadow-sm ring-2 ring-white">
           <MascotIcon />
         </div>
-        <div class="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] space-y-3">
-          <p class="text-sm text-slate-800 leading-relaxed">
-            ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con
-            <strong>{{ userQuery }}</strong>. ??<br><br>
-            Te sugerí <strong>{{ careerTitles.join(', ') }}</strong>.
-            ¿Quieres profundizar en alguna, comparar opciones o preguntar algo específico?
+        <div class="max-w-[88%] space-y-3 rounded-[1.4rem] rounded-tl-sm border border-slate-200/80 bg-white/95 px-4 py-4 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
+            <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Contexto</span>
+            <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">{{ careerTitles.length }} rutas</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-800">
+            Hola{{ userFirstName ? `, ${userFirstName}` : '' }}. Ya tengo a la vista tu bÃºsqueda sobre
+            <strong>{{ userQuery }}</strong> y las rutas <strong>{{ careerTitles.join(', ') }}</strong>.
+            Si quieres, puedo compararlas, aterrizarlas a universidades chilenas o ayudarte a decidir cuÃ¡l priorizar.
           </p>
           <div class="flex flex-wrap gap-2">
             <button
@@ -50,14 +75,13 @@
               :key="chip"
               :disabled="loading"
               @click="sendPreset(chip)"
-              class="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+              class="rounded-full border border-slate-200 bg-slate-50/90 px-3 py-1.5 text-xs font-medium text-slate-700 transition-all duration-200 hover:border-primary-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
               {{ chip }}
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Mensajes -->
       <TransitionGroup name="msg" tag="div" class="space-y-4">
         <div
           v-for="(msg, i) in messages"
@@ -70,15 +94,15 @@
               :avatar="userAvatar"
               :name="userName"
               size="sm" />
-            <div v-else class="w-9 h-9 rounded-full overflow-hidden shadow-sm ring-2 ring-white">
+            <div v-else class="h-9 w-9 overflow-hidden rounded-full shadow-sm ring-2 ring-white">
               <MascotIcon />
             </div>
           </div>
           <div :class="[
-            'rounded-2xl max-w-[85%] px-4 py-3 text-sm leading-relaxed',
+            'max-w-[88%] rounded-[1.35rem] px-4 py-3 text-sm leading-relaxed',
             msg.role === 'user'
-              ? 'bg-primary-600 text-white rounded-tr-sm'
-              : 'bg-white border border-slate-100 shadow-sm text-slate-800 rounded-tl-sm'
+              ? 'rounded-tr-sm bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]'
+              : 'rounded-tl-sm border border-slate-200/80 bg-white/95 shadow-sm text-slate-800'
           ]">
             <div
               v-if="msg.role === 'assistant'"
@@ -92,12 +116,11 @@
         </div>
       </TransitionGroup>
 
-      <!-- Typing indicator -->
       <div v-if="loading" class="flex gap-3 msg-enter">
-        <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-white">
+        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full shadow-sm ring-2 ring-white">
           <MascotIcon />
         </div>
-        <div class="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3">
+        <div class="rounded-[1.35rem] rounded-tl-sm border border-slate-200 bg-white px-4 py-3 shadow-sm">
           <div class="flex gap-1 items-center h-5">
             <span class="typing-dot"></span>
             <span class="typing-dot" style="animation-delay: 150ms"></span>
@@ -106,43 +129,40 @@
         </div>
       </div>
 
-      <!-- Ir al final -->
       <Transition name="msg">
         <button
           v-if="!isNearBottom"
           @click="scrollToBottom"
-          class="absolute right-4 bottom-4 z-10 px-3 py-1.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5">
-          Ir al final ?
+          class="absolute right-4 bottom-4 z-10 flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-lg transition hover:bg-slate-800">
+          Ir al final â†“
         </button>
       </Transition>
     </div>
 
-    <!-- Error -->
-    <div v-if="error" class="mx-4 mb-2 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+    <div v-if="error" class="mx-4 mb-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       {{ error }}
     </div>
 
-    <!-- Input -->
-    <div class="px-4 pt-1 pb-4 border-t border-slate-100 bg-white">
-      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex items-end gap-2 p-2">
+    <div class="results-chat-footer border-t border-slate-200/70 px-4 pt-2 pb-4">
+      <div class="flex items-end gap-2 rounded-[1.5rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
         <textarea
           v-model="input"
           ref="inputEl"
           placeholder="Escribe tu mensaje..."
           rows="1"
-          class="flex-1 resize-none px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none bg-transparent max-h-32 overflow-y-auto"
+          class="max-h-32 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
           @keydown.enter.exact.prevent="send"
           @input="autoResize" />
         <button
           @click="send"
           :disabled="loading || !input.trim()"
-          class="flex-shrink-0 w-10 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors">
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
           </svg>
         </button>
       </div>
-      <p class="text-xs text-slate-500 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
+      <p class="mt-2 text-center text-xs text-slate-500">Enter para enviar Â· Shift+Enter para nueva lÃ­nea</p>
     </div>
   </aside>
 </template>
@@ -161,16 +181,18 @@ interface Message { id: string; role: 'user' | 'assistant'; content: string }
 
 const store = useCareerStore()
 const authStore = useAuthStore()
+const supabase = useSupabaseClient()
 
 const messages = ref<Message[]>([])
 const input = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
+const activeSessionId = ref<string>('')
 const messagesEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
 const userAvatar = computed(() => authStore.profile?.avatar_url || null)
-const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'Tú')
+const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'TÃº')
 const userFirstName = computed(() => authStore.profile?.name?.split(' ')[0] || '')
 
 const userQuery = computed(() => store.result?.query ?? '')
@@ -184,7 +206,9 @@ const careersContext = computed(() => {
       title: v.title,
       description: v.description,
       skills: v.skills,
-      salary_range: v.salary_range,
+      salary_range: v.salary_source === 'sies' ? v.salary_range : undefined,
+      salary_source: v.salary_source,
+      salary_label: v.salary_label,
       pros: v.pros,
       cons: v.cons,
       match_score: v.match_score,
@@ -194,10 +218,10 @@ const careersContext = computed(() => {
 })
 
 const quickPrompts = [
-  '¿Cuál tiene mejor sueldo?',
+  'Â¿CuÃ¡l tiene mejor sueldo con datos SIES?',
   'Compara pros y contras',
   'Universidades reales en Chile',
-  '¿Cuál encaja más conmigo?',
+  'Â¿CuÃ¡l encaja mÃ¡s conmigo?',
 ]
 
 const typingMsgId = ref<string | null>(null)
@@ -208,6 +232,11 @@ function makeId() {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function ensureSessionId() {
+  if (activeSessionId.value) return
+  activeSessionId.value = store.sessionId || makeId()
 }
 
 function startTypingAnimation(id: string, fullText: string) {
@@ -257,7 +286,15 @@ function sendPreset(text: string) {
 async function send() {
   const text = input.value.trim()
   if (!text || loading.value) return
+
+  await authStore.ensureHydrated()
+  if (!authStore.isAuthenticated) {
+    error.value = 'Inicia sesiÃ³n para conversar con Kora sobre tus resultados.'
+    return
+  }
+
   error.value = null
+  ensureSessionId()
   const userMsg: Message = { id: makeId(), role: 'user', content: text }
   messages.value.push(userMsg)
   input.value = ''
@@ -266,13 +303,29 @@ async function send() {
   scrollToBottom()
   loading.value = true
   try {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const accessToken = sessionData.session?.access_token
+    if (!accessToken) {
+      error.value = 'Tu sesiÃ³n expirÃ³. Vuelve a iniciar sesiÃ³n para conversar con Kora.'
+      messages.value.pop()
+      loading.value = false
+      return
+    }
+
     const data = await $fetch('/api/chat', {
       method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
       body: {
+        sessionId: activeSessionId.value,
         messages: messages.value.map(m => ({ role: m.role, content: m.content })),
         careersContext: careersContext.value,
       },
-    }) as { reply: string }
+    }) as { reply: string; sessionId?: string }
+
+    if (data.sessionId) {
+      activeSessionId.value = data.sessionId
+    }
+
     const aiMsg: Message = { id: makeId(), role: 'assistant', content: data.reply }
     messages.value.push(aiMsg)
     await nextTick()
@@ -280,7 +333,12 @@ async function send() {
     startTypingAnimation(aiMsg.id, aiMsg.content)
     inputEl.value?.focus({ preventScroll: true })
   } catch (e: any) {
-    error.value = e?.data?.message || 'Error al conectar con la IA. Intenta de nuevo.'
+    error.value =
+      e?.data?.message ||
+      e?.data?.statusMessage ||
+      e?.statusMessage ||
+      e?.message ||
+      'Error al conectar con la IA. Intenta de nuevo.'
     messages.value.pop()
   } finally {
     loading.value = false
@@ -291,6 +349,7 @@ function resetChat() {
   messages.value = []
   error.value = null
   input.value = ''
+  activeSessionId.value = makeId()
   nextTick(() => autoResize())
 }
 
@@ -305,6 +364,49 @@ onBeforeUnmount(() => { if (typingTimer) clearInterval(typingTimer) })
 </script>
 
 <style scoped>
+.results-chat-shell {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 12px 30px rgba(59, 130, 246, 0.06),
+    0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.results-chat-shell::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(26,115,232,0.55), rgba(6,182,212,0.4), transparent);
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.results-chat-sidebar {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(219, 234, 254, 0.9) 0%, transparent 52%),
+    radial-gradient(ellipse at 80% 10%, rgba(224, 231, 255, 0.7) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(207, 250, 254, 0.45) 0%, transparent 60%),
+    linear-gradient(160deg, #f0f4ff 0%, #f8faff 42%, #eef6ff 74%, #f5f7ff 100%);
+}
+
+.results-chat-header {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.results-chat-body {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.45) 100%);
+}
+
+.results-chat-footer {
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .msg-enter { animation: msgFadeUp 0.2s ease both; }
 @keyframes msgFadeUp {
   from { opacity: 0; transform: translateY(6px); }

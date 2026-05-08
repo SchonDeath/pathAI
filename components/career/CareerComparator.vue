@@ -50,20 +50,18 @@
             <tr class="border-b border-slate-200">
               <th class="text-left py-4 px-4 font-semibold text-slate-900 bg-slate-50">Criterio</th>
               <th v-for="careerData in selectedCareersData" :key="careerData.id" class="text-center py-4 px-4 font-semibold text-slate-900 bg-slate-50">
-                <div class="text-2xl mb-2">{{ careerData.emoji }}</div>
+                <div class="mb-2 flex justify-center"><GraduationCap class="w-5 h-5 text-primary-600" /></div>
                 {{ careerData.title }}
               </th>
             </tr>
           </thead>
           <tbody>
-            <!-- Salario -->
+            <!-- Ingreso oficial -->
             <tr class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-4 px-4 font-medium text-slate-900">Salario Promedio</td>
+              <td class="py-4 px-4 font-medium text-slate-900">Ingreso oficial SIES</td>
               <td v-for="careerData in selectedCareersData" :key="`salary-${careerData.id}`" class="text-center py-4 px-4">
-                <p class="font-bold text-emerald-600">{{ formatSalary(getMarketData(careerData.id).salary.avg) }}</p>
-                <p class="text-xs text-slate-500 mt-1">
-                  {{ formatSalary(getMarketData(careerData.id).salary.min) }} - {{ formatSalary(getMarketData(careerData.id).salary.max) }}
-                </p>
+                <p class="font-bold text-emerald-600">{{ officialIncomeLabel(careerData) }}</p>
+                <p class="text-xs text-slate-500 mt-1">{{ officialIncomeSource(careerData) }}</p>
               </td>
             </tr>
 
@@ -84,37 +82,9 @@
             <tr class="border-b border-slate-100 hover:bg-slate-50">
               <td class="py-4 px-4 font-medium text-slate-900">Demanda Laboral</td>
               <td v-for="careerData in selectedCareersData" :key="`demand-${careerData.id}`" class="text-center py-4 px-4">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" :class="getDemandColor(getMarketData(careerData.id).demand)">
-                  {{ getDemandLabel(getMarketData(careerData.id).demand) }}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" :class="demandClass(careerData.job_demand)">
+                  {{ careerData.job_demand || 'Sin dato' }}
                 </span>
-              </td>
-            </tr>
-
-            <!-- Crecimiento Anual -->
-            <tr class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-4 px-4 font-medium text-slate-900">Crecimiento Anual</td>
-              <td v-for="careerData in selectedCareersData" :key="`growth-${careerData.id}`" class="text-center py-4 px-4">
-                <p class="font-bold text-blue-600">+{{ getMarketData(careerData.id).growth }}%</p>
-              </td>
-            </tr>
-
-            <!-- Empleos Disponibles -->
-            <tr class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-4 px-4 font-medium text-slate-900">Empleos Disponibles</td>
-              <td v-for="careerData in selectedCareersData" :key="`jobs-${careerData.id}`" class="text-center py-4 px-4">
-                <p class="font-bold text-slate-900">{{ getMarketData(careerData.id).jobsAvailable.toLocaleString() }}</p>
-              </td>
-            </tr>
-
-            <!-- Principales empresas -->
-            <tr class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-4 px-4 font-medium text-slate-900">Empresas que contratan</td>
-              <td v-for="careerData in selectedCareersData" :key="`companies-${careerData.id}`" class="text-center py-4 px-4">
-                <div class="flex flex-wrap gap-1 justify-center">
-                  <span v-for="company in getMarketData(careerData.id).companies.slice(0, 3)" :key="company" class="px-2 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-700">
-                    {{ company }}
-                  </span>
-                </div>
               </td>
             </tr>
 
@@ -141,7 +111,7 @@
       <div class="lg:hidden space-y-4">
         <div v-for="careerData in selectedCareersData" :key="careerData.id" class="bg-white rounded-3xl p-6 border border-slate-100 space-y-4">
           <div class="flex items-start gap-3">
-            <span class="text-3xl">{{ careerData.emoji }}</span>
+            <GraduationCap class="w-6 h-6 text-primary-600 shrink-0" />
             <div>
               <h3 class="font-bold text-slate-900">{{ careerData.title }}</h3>
               <p class="text-sm text-slate-500">{{ careerData.tagline }}</p>
@@ -150,20 +120,12 @@
 
           <div class="space-y-3 border-t border-slate-100 pt-4">
             <div class="flex justify-between items-center">
-              <span class="text-sm text-slate-600">Salario Promedio</span>
-              <p class="font-bold text-emerald-600">{{ formatSalary(getMarketData(careerData.id).salary.avg) }}</p>
+              <span class="text-sm text-slate-600">Ingreso oficial SIES</span>
+              <p class="font-bold text-emerald-600">{{ officialIncomeLabel(careerData) }}</p>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-sm text-slate-600">Demanda</span>
-              <span class="text-xs font-medium">{{ getDemandLabel(getMarketData(careerData.id).demand) }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-slate-600">Crecimiento Anual</span>
-              <p class="font-bold text-blue-600">+{{ getMarketData(careerData.id).growth }}%</p>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-slate-600">Empleos Disponibles</span>
-              <p class="font-bold">{{ getMarketData(careerData.id).jobsAvailable.toLocaleString() }}</p>
+              <span class="text-xs font-medium">{{ careerData.job_demand || 'Sin dato' }}</span>
             </div>
           </div>
         </div>
@@ -171,7 +133,7 @@
 
       <!-- Recomendación -->
       <div class="bg-gradient-to-r from-primary-50 to-accent-50 rounded-3xl p-6 border border-primary-200">
-        <h3 class="font-bold text-slate-900 mb-2">💡 Recomendación</h3>
+        <h3 class="font-bold text-slate-900 mb-2 inline-flex items-center gap-1.5"><Lightbulb class="w-4 h-4 text-amber-500" />Recomendación</h3>
         <p class="text-slate-700">
           {{ getBestRecommendation() }}
         </p>
@@ -185,8 +147,8 @@
 </template>
 
 <script setup lang="ts">
+import { GraduationCap, Lightbulb } from 'lucide-vue-next'
 import type { CareerVariation } from '~/stores/career'
-import { getMarketData, formatSalary, getDemandColor, getDemandLabel } from '~/utils/marketData'
 
 interface Props {
   careers: CareerVariation[]
@@ -216,6 +178,33 @@ function estimatedMonths(career: CareerVariation): number {
   return durations.reduce((a, b) => a + b, 0)
 }
 
+function formatCLP(value?: number | null): string {
+  if (!value) return 'Sin dato'
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function officialIncomeLabel(career: CareerVariation): string {
+  if (career.salary_source !== 'sies') return 'Sin dato oficial'
+  return formatCLP(career.salary_range?.senior || career.salary_range?.mid || career.salary_range?.junior)
+}
+
+function officialIncomeSource(career: CareerVariation): string {
+  if (career.salary_source !== 'sies') return 'Kora no estima sueldos'
+  const year = career.salary_year ? ` ${career.salary_year}` : ''
+  return `SIES/MiFuturo${year}`
+}
+
+function demandClass(demand?: string) {
+  if (demand === 'Muy Alta') return 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+  if (demand === 'Alta') return 'bg-blue-100 text-blue-700 border border-blue-200'
+  if (demand === 'Media') return 'bg-amber-100 text-amber-700 border border-amber-200'
+  return 'bg-slate-100 text-slate-600 border border-slate-200'
+}
+
 function getBestRecommendation(): string {
   if (selectedCareersData.value.length === 0) return ''
 
@@ -223,16 +212,22 @@ function getBestRecommendation(): string {
     current.match_score > prev.match_score ? current : prev
   )
 
-  const marketBest = selectedCareersData.value.reduce((prev, current) => {
-    const currGrowth = getMarketData(current.id).growth
-    const prevGrowth = getMarketData(prev.id).growth
-    return currGrowth > prevGrowth ? current : prev
-  })
+  const bestIncome = selectedCareersData.value
+    .filter(c => c.salary_source === 'sies')
+    .sort((a, b) => {
+      const av = a.salary_range?.senior || a.salary_range?.mid || a.salary_range?.junior || 0
+      const bv = b.salary_range?.senior || b.salary_range?.mid || b.salary_range?.junior || 0
+      return bv - av
+    })[0]
 
-  if (best.id === marketBest.id) {
-    return `${best.title} destaca tanto en compatibilidad (${best.match_score}%) como en crecimiento laboral (+${getMarketData(best.id).growth}% anual). Es la opción más estratégica.`
+  if (!bestIncome) {
+    return `${best.title} es tu mejor match (${best.match_score}%). No hay ingresos SIES suficientes para comparar sueldo sin estimar.`
   }
 
-  return `${best.title} es tu mejor match (${best.match_score}%), pero ${marketBest.title} tiene mayor demanda (+${getMarketData(marketBest.id).growth}% anual). Considera tu prioridad: satisfacción o crecimiento laboral.`
+  if (best.id === bestIncome.id) {
+    return `${best.title} combina el mayor match (${best.match_score}%) con el mejor ingreso oficial disponible (${officialIncomeLabel(best)}).`
+  }
+
+  return `${best.title} es tu mejor match (${best.match_score}%), pero ${bestIncome.title} muestra el mayor ingreso SIES disponible (${officialIncomeLabel(bestIncome)}). Considera compatibilidad y evidencia salarial.`
 }
 </script>

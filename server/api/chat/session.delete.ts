@@ -5,23 +5,11 @@
 // Seguridad: el WHERE incluye user_id = JWT.sub, por lo que un usuario
 // nunca puede borrar mensajes de otro aunque conozca el session_id.
 
-import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const authHeader = getHeader(event, 'authorization') || ''
-  const token = authHeader.replace(/^Bearer\s+/i, '')
-
-  if (!token) {
-    throw createError({ statusCode: 401, statusMessage: 'Falta token de sesión.' })
-  }
-
-  // Verificar JWT con clave anon
-  const anon = createClient(config.public.supabaseUrl, config.public.supabaseAnonKey)
-  const { data: userData, error: userErr } = await anon.auth.getUser(token)
-  if (userErr || !userData?.user?.id) {
-    throw createError({ statusCode: 401, statusMessage: 'Sesión inválida.' })
-  }
+  const { userId } = await requireAuth(event)
 
   const body = await readBody(event)
   const { sessionId } = body ?? {}
@@ -32,15 +20,12 @@ export default defineEventHandler(async (event) => {
 
   // Usamos service_role para poder borrar, pero el WHERE garantiza que solo
   // se borran filas del usuario autenticado.
-  const service = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const service = requireSupabaseServiceClient()
 
   const { error } = await service
     .from('chat_messages')
     .delete()
-    .eq('user_id', userData.user.id)
+    .eq('user_id', userId)
     .eq('session_id', sessionId)
 
   if (error) {

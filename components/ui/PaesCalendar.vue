@@ -1,18 +1,18 @@
 <template>
   <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
     <!-- Header -->
-    <div class="flex items-center justify-between gap-3 px-5 py-3 bg-gradient-to-r from-primary-50 to-accent-50 border-b border-slate-200">
+    <div class="px-5 py-3 bg-gradient-to-r from-primary-50 to-accent-50 border-b border-slate-200 space-y-2">
       <div class="flex items-center gap-2">
-        <span class="text-lg">📅</span>
+        <CalendarDays class="w-4 h-4 text-primary-700" />
         <span class="font-bold text-slate-800 text-sm">Calendario PAES {{ PAES_YEAR }}</span>
       </div>
-      <!-- Filtro de proceso -->
-      <div class="flex rounded-lg overflow-hidden border border-slate-200 text-xs font-semibold">
+      <!-- Filtro de proceso — fila separada para que no se comprima -->
+      <div class="flex rounded-lg overflow-hidden border border-slate-200 text-xs font-semibold w-full">
         <button
           v-for="opt in PROCESS_OPTS"
           :key="opt.value ?? 'todos'"
           @click="activeProcess = opt.value"
-          class="px-2.5 py-1.5 transition-colors"
+          class="flex-1 py-1.5 transition-colors whitespace-nowrap text-center"
           :class="activeProcess === opt.value
             ? 'bg-primary-600 text-white'
             : 'bg-white text-slate-600 hover:bg-slate-50'">
@@ -32,6 +32,7 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-xs px-2 py-0.5 rounded-full border font-semibold" :class="PAES_EVENT_COLORS[nextEvent.type]">
+              <component :is="TYPE_ICONS[nextEvent.type]" class="w-3 h-3 inline-block mr-1" />
               {{ TYPE_LABELS[nextEvent.type] }}
             </span>
             <span class="text-xs text-slate-500">{{ PAES_PROCESS_LABELS[nextEvent.process] }}</span>
@@ -69,6 +70,7 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <span class="text-[10px] px-1.5 py-0.5 rounded-full border font-semibold" :class="PAES_EVENT_COLORS[event.type]">
+              <component :is="TYPE_ICONS[event.type]" class="w-3 h-3 inline-block mr-1" />
               {{ TYPE_LABELS[event.type] }}
             </span>
           </div>
@@ -92,6 +94,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from 'vue'
+import { CalendarDays, Clock3, FilePenLine, FileText, Info, Trophy } from 'lucide-vue-next'
 import {
   PAES_EVENTS,
   PAES_YEAR,
@@ -120,11 +124,19 @@ const filteredEvents = computed(() =>
 const nextEvent = computed(() => getNextPaesEvent(activeProcess.value ?? undefined))
 
 const TYPE_LABELS: Record<PaesEvent['type'], string> = {
-  exam: '📝 Examen',
-  result: '🏆 Resultados',
-  registration: '✍️ Inscripción',
-  deadline: '⏰ Plazo',
-  info: 'ℹ️ Info',
+  exam: 'Examen',
+  result: 'Resultados',
+  registration: 'Inscripción',
+  deadline: 'Plazo',
+  info: 'Info',
+}
+
+const TYPE_ICONS: Record<PaesEvent['type'], Component> = {
+  exam: FileText,
+  result: Trophy,
+  registration: FilePenLine,
+  deadline: Clock3,
+  info: Info,
 }
 
 function isPast(dateIso: string): boolean {

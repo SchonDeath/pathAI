@@ -5,40 +5,22 @@
  * Uso:
  *   const { userId } = await requireAuth(event)
  */
-import { createClient } from '@supabase/supabase-js'
 import type { H3Event } from 'h3'
+import { getSupabaseAnonClient } from './supabase-clients'
+import { enforceSharedRateLimit, type SharedRateLimitOptions } from './rate-limit'
 
-// Rate limit in-memory: { userId -> [timestamps ms] }
-// Se resetea al reiniciar el servidor; suficiente para MVP.
-// Para producción usa Redis/Upstash.
-const rateLimitBuckets = new Map<string, number[]>()
-const RATE_LIMIT_WINDOW_MS = 60_000   // 1 minuto
-const RATE_LIMIT_MAX = 20             // 20 requests por minuto por usuario
-
-function checkRateLimit(key: string) {
-  const now = Date.now()
-  const bucket = rateLimitBuckets.get(key) ?? []
-  const recent = bucket.filter(t => now - t < RATE_LIMIT_WINDOW_MS)
-  if (recent.length >= RATE_LIMIT_MAX) {
-    const oldest = recent[0]
-    const retryIn = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - oldest)) / 1000)
-    throw createError({
-      statusCode: 429,
-      statusMessage: `Demasiadas solicitudes. Espera ${retryIn}s.`,
-    })
-  }
-  recent.push(now)
-  rateLimitBuckets.set(key, recent)
-  // Limpieza esporádica para evitar leak de memoria
-  if (rateLimitBuckets.size > 5000) {
-    for (const [k, arr] of rateLimitBuckets.entries()) {
-      if (!arr.some(t => now - t < RATE_LIMIT_WINDOW_MS)) rateLimitBuckets.delete(k)
-    }
-  }
+export interface RequireAuthOptions {
+  /** Si true, omite el rate-limit por usuario. Útil para llamadas internas
+   * (server→server) donde el chat ya consumió el límite del request original. */
+  skipRateLimit?: boolean
+  /** Permite personalizar scope/límite para endpoints más caros como chat. */
+  rateLimit?: Omit<SharedRateLimitOptions, 'key'>
 }
 
-export async function requireAuth(event: H3Event): Promise<{ userId: string; email: string | null }> {
-  const config = useRuntimeConfig()
+export async function requireAuth(
+  event: H3Event,
+  options: RequireAuthOptions = {},
+): Promise<{ userId: string; email: string | null }> {
   const authHeader = getHeader(event, 'authorization') || ''
   const token = authHeader.replace(/^Bearer\s+/i, '').trim()
 
@@ -46,13 +28,24 @@ export async function requireAuth(event: H3Event): Promise<{ userId: string; ema
     throw createError({ statusCode: 401, statusMessage: 'Inicia sesión para continuar.' })
   }
 
-  const anon = createClient(config.public.supabaseUrl, config.public.supabaseAnonKey)
+  const anon = getSupabaseAnonClient()
+  if (!anon) {
+    throw createError({ statusCode: 500, statusMessage: 'Supabase no está configurado.' })
+  }
+
   const { data, error } = await anon.auth.getUser(token)
   if (error || !data?.user) {
     throw createError({ statusCode: 401, statusMessage: 'Sesión inválida o expirada.' })
   }
 
-  checkRateLimit(data.user.id)
+  if (!options.skipRateLimit) {
+    await enforceSharedRateLimit({
+      key: data.user.id,
+      scope: options.rateLimit?.scope ?? 'auth',
+      windowMs: options.rateLimit?.windowMs,
+      max: options.rateLimit?.max,
+    })
+  }
 
   return { userId: data.user.id, email: data.user.email ?? null }
 }

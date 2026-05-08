@@ -9,7 +9,7 @@
 
         <!-- Sin sesión -->
         <div v-else-if="!authStore.isAuthenticated" class="text-center py-24 space-y-4 bg-white rounded-3xl border border-slate-100 shadow-sm">
-          <div class="text-5xl">🔒</div>
+          <div class="flex justify-center"><Lock class="w-12 h-12 text-slate-400" /></div>
           <h2 class="text-2xl font-bold text-slate-900">Inicia sesión para ver tu perfil</h2>
           <p class="text-slate-500">Guarda carreras, lleva tu historial y personaliza tu experiencia.</p>
           <NuxtLink to="/login" class="btn-primary inline-flex">Iniciar sesión</NuxtLink>
@@ -33,7 +33,7 @@
                   <h1 class="text-2xl font-bold text-slate-900">{{ profile?.name || 'Usuario' }}</h1>
                   <p class="text-slate-500">{{ profile?.email }}</p>
                   <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
-                    <span v-if="profile?.phone" class="inline-flex items-center gap-1">📞 {{ profile.phone }}</span>
+                    <span v-if="profile?.phone" class="inline-flex items-center gap-1"><Phone class="w-3.5 h-3.5" /> {{ profile.phone }}</span>
                     <span v-if="profile?.gender" class="inline-flex items-center gap-1">{{ genderLabel(profile.gender) }}</span>
                   </div>
                   <p v-if="profile?.bio" class="text-sm text-slate-600 italic">"{{ profile.bio }}"</p>
@@ -50,8 +50,8 @@
                         class="text-xs px-2 py-0.5 rounded-full bg-accent-50 border border-accent-200 text-accent-700 font-medium">
                         {{ tipo }}
                       </span>
-                      <span v-if="profile?.region_interes" class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">📍 {{ profile.region_interes }}</span>
-                      <span v-if="profile?.anio_egreso" class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">🎓 Egreso {{ profile.anio_egreso }}</span>
+                      <span v-if="profile?.region_interes" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200"><MapPin class="w-3 h-3" />{{ profile.region_interes }}</span>
+                      <span v-if="profile?.anio_egreso" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200"><GraduationCap class="w-3 h-3" />Egreso {{ profile.anio_egreso }}</span>
                     </div>
                   </div>
 
@@ -113,10 +113,11 @@
                         <button
                           v-for="opt in AREA_OPTIONS" :key="opt.value" type="button"
                           @click="toggleArea(opt.value)"
-                          class="px-2.5 py-1 rounded-full text-xs font-medium border transition-[background-color,border-color,color]"
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-[background-color,border-color,color]"
                           :class="form.preferred_areas.includes(opt.value)
                             ? 'bg-primary-600 border-primary-600 text-white'
                             : 'bg-white border-slate-200 text-slate-600 hover:border-primary-300'">
+                          <component :is="opt.icon" class="w-3.5 h-3.5" />
                           {{ opt.label }}
                         </button>
                       </div>
@@ -187,7 +188,7 @@
             <LoadingSpinner v-if="loadingSaved" label="Cargando tus carreras..." />
 
             <div v-else-if="savedCareers.length === 0" class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-3">
-              <div class="text-4xl">📚</div>
+              <div class="flex justify-center"><BookOpen class="w-9 h-9 text-slate-400" /></div>
               <p class="text-slate-600 font-medium">No tienes carreras guardadas aún.</p>
               <NuxtLink to="/explore" class="btn-primary text-sm inline-flex">Explorar Carreras</NuxtLink>
             </div>
@@ -197,7 +198,7 @@
                 v-for="item in savedCareers"
                 :key="item.id"
                 class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex gap-4 items-start hover:shadow-md transition">
-                <span class="text-4xl">{{ item.career?.emoji }}</span>
+                <BookOpen class="w-8 h-8 text-primary-600 shrink-0" />
                 <div class="flex-1 min-w-0">
                   <NuxtLink :to="`/careers/${item.career?.slug || item.career_id}`" class="font-bold text-slate-900 hover:text-primary-600 transition line-clamp-1">
                     {{ item.career?.title }}
@@ -228,6 +229,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
+import { BarChart3, BookOpen, BookText, FlaskConical, GraduationCap, HeartPulse, Laptop, Lock, MapPin, Palette, Phone, Scale } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 useHead({ title: 'Mi Perfil — KoraChile' })
@@ -237,13 +239,13 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const AREA_OPTIONS = [
-  { value: 'tecnologia', label: '💻 Tecnología' },
-  { value: 'salud', label: '🏥 Salud' },
-  { value: 'negocios', label: '📊 Negocios' },
-  { value: 'arte', label: '🎨 Arte & Diseño' },
-  { value: 'ciencias', label: '⚗️ Ciencias' },
-  { value: 'derecho', label: '⚖️ Derecho' },
-  { value: 'educacion', label: '📚 Educación' },
+  { value: 'tecnologia', label: 'Tecnología', icon: Laptop },
+  { value: 'salud', label: 'Salud', icon: HeartPulse },
+  { value: 'negocios', label: 'Negocios', icon: BarChart3 },
+  { value: 'arte', label: 'Arte y Diseño', icon: Palette },
+  { value: 'ciencias', label: 'Ciencias', icon: FlaskConical },
+  { value: 'derecho', label: 'Derecho', icon: Scale },
+  { value: 'educacion', label: 'Educación', icon: BookText },
 ]
 const AREA_LABELS: Record<string, string> = Object.fromEntries(AREA_OPTIONS.map(o => [o.value, o.label]))
 
@@ -294,9 +296,9 @@ function toggleTipo(val: string) {
 }
 
 function genderLabel(g: string | null | undefined) {
-  if (g === 'masculino') return '♂️ Masculino'
-  if (g === 'femenino') return '♀️ Femenino'
-  if (g === 'prefiero_no_decir') return '🤐 Prefiero no decir'
+  if (g === 'masculino') return 'Masculino'
+  if (g === 'femenino') return 'Femenino'
+  if (g === 'prefiero_no_decir') return 'Prefiero no decir'
   return ''
 }
 
@@ -364,6 +366,7 @@ async function fetchSaved() {
     .from('saved')
     .select('id, notes, career_id, career:careers(id, slug, title, tagline, emoji)')
     .eq('user_id', profile.value.id)
+    .not('career_id', 'is', null)
     .order('created_at', { ascending: false })
   savedCareers.value = data ?? []
   loadingSaved.value = false

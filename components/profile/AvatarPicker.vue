@@ -33,7 +33,7 @@
         <span>{{ a.emoji }}</span>
         <span v-if="isSelected(a)"
           class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center border-2 border-white">
-          ✓
+          <Check class="w-2.5 h-2.5" />
         </span>
       </button>
     </div>
@@ -51,16 +51,17 @@
 </template>
 
 <script setup lang="ts">
+import { Check } from 'lucide-vue-next'
 import { ANIMAL_AVATARS, serializeAnimalAvatar, parseAvatar, type AnimalAvatar } from '~/utils/avatars'
 
 const props = defineProps<{ modelValue: string | null }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: string | null): void }>()
 
 const categories = [
-  { id: 'todos', label: '✨ Todos' },
-  { id: 'perro', label: '🐶 Perros' },
-  { id: 'gato', label: '🐱 Gatos' },
-  { id: 'otro', label: '🦊 Otros' },
+  { id: 'todos', label: 'Todos' },
+  { id: 'perro', label: 'Perros' },
+  { id: 'gato', label: 'Gatos' },
+  { id: 'otro', label: 'Otros' },
 ] as const
 
 const activeCat = ref<'todos' | 'perro' | 'gato' | 'otro'>('todos')

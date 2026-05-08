@@ -1,8 +1,8 @@
 /**
  * GET /api/tools/career-employability-by-institution
- *   ?nombre_carrera=...&nombre_institucion=...&institution_code=...&area=...&limit=15
+ *   ?nombre_carrera=...&career_generic_id=...&nombre_institucion=...&institution_code=...&area=...&limit=15
  *
- * Datos de empleabilidad e ingresos a nivel carrera-título POR INSTITUCIÓN.
+ * Datos de empleabilidad e ingresos a nivel carrera genérica POR INSTITUCIÓN.
  *
  * Estrategia:
  *  1. Si viene `institution_code` -> consulta por FK numérica (preferido).
@@ -10,33 +10,30 @@
  *     central (server/utils/institution-resolver) y luego se consulta por FK.
  *  3. Fallback a ILIKE si el resolver no encuentra match.
  */
-import { createClient } from '@supabase/supabase-js'
 import { resolveInstitution } from '~/server/utils/institution-resolver'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const q = getQuery(event) as Record<string, string>
   const limit = Math.min(Math.max(Number(q.limit ?? 15), 1), 30)
 
-  if (!q.nombre_carrera && !q.nombre_institucion && !q.institution_code && !q.area) {
+  if (!q.nombre_carrera && !q.career_generic_id && !q.nombre_institucion && !q.institution_code && !q.area) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Entrega al menos `nombre_carrera`, `nombre_institucion`, `institution_code` o `area`.',
     })
   }
 
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
 
   const selectCols = `
-    institution_code, nombre_institucion, tipo_institucion, acreditacion_institucion,
-    area, nombre_carrera_generica, nombre_carrera_titulo,
-    retencion_1_ano_pct, duracion_real_semestres,
+    institution_code, nombre_institucion, tipo_institucion,
+    area, career_generic_id, nombre_carrera_generica,
+    continuidad_estudios_pct, retencion_1_ano_pct,
     empleabilidad_1_ano_pct, empleabilidad_2_ano_pct,
-    titulados_continuidad_pct,
-    ingreso_label, ingreso_min_clp, ingreso_max_clp
+    ingreso_label, ingreso_promedio_4to_ano_clp
   `
 
   let resolvedCode: number | null = q.institution_code ? Number(q.institution_code) : null
@@ -57,7 +54,8 @@ export default defineEventHandler(async (event) => {
       .eq('institution_code', code)
       .order('empleabilidad_1_ano_pct', { ascending: false, nullsFirst: false })
       .limit(limit)
-    if (q.nombre_carrera) query = query.ilike('nombre_carrera_titulo', `%${q.nombre_carrera}%`)
+    if (q.career_generic_id) query = query.eq('career_generic_id', q.career_generic_id)
+    else if (q.nombre_carrera) query = query.ilike('nombre_carrera_generica', `%${q.nombre_carrera}%`)
     if (q.area) query = query.eq('area', q.area)
     const { data, error } = await query
     if (error) throw createError({ statusCode: 500, statusMessage: error.message })
@@ -69,7 +67,8 @@ export default defineEventHandler(async (event) => {
       .order('empleabilidad_1_ano_pct', { ascending: false, nullsFirst: false })
       .limit(limit)
     if (name) query = query.ilike('nombre_institucion', `%${name}%`)
-    if (q.nombre_carrera) query = query.ilike('nombre_carrera_titulo', `%${q.nombre_carrera}%`)
+    if (q.career_generic_id) query = query.eq('career_generic_id', q.career_generic_id)
+    else if (q.nombre_carrera) query = query.ilike('nombre_carrera_generica', `%${q.nombre_carrera}%`)
     if (q.area) query = query.eq('area', q.area)
     const { data, error } = await query
     if (error) throw createError({ statusCode: 500, statusMessage: error.message })

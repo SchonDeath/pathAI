@@ -7,11 +7,12 @@
  * Uso típico desde el chat: "¿Cuántos matriculados tiene la Universidad X?"
  *                           "¿Dónde queda la sede de la Universidad Y?"
  */
-import { createClient } from '@supabase/supabase-js'
 import { resolveInstitution } from '~/server/utils/institution-resolver'
+import { requireAuth } from '~/server/utils/require-auth'
+import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  await requireAuth(event, { skipRateLimit: true })
   const { nombre, institution_code } = getQuery(event) as Record<string, string>
 
   if (!nombre && !institution_code) {
@@ -21,21 +22,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const supabase = requireSupabaseServiceClient({ fallbackToAnon: true })
+
   // Si viene nombre pero no code, intenta resolver (alias/sigla -> code)
   let resolvedCode = institution_code ? Number(institution_code) : null
   if (!resolvedCode && nombre) {
-    const supabaseResolver = createClient(
-      config.public.supabaseUrl,
-      config.supabaseServiceKey || config.public.supabaseAnonKey,
-    )
-    const r = await resolveInstitution(supabaseResolver, nombre)
+    const r = await resolveInstitution(supabase, nombre)
     if (r) resolvedCode = r.institution_code
   }
-
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseAnonKey,
-  )
 
   let q = supabase
     .from('institutions')

@@ -4,14 +4,23 @@ node_modules
 .nitro
 .cache
 .output
+.vercel/output
 .data
 .env
 .env.*
 dist
 
-# Scripts de migración/seed (no necesarios en producción)
-convertidor/
-scripts/
+# Datos fuente y salidas generadas pesadas
+convertidor/scripts/informacion_db/
+convertidor/scripts/resultado_json/
+convertidor/scripts/*.pdf
+convertidor/scripts/*.xlsx
+convertidor/scripts/*.csv
+
+# Artefactos accidentales
+127.0.0.1/
+*.bak
+package.json.bak
 
 # OS
 .DS_Store
