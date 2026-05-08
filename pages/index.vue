@@ -256,13 +256,15 @@ let pendingScrollTop: number | null = null
 let pendingScrollExpiresAt = 0
 let touchStartY: number | null = null
 let landingSnapLockedUntil = 0
+const LANDING_DESKTOP_BREAKPOINT = 1024
 
 function getLandingStickyOffset() {
-  return window.innerWidth >= 1024 ? 88 : 80
+  return window.innerWidth >= LANDING_DESKTOP_BREAKPOINT ? 88 : 80
 }
 
 function hasDesktopLandingExperience() {
-  return window.innerWidth >= 1024
+  if (typeof window === 'undefined') return false
+  return window.innerWidth >= LANDING_DESKTOP_BREAKPOINT
 }
 
 function getSectionScrollTop(section: HTMLElement) {
