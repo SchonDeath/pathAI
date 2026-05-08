@@ -80,7 +80,7 @@
 
       <section class="relative border-y border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50">
         <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-0 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-10 xl:gap-14">
-          <aside class="lg:sticky lg:top-20 lg:self-start lg:pt-6">
+          <aside class="hidden lg:block lg:sticky lg:top-20 lg:self-start lg:pt-6">
             <div class="lg:border-l lg:border-slate-200 lg:pl-6">
               <div class="hidden lg:block mb-6">
                 <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Recorrido</div>
@@ -261,6 +261,10 @@ function getLandingStickyOffset() {
   return window.innerWidth >= 1024 ? 88 : 80
 }
 
+function hasDesktopLandingExperience() {
+  return window.innerWidth >= 1024
+}
+
 function getSectionScrollTop(section: HTMLElement) {
   return Math.max(0, window.scrollY + section.getBoundingClientRect().top - getLandingStickyOffset())
 }
@@ -270,6 +274,7 @@ function getActiveLandingIndex() {
 }
 
 function isWithinLandingSnapRange(direction: 1 | -1) {
+  if (!hasDesktopLandingExperience()) return false
   if (!sectionElements.length) return false
   if (pendingScrollTargetId) return false
   if (Date.now() < landingSnapLockedUntil) return false
@@ -361,6 +366,7 @@ function onScroll() {
 }
 
 function onWheel(event: WheelEvent) {
+  if (!hasDesktopLandingExperience()) return
   if (Math.abs(event.deltaY) <= 14) return
   const direction = event.deltaY > 0 ? 1 : -1
   if (!snapLandingByDirection(direction)) return
@@ -368,6 +374,7 @@ function onWheel(event: WheelEvent) {
 }
 
 function onKeydown(event: KeyboardEvent) {
+  if (!hasDesktopLandingExperience()) return
   let direction: 1 | -1 | null = null
 
   if (event.key === 'ArrowDown' || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey)) {
@@ -382,10 +389,15 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 function onTouchStart(event: TouchEvent) {
+  if (!hasDesktopLandingExperience()) return
   touchStartY = event.touches[0]?.clientY ?? null
 }
 
 function onTouchEnd(event: TouchEvent) {
+  if (!hasDesktopLandingExperience()) {
+    touchStartY = null
+    return
+  }
   if (touchStartY === null) return
   const endY = event.changedTouches[0]?.clientY ?? touchStartY
   const deltaY = touchStartY - endY
