@@ -308,9 +308,15 @@ let pendingScrollTop: number | null = null
 let pendingScrollExpiresAt = 0
 let touchStartY: number | null = null
 let landingSnapLockedUntil = 0
+const LANDING_DESKTOP_BREAKPOINT = 1024
 
 function getLandingStickyOffset() {
-  return window.innerWidth >= 1024 ? 88 : 80
+  return window.innerWidth >= LANDING_DESKTOP_BREAKPOINT ? 88 : 80
+}
+
+function hasDesktopLandingExperience() {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth >= LANDING_DESKTOP_BREAKPOINT
 }
 
 function getSectionScrollTop(section: HTMLElement) {
@@ -322,6 +328,7 @@ function getActiveLandingIndex() {
 }
 
 function isWithinLandingSnapRange(direction: 1 | -1) {
+  if (!hasDesktopLandingExperience()) return false
   if (!sectionElements.length) return false
   if (pendingScrollTargetId) return false
   if (Date.now() < landingSnapLockedUntil) return false
@@ -413,6 +420,7 @@ function onScroll() {
 }
 
 function onWheel(event: WheelEvent) {
+  if (!hasDesktopLandingExperience()) return
   if (Math.abs(event.deltaY) <= 14) return
   const direction = event.deltaY > 0 ? 1 : -1
   if (!snapLandingByDirection(direction)) return
@@ -420,6 +428,7 @@ function onWheel(event: WheelEvent) {
 }
 
 function onKeydown(event: KeyboardEvent) {
+  if (!hasDesktopLandingExperience()) return
   let direction: 1 | -1 | null = null
 
   if (event.key === 'ArrowDown' || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey)) {
@@ -434,10 +443,15 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 function onTouchStart(event: TouchEvent) {
+  if (!hasDesktopLandingExperience()) return
   touchStartY = event.touches[0]?.clientY ?? null
 }
 
 function onTouchEnd(event: TouchEvent) {
+  if (!hasDesktopLandingExperience()) {
+    touchStartY = null
+    return
+  }
   if (touchStartY === null) return
   const endY = event.changedTouches[0]?.clientY ?? touchStartY
   const deltaY = touchStartY - endY
