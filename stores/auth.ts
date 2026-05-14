@@ -64,10 +64,27 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Asegura que `profile` esté poblado. Si hay cache fresca no hace red.
    * Si `force` = true, fuerza re-fetch desde Supabase.
+   *
+   * Las llamadas concurrentes esperan la misma promesa en lugar de retornar
+   * null de inmediato, evitando la condición de carrera al hacer login.
    */
-  async function ensureHydrated(force = false) {
+  let _pendingHydration: Promise<AuthProfile | null> | null = null
+
+  async function ensureHydrated(force = false): Promise<AuthProfile | null> {
     if (hydrated.value && !force && isFresh.value) return profile.value
-    if (loading.value) return profile.value
+    // Si ya hay una hidratación en curso, esperar su resultado en lugar de
+    // retornar el perfil actual (que puede ser null).
+    if (_pendingHydration) return _pendingHydration
+
+    _pendingHydration = _doHydrate()
+    try {
+      return await _pendingHydration
+    } finally {
+      _pendingHydration = null
+    }
+  }
+
+  async function _doHydrate(): Promise<AuthProfile | null> {
     loading.value = true
     try {
       const supabase = useSupabaseClient()

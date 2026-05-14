@@ -66,20 +66,14 @@
 
           <button
             type="button"
-            class="blur-reveal group mx-auto mt-5 inline-flex flex-col items-center gap-2 text-[0.84rem] font-semibold tracking-[0.02em] transition-all hover:text-slate-700 hover:-translate-y-0.5"
+            class="blur-reveal group mx-auto mt-5 hidden sm:inline-flex flex-col items-center gap-1.5 text-[0.8rem] font-semibold tracking-[0.02em] transition-all hover:text-slate-700"
             style="animation-delay: 930ms; color: #64748b;"
             @click="scrollToLandingSection('orientacion-vocacional')"
           >
             <span>Explorar</span>
-            <span
-              class="inline-flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 group-hover:translate-y-0.5 group-hover:scale-[1.04]"
-              style="border: 1px solid #cfd8ea; background: rgba(255, 255, 255, 0.96); box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);"
-              aria-hidden="true"
-            >
-              <svg class="h-4.5 w-4.5 text-slate-600 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m0 0l-6-6m6 6l6-6" />
-              </svg>
-            </span>
+            <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m0 0l-6-6m6 6l6-6" />
+            </svg>
           </button>
         </div>
 
