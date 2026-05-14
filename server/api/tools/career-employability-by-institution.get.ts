@@ -14,6 +14,26 @@ import { resolveInstitution } from '~/server/utils/institution-resolver'
 import { requireAuth } from '~/server/utils/require-auth'
 import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
+function normalizeText(input: unknown) {
+  return String(input || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function careerTerms(input: unknown) {
+  const stop = new Set([
+    'tecnico', 'tecnica', 'nivel', 'superior', 'profesional', 'licenciatura',
+    'civil', 'ejecucion', 'mencion', 'plan', 'comun', 'carrera', 'programa',
+    'en', 'de', 'del', 'la', 'el', 'las', 'los', 'y', 'e', 'con',
+  ])
+  return normalizeText(input)
+    .split(/\s+/g)
+    .filter(term => term.length >= 5 && !stop.has(term))
+}
+
 export default defineEventHandler(async (event) => {
   await requireAuth(event, { skipRateLimit: true })
   const q = getQuery(event) as Record<string, string>
@@ -75,12 +95,71 @@ export default defineEventHandler(async (event) => {
     return data ?? []
   }
 
+  async function findCareerGenericIdsByName(nombreCarrera: string) {
+    const terms = careerTerms(nombreCarrera).slice(0, 6)
+    if (!terms.length) return [] as string[]
+
+    const filters = terms.flatMap(term => [
+      `normalized_name.ilike.%${term}%`,
+      `nombre_carrera_generica.ilike.%${term}%`,
+    ])
+
+    const { data, error } = await supabase
+      .from('career_generic')
+      .select('id, nombre_carrera_generica, normalized_name')
+      .or(filters.join(','))
+      .limit(20)
+
+    if (error || !Array.isArray(data)) return []
+
+    const scored = data
+      .map((row: any) => {
+        const haystack = normalizeText(`${row.nombre_carrera_generica || ''} ${row.normalized_name || ''}`)
+        const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 1 : 0), 0)
+        return { id: String(row.id), score }
+      })
+      .filter(row => row.score > 0)
+      .sort((a, b) => b.score - a.score)
+
+    return [...new Set(scored.map(row => row.id))]
+  }
+
+  async function runQueryByCareerNameWithinScope() {
+    if (!q.nombre_carrera) return []
+    const ids = await findCareerGenericIdsByName(q.nombre_carrera)
+    if (!ids.length) return []
+
+    let query = supabase.from('career_employability').select(selectCols)
+      .in('career_generic_id', ids)
+      .order('ingreso_promedio_4to_ano_clp', { ascending: false, nullsFirst: false })
+      .order('empleabilidad_1_ano_pct', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (resolvedCode) query = query.eq('institution_code', resolvedCode)
+    else if (q.nombre_institucion) query = query.ilike('nombre_institucion', `%${q.nombre_institucion}%`)
+    if (q.area) query = query.eq('area', q.area)
+
+    const { data, error } = await query
+    if (error) throw createError({ statusCode: 500, statusMessage: error.message })
+    return data ?? []
+  }
+
   let data: any[] = []
   let searchMode = 'none'
 
   if (resolvedCode) {
     data = await runQueryByCode(resolvedCode)
     searchMode = `by-code:${resolvedCode}`
+  }
+
+  // Fallback importante: si el career_generic_id exacto no tiene fila SIES,
+  // buscar por nombre normalizado dentro de la misma institución.
+  // Ej: "técnico en fisioterapia" puede tener dato oficial bajo "fisioterapia".
+  if (data.length === 0 && q.nombre_carrera) {
+    data = await runQueryByCareerNameWithinScope()
+    if (data.length > 0) searchMode = resolvedCode
+      ? `by-code-name-fallback:${resolvedCode}`
+      : 'by-name-scope-fallback'
   }
 
   // Fallback: si el code no devolvió resultados y había nombre, intenta ILIKE

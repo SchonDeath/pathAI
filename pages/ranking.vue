@@ -7,13 +7,13 @@
         <!-- Hero -->
         <div class="text-center space-y-3">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-50 border border-accent-100 text-accent-700 text-xs font-semibold uppercase tracking-wider">
-            Ranking
+            Directorio
           </span>
           <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
-            Ranking de <span class="gradient-text">instituciones chilenas</span>
+            Instituciones de <span class="gradient-text">Chile</span>
           </h1>
           <p class="text-slate-500 max-w-2xl mx-auto">
-            Puntaje calculado con datos oficiales SIES: acreditación, retención de alumnos, PAES y tamaño de la matrícula.
+            Datos oficiales SIES: acreditación, matrícula, infraestructura e información financiera de universidades, institutos profesionales y CFT.
           </p>
         </div>
 
@@ -99,11 +99,6 @@
                   <span v-if="inst.matricula_pregrado_actual" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 font-semibold"><Users class="w-3 h-3" />{{ formatNum(inst.matricula_pregrado_actual) }}</span>
                 </div>
               </div>
-              <!-- Score -->
-              <div class="shrink-0 text-right">
-                <div class="text-2xl sm:text-3xl font-extrabold" :class="scoreColor(inst.score)">{{ inst.score }}</div>
-                <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Score</div>
-              </div>
               <svg
                 class="w-5 h-5 text-slate-500 transition-transform duration-200 shrink-0"
                 :class="expanded === inst.institution_code ? 'rotate-180' : ''"
@@ -122,69 +117,49 @@
               leave-to-class="opacity-0 -translate-y-1">
               <div v-if="expanded === inst.institution_code" class="overflow-hidden">
                 <div class="border-t border-slate-100 p-4 sm:p-6 bg-slate-50/60 space-y-5">
-                  <!-- Desglose del score -->
+                  <!-- Información general -->
                   <div>
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">¿Cómo se calcula el score?</h4>
-                    <p class="text-[11px] text-slate-500 mb-3">
-                      Cobertura de datos: <strong>{{ inst.score_data_coverage_pct ?? 100 }}%</strong>.
-                      Si falta una métrica, su peso se excluye del cálculo para no penalizar.
-                    </p>
-
-                    <div v-if="inst.score_excluded_metrics?.length" class="mb-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">
-                      <p class="text-[11px] font-semibold text-amber-800 mb-1.5">No se agregó al cálculo estos datos:</p>
-                      <ul class="space-y-1">
-                        <li v-for="metric in inst.score_excluded_metrics" :key="metric.key" class="text-[11px] text-amber-900 leading-snug">
-                          • <strong>{{ metric.label }}</strong> (peso {{ metric.weight_pct }}%): {{ metric.reason }}
-                          <span v-if="metric.raw_value !== null"> Valor recibido: {{ metric.raw_value }}.</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <div v-else class="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-800">
-                      Todos los datos principales del score fueron incluidos en el cálculo.
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <ScoreBar
-                        label="Acreditación"
-                        :value="inst.breakdown.acreditacion"
-                        :weight="inst.breakdown_available?.acreditacion === false ? 'n/d' : '40%'"
-                        color="emerald" />
-                      <ScoreBar
-                        label="Retención"
-                        :value="inst.breakdown.retencion"
-                        :weight="inst.breakdown_available?.retencion === false ? 'n/d' : '25%'"
-                        color="blue" />
-                      <ScoreBar
-                        label="PAES"
-                        :value="inst.breakdown.paes"
-                        :weight="inst.breakdown_available?.paes === false ? 'n/d' : '20%'"
-                        color="violet" />
-                      <ScoreBar
-                        label="Matrícula"
-                        :value="inst.breakdown.matricula"
-                        :weight="inst.breakdown_available?.matricula === false ? 'n/d' : '15%'"
-                        color="amber" />
-                    </div>
-                  </div>
-
-                  <!-- Datos detallados -->
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Información general</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                     <DataCell label="Retención 1er año" :value="inst.retencion_1er_ano_pct ? `${inst.retencion_1er_ano_pct.toFixed(1)}%` : '—'" />
                     <DataCell label="Promedio PAES" :value="inst.promedio_paes ? Math.round(inst.promedio_paes).toString() : '—'" />
                     <DataCell label="Promedio NEM" :value="inst.promedio_nem ? inst.promedio_nem.toFixed(2) : '—'" />
                     <DataCell label="Titulados/año" :value="inst.titulados_pregrado_actual ? formatNum(inst.titulados_pregrado_actual) : '—'" />
+                    <DataCell label="Matrícula pregrado" :value="inst.matricula_pregrado_actual ? formatNum(inst.matricula_pregrado_actual) : '—'" />
+                    <DataCell label="Matrícula posgrado" :value="inst.matricula_posgrado_actual ? formatNum(inst.matricula_posgrado_actual) : '—'" />
+                    <DataCell label="Duración real" :value="inst.duracion_real_semestres ? `${inst.duracion_real_semestres.toFixed(1)} sem` : '—'" />
+                    <DataCell label="Autonomía" :value="inst.autonomia || '—'" />
+                    </div>
                   </div>
 
-                  <!-- Áreas acreditadas -->
-                  <div v-if="inst.acreditacion_areas?.length">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Áreas acreditadas</h4>
-                    <div class="flex flex-wrap gap-1.5">
-                      <span
-                        v-for="area in inst.acreditacion_areas"
-                        :key="area"
-                        class="px-2.5 py-1 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700">
-                        {{ area }}
-                      </span>
+                  <!-- Infraestructura -->
+                  <div v-if="inst.m2_construidos || inst.volumenes_biblioteca || inst.laboratorios_talleres || inst.computadores" class="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/60 border border-blue-100 p-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-blue-700 mb-3 flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                      Infraestructura
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                      <DataCell label="M² construidos" :value="inst.m2_construidos ? formatNum(inst.m2_construidos) : '—'" />
+                      <DataCell label="Volúmenes biblioteca" :value="inst.volumenes_biblioteca ? formatNum(inst.volumenes_biblioteca) : '—'" />
+                      <DataCell label="Laboratorios/talleres" :value="inst.laboratorios_talleres ? formatNum(inst.laboratorios_talleres) : '—'" />
+                      <DataCell label="Computadores" :value="inst.computadores ? formatNum(inst.computadores) : '—'" />
+                    </div>
+                  </div>
+
+                  <!-- Financiero -->
+                  <div v-if="inst.ingresos_operacion_clp || inst.total_activos_clp" class="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/60 border border-emerald-100 p-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-3 flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      Información financiera <span class="font-normal normal-case text-emerald-600 ml-1">(miles de pesos)</span>
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                      <DataCell label="Ingresos operación" :value="inst.ingresos_operacion_clp ? `$${formatNum(inst.ingresos_operacion_clp)}M` : '—'" />
+                      <DataCell
+                        label="Resultado ejercicio"
+                        :value="inst.resultado_ejercicio_clp ? `$${formatNum(Math.abs(inst.resultado_ejercicio_clp))}M` : '—'"
+                        :value-class="inst.resultado_ejercicio_clp && inst.resultado_ejercicio_clp < 0 ? 'text-red-600' : 'text-emerald-700'" />
+                      <DataCell label="Total activos" :value="inst.total_activos_clp ? `$${formatNum(inst.total_activos_clp)}M` : '—'" />
+                      <DataCell label="Patrimonio" :value="inst.patrimonio_total_clp ? `$${formatNum(inst.patrimonio_total_clp)}M` : '—'" />
                     </div>
                   </div>
 
@@ -258,11 +233,11 @@
 
         <!-- Footer info -->
         <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-5 text-sm text-slate-600 leading-relaxed">
-          <p class="font-semibold text-slate-800 mb-2 inline-flex items-center gap-1.5"><Info class="w-4 h-4" />Sobre este ranking</p>
+          <p class="font-semibold text-slate-800 mb-2 inline-flex items-center gap-1.5"><Info class="w-4 h-4" />Sobre estos datos</p>
           <p>
             Los datos provienen del <strong>Servicio de Información de Educación Superior (SIES)</strong> del MINEDUC.
-            El puntaje combina indicadores oficiales con pesos balanceados para evitar sesgos por tamaño.
-            Este ranking es <strong>referencial</strong> y no reemplaza criterios personales como ubicación, costos o vocación.
+            Incluyen matrícula, acreditación, infraestructura y estados financieros de las instituciones.
+            Esta información es <strong>referencial</strong> y no reemplaza criterios personales como ubicación, costos o vocación.
           </p>
         </div>
       </div>
@@ -383,10 +358,30 @@ function addToCompare(inst: RankingInstitution) {
         institution_code: inst.institution_code,
         nombre_institucion: inst.nombre_institucion,
         tipo_institucion: inst.tipo_institucion,
+        autonomia: inst.autonomia,
+        acreditacion_estado: inst.acreditacion_estado,
         acreditacion_anos: inst.acreditacion_anos,
+        acreditacion_vigencia_hasta: inst.acreditacion_vigencia_hasta,
+        acreditacion_areas: inst.acreditacion_areas,
         retencion_1er_ano_pct: inst.retencion_1er_ano_pct,
         promedio_paes: inst.promedio_paes,
+        promedio_nem: inst.promedio_nem,
         matricula_pregrado_actual: inst.matricula_pregrado_actual,
+        matricula_posgrado_actual: inst.matricula_posgrado_actual,
+        titulados_pregrado_actual: inst.titulados_pregrado_actual,
+        titulados_posgrado_actual: inst.titulados_posgrado_actual,
+        duracion_real_semestres: inst.duracion_real_semestres,
+        m2_construidos: inst.m2_construidos,
+        volumenes_biblioteca: inst.volumenes_biblioteca,
+        laboratorios_talleres: inst.laboratorios_talleres,
+        computadores: inst.computadores,
+        ingresos_operacion_clp: inst.ingresos_operacion_clp,
+        resultado_ejercicio_clp: inst.resultado_ejercicio_clp,
+        total_activos_clp: inst.total_activos_clp,
+        patrimonio_total_clp: inst.patrimonio_total_clp,
+        pagina_web: inst.pagina_web,
+        direccion_sede_central: inst.direccion_sede_central,
+        logo_url: inst.logo_url,
         score: inst.score,
       })
       localStorage.setItem(COMPARE_INSTITUTIONS_KEY, JSON.stringify(safe))

@@ -61,7 +61,7 @@ export function classifyChatIntent(message: string): ChatIntent {
     }
   }
 
-  if (/arancel|puntaje|ponderaci|corte|vacante|jornada|sede|malla|ramos?|semestres?|duracion/.test(text)) {
+  if (/donde estudiar|donde puedo estudiar|donde se estudia|arancel|puntaje|ponderaci|corte|vacante|jornada|sede|malla|ramos?|semestres?|duracion/.test(text)) {
     return {
       kind: 'official_program',
       complexity: 'standard',

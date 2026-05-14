@@ -9,7 +9,7 @@ function normalizeFeaturedUntil(value: string | null | undefined) {
   if (value === undefined) return undefined
   if (value === null) return null
   if (typeof value !== 'string') {
-    throw createError({ statusCode: 400, statusMessage: 'featured_until inválido' })
+    throw createError({ statusCode: 400, message: 'featured_until inválido' })
   }
 
   const trimmed = value.trim()
@@ -17,7 +17,7 @@ function normalizeFeaturedUntil(value: string | null | undefined) {
 
   const parsed = new Date(trimmed)
   if (Number.isNaN(parsed.valueOf())) {
-    throw createError({ statusCode: 400, statusMessage: 'featured_until debe ser una fecha ISO válida' })
+    throw createError({ statusCode: 400, message: 'featured_until debe ser una fecha ISO válida' })
   }
 
   return parsed.toISOString()
@@ -26,7 +26,7 @@ function normalizeFeaturedUntil(value: string | null | undefined) {
 export default defineEventHandler(async (event) => {
   const { supabase } = await requireAdmin(event)
   const code = Number(getRouterParam(event, 'code'))
-  if (!code) throw createError({ statusCode: 400, statusMessage: 'code inválido' })
+  if (!code) throw createError({ statusCode: 400, message: 'code inválido' })
 
   const body = await readBody<{
     is_featured?: boolean
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
       .select('priority')
       .eq('slug', body.plan_slug)
       .maybeSingle()
-    if (!plan) throw createError({ statusCode: 400, statusMessage: 'Plan inexistente' })
+    if (!plan) throw createError({ statusCode: 400, message: 'Plan inexistente' })
     computedPriority = plan.priority
   }
 

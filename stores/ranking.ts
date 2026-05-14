@@ -15,16 +15,30 @@ export interface RankingInstitution {
   institution_code: number
   nombre_institucion: string
   tipo_institucion: string | null
+  autonomia: string | null
   pagina_web: string | null
   direccion_sede_central: string | null
+  rut: string | null
   acreditacion_estado: string | null
   acreditacion_anos: number | null
+  acreditacion_vigencia_hasta: string | null
   acreditacion_areas: string[] | null
   matricula_pregrado_actual: number | null
+  matricula_posgrado_actual: number | null
   titulados_pregrado_actual: number | null
+  titulados_posgrado_actual: number | null
   retencion_1er_ano_pct: number | null
   promedio_paes: number | null
   promedio_nem: number | null
+  duracion_real_semestres: number | null
+  m2_construidos: number | null
+  volumenes_biblioteca: number | null
+  laboratorios_talleres: number | null
+  computadores: number | null
+  ingresos_operacion_clp: number | null
+  resultado_ejercicio_clp: number | null
+  total_activos_clp: number | null
+  patrimonio_total_clp: number | null
   logo_url: string | null
   score: number
   breakdown: {

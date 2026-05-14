@@ -30,7 +30,9 @@
     </ClientOnly>
 
     <div id="main-content" tabindex="-1">
-      <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
+      <NuxtLayout>
+        <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
+      </NuxtLayout>
     </div>
   </div>
 </template>

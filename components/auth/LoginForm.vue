@@ -55,9 +55,12 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 const emit = defineEmits<{ success: [] }>()
 
 const supabase = useSupabaseClient()
+const authStore = useAuthStore()
 const loading = ref(false)
 const showPassword = ref(false)
 const serverError = ref<string | null>(null)
@@ -102,6 +105,9 @@ async function handleLogin() {
     })
     // Mensaje genérico para no revelar si el email existe (seguridad)
     if (error) throw new Error('Correo o contraseña incorrectos.')
+    // Hidratar el store ANTES de navegar para que el middleware auth
+    // encuentre el perfil listo y no redirija de vuelta a /login
+    await authStore.ensureHydrated(true)
     emit('success')
     await navigateTo('/profile')
   } catch (err: any) {

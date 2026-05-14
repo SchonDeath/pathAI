@@ -1,8 +1,5 @@
 <template>
-  <section class="relative flex min-h-[calc(100svh-64px)] items-center px-4 sm:px-6 py-16 sm:py-[4.5rem] lg:py-20 bg-white border-t border-slate-100 overflow-hidden">
-    <!-- Glow de fondo -->
-    <div class="absolute top-0 right-0 w-[600px] h-[500px] -z-10 pointer-events-none"
-      style="background: radial-gradient(ellipse at top right, #ecfeff 0%, #cffafe 40%, transparent 70%); opacity: 0.8"></div>
+  <section class="relative flex min-h-[calc(100svh-64px)] items-center px-4 sm:px-6 py-16 sm:py-[4.5rem] lg:py-20 overflow-hidden" style="background:transparent;">
 
     <div class="w-full max-w-6xl mx-auto">
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -10,62 +7,61 @@
         <!-- Texto + features -->
         <div class="space-y-8">
           <div>
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-wider mb-4"><BarChart3 class="w-4 h-4" />Datos oficiales</span>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">Ranking nacional<br>con datos del Mineduc</h2>
-            <p class="text-slate-500 mt-4 text-base leading-relaxed">Compara empleabilidad, sueldos y matrículas de todas las carreras del sistema chileno. Información oficial SIES 2025 para tomar la mejor decisión.</p>
+            <span class="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-semibold uppercase tracking-wider" style="background:#f0f6ff; border:1px solid #cce0ff; color:#0071e3; border-radius:999px;"><BarChart3 class="w-4 h-4" />Datos oficiales</span>
+            <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight leading-tight" style="color:#1d1d1f; letter-spacing:-0.02em;">Instituciones nacional<br>con datos del Mineduc</h2>
+            <p style="color:#474747;" class="mt-4 text-base leading-relaxed">Compara empleabilidad, sueldos y matrículas de todas las carreras del sistema chileno. Información oficial SIES 2025 para tomar la mejor decisión.</p>
           </div>
 
           <div class="space-y-3">
-            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-cyan-200 hover:bg-cyan-50/30 transition-colors group">
-              <div class="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0 group-hover:bg-cyan-200 transition-colors"><TrendingUp class="w-4 h-4" /></div>
+            <div class="flex items-start gap-4 p-4 rounded-2xl transition-colors group" style="background:#ffffff; border:1px solid #e8e8ed;">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#e3f0ff; color:#0071e3;"><TrendingUp class="w-4 h-4" /></div>
               <div>
-                <div class="font-semibold text-slate-900 text-sm">Empleabilidad por carrera y región</div>
-                <div class="text-slate-500 text-xs mt-1 leading-relaxed">Compara la tasa de empleo al año de egreso de cada carrera, desglosada por institución y región del país.</div>
+                <div class="font-semibold text-sm" style="color:#1d1d1f;">Empleabilidad por carrera y región</div>
+                <div class="text-xs mt-1 leading-relaxed" style="color:#474747;">Compara la tasa de empleo al año de egreso de cada carrera, desglosada por institución y región del país.</div>
               </div>
             </div>
-            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-200 hover:bg-sky-50/30 transition-colors group">
-              <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 group-hover:bg-sky-200 transition-colors"><Banknote class="w-4 h-4" /></div>
+            <div class="flex items-start gap-4 p-4 rounded-2xl transition-colors group" style="background:#ffffff; border:1px solid #e8e8ed;">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#e3f0ff; color:#0071e3;"><Banknote class="w-4 h-4" /></div>
               <div>
-                <div class="font-semibold text-slate-900 text-sm">Ranking de salarios reales</div>
-                <div class="text-slate-500 text-xs mt-1 leading-relaxed">Ordena las carreras por sueldo promedio al primer, tercer y quinto año de egresado según datos oficiales.</div>
+                <div class="font-semibold text-sm" style="color:#1d1d1f;">Ranking de salarios reales</div>
+                <div class="text-xs mt-1 leading-relaxed" style="color:#474747;">Ordena las carreras por sueldo promedio al primer, tercer y quinto año de egresado según datos oficiales.</div>
               </div>
             </div>
-            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-              <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 group-hover:bg-indigo-200 transition-colors"><School class="w-4 h-4" /></div>
+            <div class="flex items-start gap-4 p-4 rounded-2xl transition-colors group" style="background:#ffffff; border:1px solid #e8e8ed;">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#e3f0ff; color:#0071e3;"><School class="w-4 h-4" /></div>
               <div>
-                <div class="font-semibold text-slate-900 text-sm">Matrícula e instituciones</div>
-                <div class="text-slate-500 text-xs mt-1 leading-relaxed">Filtra por área, institución o región. Ve dónde se imparte cada carrera y cuántos alumnos estudian ahí.</div>
+                <div class="font-semibold text-sm" style="color:#1d1d1f;">Matrícula e instituciones</div>
+                <div class="text-xs mt-1 leading-relaxed" style="color:#474747;">Filtra por área, institución o región. Ve dónde se imparte cada carrera y cuántos alumnos estudian ahí.</div>
               </div>
             </div>
           </div>
 
-          <NuxtLink to="/ranking" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-cyan-200">
-            Ver ranking nacional <ArrowRight class="w-4 h-4" />
+          <NuxtLink to="/Instituciones" class="inline-flex items-center gap-2 font-semibold text-sm transition-opacity hover:opacity-80" style="background:#0071e3; color:#ffffff; border-radius:999px; padding:0.75rem 1.75rem;">
+            Ver Instituciones nacional <ArrowRight class="w-4 h-4" />
           </NuxtLink>
         </div>
 
           <!-- Mockup -->
         <div class="relative">
-          <div class="absolute -inset-4 rounded-3xl blur-xl -z-10" style="background: radial-gradient(ellipse, #bae6fd 0%, #a5f3fc 60%, transparent 80%); opacity: 0.4"></div>
-          <div class="absolute top-4 right-6 hidden sm:flex items-center gap-2 rounded-full border border-cyan-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-cyan-700 shadow-md shadow-cyan-100">
+          <div class="absolute -inset-4 rounded-3xl blur-xl -z-10" style="background: radial-gradient(ellipse, rgba(0,113,227,0.1) 0%, rgba(201,89,221,0.06) 60%, transparent 80%);"></div>
+          <div class="absolute top-4 right-6 hidden sm:flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm" style="border:1px solid #cce0ff; background:#ffffff; color:#0071e3;">
             <span class="h-2 w-2 rounded-full bg-cyan-500"></span>
             Actualizado con SIES 2025
           </div>
-          <div class="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 shadow-[0_20px_54px_-32px_rgba(6,182,212,0.3)]">
-            <!-- Barra de ventana -->
-            <div class="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/90 px-5 py-4">
+          <div class="relative overflow-hidden bg-white/95" style="border-radius:28px; border:1px solid #e8e8ed;">
+            <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e8e8ed; background:#f5f5f7;">
               <div class="flex items-center gap-3">
                 <div class="flex items-center gap-1.5">
-                  <span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span>
-                  <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
-                  <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+                  <span class="h-2.5 w-2.5 rounded-full" style="background:#ff5f57;"></span>
+                  <span class="h-2.5 w-2.5 rounded-full" style="background:#febc2e;"></span>
+                  <span class="h-2.5 w-2.5 rounded-full" style="background:#28c840;"></span>
                 </div>
-                <span class="text-xs font-semibold text-slate-500">Ranking instituciones · KoraChile</span>
+                <span class="text-xs font-semibold" style="color:#474747;">Instituciones instituciones · KoraChile</span>
               </div>
-              <span class="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-700">Mineduc</span>
+              <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" style="border:1px solid #cce0ff; background:#f0f6ff; color:#0071e3;">Mineduc</span>
             </div>
 
-            <div class="bg-gradient-to-b from-white via-cyan-50/20 to-white p-4 sm:p-5 space-y-3">
+              <div class="bg-white p-4 sm:p-5 space-y-3">
               <!-- Barra de búsqueda simulada -->
               <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                 <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -105,25 +101,24 @@
                   </div>
                   <!-- Score -->
                   <div class="shrink-0 text-right">
-                    <div class="text-xl font-extrabold" :class="inst.score >= 80 ? 'text-emerald-600' : inst.score >= 60 ? 'text-cyan-600' : 'text-amber-500'">{{ inst.score }}</div>
+                    <div class="text-xl font-extrabold" :class="inst.score >= 80 ? 'text-emerald-600' : inst.score >= 60 ? 'text-[#0071e3]' : 'text-amber-500'">{{ inst.score }}</div>
                     <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Score</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Stats row -->
-              <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
-                <div class="rounded-xl border border-slate-200 bg-slate-50 py-2 text-center">
-                  <div class="text-base font-extrabold text-slate-900">$1.2M</div>
-                  <div class="text-[10px] text-slate-500 mt-0.5">Sueldo prom.</div>
+              <div class="grid grid-cols-3 gap-2 pt-1" style="border-top:1px solid #e8e8ed;">
+                <div class="rounded-xl py-2 text-center" style="border:1px solid #e8e8ed; background:#f5f5f7;">
+                  <div class="text-base font-extrabold" style="color:#1d1d1f;">$1.2M</div>
+                  <div class="text-[10px] mt-0.5" style="color:#474747;">Sueldo prom.</div>
                 </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 py-2 text-center">
-                  <div class="text-base font-extrabold text-slate-900">+200</div>
-                  <div class="text-[10px] text-slate-500 mt-0.5">Instituciones</div>
+                <div class="rounded-xl py-2 text-center" style="border:1px solid #e8e8ed; background:#f5f5f7;">
+                  <div class="text-base font-extrabold" style="color:#1d1d1f;">+200</div>
+                  <div class="text-[10px] mt-0.5" style="color:#474747;">Instituciones</div>
                 </div>
-                <div class="rounded-xl border border-slate-200 bg-slate-50 py-2 text-center">
-                  <div class="text-base font-extrabold text-slate-900">+1.200</div>
-                  <div class="text-[10px] text-slate-500 mt-0.5">Carreras</div>
+                <div class="rounded-xl py-2 text-center" style="border:1px solid #e8e8ed; background:#f5f5f7;">
+                  <div class="text-base font-extrabold" style="color:#1d1d1f;">+3.000</div>
+                  <div class="text-[10px] mt-0.5" style="color:#474747;">Carreras</div>
                 </div>
               </div>
             </div>
@@ -147,6 +142,12 @@ interface PreviewInst {
   code: number
 }
 
+interface InstitutionLookupRow {
+  institution_code: number
+  logo_url: string | null
+  nombre_institucion: string | null
+}
+
 // Datos base — los logos se enriquecen desde Supabase al montar
 const rankingPreview = ref<PreviewInst[]>([
   { name: 'P. U. Católica',    tipo: 'Universidad', acred: 7, score: 91, logo_url: null, code: 0 },
@@ -159,18 +160,19 @@ onMounted(async () => {
   try {
     const supabase = useSupabaseClient()
     const keywords = ['Católica de Chile', 'de Chile', 'Santiago de Chile', 'Andrés Bello']
-    const { data } = await supabase
+    const response = await (supabase as any)
       .from('institutions')
       .select('institution_code, logo_url, nombre_institucion')
       .or(keywords.map(k => `nombre_institucion.ilike.%${k}%`).join(','))
       .limit(20)
-    if (!data) return
+    const data: InstitutionLookupRow[] = Array.isArray(response.data) ? response.data : []
+    if (!data.length) return
 
     // Mapeo por palabra clave para tolerar variaciones de nombre en la BD
     const find = (kw: string) =>
       data.find(d => d.nombre_institucion?.toLowerCase().includes(kw.toLowerCase()))
 
-    const matches = [
+    const matches: Array<InstitutionLookupRow | undefined> = [
       find('católica de chile') ?? find('pontificia'),
       find('universidad de chile'),
       find('santiago de chile') ?? find('usach'),

@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const { sessionId } = body ?? {}
 
   if (!sessionId || typeof sessionId !== 'string') {
-    throw createError({ statusCode: 400, statusMessage: 'sessionId requerido.' })
+    throw createError({ statusCode: 400, message: 'sessionId requerido.' })
   }
 
   // Usamos service_role para poder borrar, pero el WHERE garantiza que solo
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     .eq('session_id', sessionId)
 
   if (error) {
-    throw createError({ statusCode: 500, statusMessage: `Error al eliminar: ${error.message}` })
+    throw createError({ statusCode: 500, message: `Error al eliminar: ${error.message}` })
   }
 
   return { ok: true }

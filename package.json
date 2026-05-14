@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "22.16.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "nuxt build",
@@ -23,22 +23,23 @@
     "embeddings:reset": "npx tsx scripts/generate-embeddings.ts --reset"
   },
   "dependencies": {
-    "@nuxtjs/tailwindcss": "^6.12.0",
-    "@pinia/nuxt": "^0.5.1",
-    "@supabase/supabase-js": "^2.45.0",
-    "@vueuse/core": "^11.0.0",
-    "@vueuse/nuxt": "^11.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.105.4",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/nuxt": "^14.3.0",
     "lucide-vue-next": "^1.0.0",
-    "marked": "^18.0.2",
-    "nuxt": "^3.13.0",
-    "pinia": "^2.2.0"
+    "marked": "^18.0.3",
+    "nuxt": "^4.4.4",
+    "pinia": "^3.0.4"
   },
   "devDependencies": {
-    "dotenv": "^17.4.1",
+    "@types/node": "^25.6.2",
+    "dotenv": "^17.4.2",
     "tsx": "^4.21.0",
     "xlsx": "^0.18.5"
   },
   "optionalDependencies": {
-    "@xenova/transformers": "^2.0.1"
+    "@xenova/transformers": "^2.17.2"
   }
 }

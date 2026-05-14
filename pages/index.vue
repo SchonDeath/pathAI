@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif; background: #ffffff; color: #1d1d1f;">
     <AppHeader />
 
     <main class="flex-1 flex flex-col">
@@ -8,50 +8,89 @@
       <section
         id="inicio"
         ref="heroSectionEl"
-        class="relative flex min-h-[calc(100svh-64px)] flex-col items-center justify-center overflow-hidden px-4 sm:px-6 pt-24 sm:pt-28 pb-24 sm:pb-28 scroll-mt-20 lg:scroll-mt-24">
-        <div class="absolute inset-0 -z-10 overflow-hidden">
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full opacity-20 blur-2xl pointer-events-none"
-            style="background: radial-gradient(ellipse at center, #bfdbfe 0%, #a5f3fc 50%, transparent 70%)"></div>
-          <div class="absolute bottom-0 right-0 w-[400px] h-[300px] rounded-full opacity-10 blur-2xl pointer-events-none"
-            style="background: radial-gradient(ellipse at center, #dbeafe 0%, transparent 70%)"></div>
-        </div>
+        class="bg-shadow-element-center relative flex min-h-[calc(100svh-64px)] flex-col items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 sm:pt-24 pb-0 scroll-mt-20 lg:scroll-mt-24"
+        style="background: #ffffff;">
 
-        <div class="w-full max-w-3xl mx-auto text-center space-y-6 animate-fade-up">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold uppercase tracking-wider">
-            Descubre tu nuevo futuro
-          </span>
+        <!-- Iridescent glow accent -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[640px] h-[340px] pointer-events-none -z-10"
+          style="background: linear-gradient(60deg, rgb(8,148,255) 0%, rgb(201,89,221) 40%, rgb(255,46,84) 67%, rgb(255,144,3) 100%); opacity: 0.08; filter: blur(80px); border-radius: 50%;"></div>
 
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-            Todo lo que necesitas para
-            <span class="gradient-text"> elegir tu carrera</span>
+        <div class="relative z-[1] w-full max-w-[780px] mx-auto text-center" style="padding-bottom: 3rem;">
+          <!-- Label badge -->
+          <div class="mb-5">
+            <span
+              class="blur-reveal inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em]"
+              style="animation-delay: 0ms; background: linear-gradient(60deg, rgb(8,148,255) 0%, rgb(201,89,221) 40%, rgb(255,46,84) 67%, rgb(255,144,3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"
+            >
+              Orientación vocacional · Chile
+            </span>
+          </div>
+
+          <!-- Headline -->
+          <h1
+            class="font-semibold tracking-tight leading-[1.07]"
+            style="font-size: clamp(2.4rem, 6vw, 4rem); color: #1d1d1f; letter-spacing: -0.025em; margin-bottom: 1.25rem;">
+            <span class="blur-reveal hero-reveal-line" style="animation-delay: 190ms;">
+              Todo lo que necesitas
+            </span>
+            <span
+              class="blur-reveal hero-reveal-line"
+              style="animation-delay: 380ms; background: linear-gradient(60deg, rgb(8,148,255) 0%, rgb(201,89,221) 40%, rgb(255,46,84) 67%, rgb(255,144,3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"
+            >
+              para elegir tu carrera.
+            </span>
           </h1>
 
-          <p class="text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+          <!-- Subheadline -->
+          <p
+            class="blur-reveal mx-auto leading-relaxed"
+            style="animation-delay: 570ms; font-size: 1.1rem; color: #474747; max-width: 520px; margin-bottom: 2rem; font-weight: 400;">
             Descubre carreras a tu medida, consulta datos oficiales de todas las instituciones del país y conversa con Kora, tu asistente de orientación vocacional.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <!-- CTAs -->
+          <div class="blur-reveal flex flex-col sm:flex-row gap-3 justify-center" style="animation-delay: 760ms;">
             <NuxtLink
               to="/discover"
-              class="px-6 py-3 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm shadow-lg shadow-primary-200 transition-all hover:-translate-y-0.5">
-              Descubrir mi carrera →
+              class="inline-flex items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
+              style="background: #0071e3; color: #ffffff; border-radius: 999px; padding: 0.75rem 1.75rem; font-size: 0.95rem;">
+              Descubrir mi carrera
             </NuxtLink>
             <NuxtLink
               to="/chat"
-              class="px-6 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all hover:-translate-y-0.5">
+              class="inline-flex items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
+              style="background: transparent; color: #0071e3; border-radius: 999px; padding: 0.75rem 1.75rem; font-size: 0.95rem; border: 1.5px solid #0071e3;">
               Hablar con Kora
             </NuxtLink>
           </div>
-        </div>
-        <div class="absolute inset-x-0 bottom-0 border-t border-slate-800/70 bg-[#0d1728]">
-          <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(56,189,248,0.08)_0%,_rgba(15,23,42,0)_72%)]"></div>
 
+          <button
+            type="button"
+            class="blur-reveal group mx-auto mt-5 inline-flex flex-col items-center gap-2 text-[0.84rem] font-semibold tracking-[0.02em] transition-all hover:text-slate-700 hover:-translate-y-0.5"
+            style="animation-delay: 930ms; color: #64748b;"
+            @click="scrollToLandingSection('orientacion-vocacional')"
+          >
+            <span>Explorar</span>
+            <span
+              class="inline-flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 group-hover:translate-y-0.5 group-hover:scale-[1.04]"
+              style="border: 1px solid #cfd8ea; background: rgba(255, 255, 255, 0.96); box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);"
+              aria-hidden="true"
+            >
+              <svg class="h-4.5 w-4.5 text-slate-600 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m0 0l-6-6m6 6l6-6" />
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- Institution carousel strip -->
+        <div class="absolute inset-x-0 bottom-0 z-[1]" style="background: #f5f5f7; border-top: 1px solid #e8e8ed;">
           <div class="relative mx-auto max-w-[90rem] px-4 sm:px-6 py-4 sm:py-5">
             <div class="flex items-center gap-4 sm:gap-6">
-              <p class="hidden md:block whitespace-nowrap text-[11px] font-semibold text-slate-400">
+              <p class="hidden md:block whitespace-nowrap text-[11px] font-semibold" style="color: #86868b;">
                 Instituciones destacadas
               </p>
-              <p class="md:hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p class="md:hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em]" style="color: #86868b;">
                 Instituciones
               </p>
 
@@ -69,7 +108,7 @@
                       class="kora-marquee-logo"
                       loading="lazy"
                       decoding="async">
-                    <span class="kora-marquee-label">{{ shortInstitutionName(institution.nombre_institucion) }}</span>
+                    <span class="kora-marquee-label" style="color: #474747;">{{ shortInstitutionName(institution.nombre_institucion) }}</span>
                   </div>
                 </div>
               </div>
@@ -78,115 +117,127 @@
         </div>
       </section>
 
-      <section class="relative border-y border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50">
-        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-0 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-10 xl:gap-14">
-          <aside class="lg:sticky lg:top-20 lg:self-start lg:pt-6">
-            <div class="lg:border-l lg:border-slate-200 lg:pl-6">
-              <div class="hidden lg:block mb-6">
-                <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Recorrido</div>
-                <p class="mt-2 text-sm font-semibold text-slate-900">Explora cómo funciona KoraChile</p>
+      <!-- ── Features ── -->
+      <section style="background: #ffffff; border-top: 1px solid #e8e8ed;">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-0 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-10 xl:gap-14">
+
+          <!-- Sidebar nav -->
+          <aside class="lg:sticky lg:top-20 lg:self-start lg:pt-8">
+            <div class="lg:pl-2">
+              <div class="hidden lg:block mb-7">
+                <div class="text-[10px] font-semibold uppercase tracking-[0.22em]" style="color: #86868b;">Recorrido</div>
+                <p class="mt-2 text-sm font-semibold" style="color: #1d1d1f;">Explora cómo funciona KoraChile</p>
               </div>
 
-              <div class="flex flex-wrap justify-center gap-2 pb-1 lg:flex-col lg:gap-4 lg:overflow-visible lg:pb-0">
+              <div class="flex flex-wrap justify-center gap-2 pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
                 <button
                   v-for="tab in landingTabs"
                   :key="tab.id"
                   type="button"
                   @click="scrollToLandingSection(tab.id)"
-                  class="group inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-4 py-3 text-sm font-semibold transition-all lg:w-full lg:rounded-none lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:text-left lg:text-[1.05rem] lg:font-medium lg:shadow-none"
-                  :class="activeLandingTab === tab.id
-                    ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-300 lg:bg-transparent lg:text-slate-950 lg:font-bold'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 lg:bg-transparent lg:text-slate-400 lg:hover:text-slate-700'">
+                  class="inline-flex items-center gap-2.5 whitespace-nowrap transition-all lg:w-full lg:text-left"
+                  :style="activeLandingTab === tab.id
+                    ? 'color: #0071e3; border-radius: 10px; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 600;'
+                    : ' color: #474747; border-radius: 10px; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 400;'">
                   <span
-                    class="h-2.5 w-2.5 flex-shrink-0 rounded-full transition-opacity duration-200 lg:h-2.5 lg:w-2.5"
-                    :class="activeLandingTab === tab.id ? 'opacity-100 bg-white lg:bg-slate-950' : 'opacity-0'" />
-                  <span class="text-left leading-tight">{{ tab.label }}</span>
+                    class="flex-shrink-0 rounded-full transition-all duration-200"
+                    :style="activeLandingTab === tab.id
+                      ? 'width:7px; height:7px; background:#0071e3; opacity:1;'
+                      : 'width:7px; height:7px; background:#c7c7cc; opacity:0.5;'" />
+                  <span class="leading-tight" style="font-weight: 600;">{{ tab.label }}</span>
                 </button>
               </div>
             </div>
           </aside>
 
-          <div>
-            <!-- ── Feature sections ── -->
-            <section id="orientacion-vocacional" class="scroll-mt-20 lg:scroll-mt-24">
+          <!-- Feature sections -->
+          <div class="space-y-7 py-8 lg:space-y-10 lg:py-10">
+            <section id="orientacion-vocacional" class="landing-feature-wrap landing-feature-wrap-soft scroll-mt-20 lg:scroll-mt-24 lg:mr-auto">
               <FeatureDiscover />
             </section>
-            <section id="asistente-ia" class="scroll-mt-20 lg:scroll-mt-24">
+            <section id="test-vocacional" class="landing-feature-wrap landing-feature-wrap-blue scroll-mt-20 lg:scroll-mt-24 lg:ml-auto">
+              <FeatureQuiz />
+            </section>
+            <section id="asistente-ia" class="landing-feature-wrap landing-feature-wrap-soft scroll-mt-20 lg:scroll-mt-24 lg:mr-auto">
               <FeatureKora />
             </section>
-            <section id="datos-oficiales" class="scroll-mt-20 lg:scroll-mt-24">
+            <section id="datos-oficiales" class="landing-feature-wrap landing-feature-wrap-blue scroll-mt-20 lg:scroll-mt-24 lg:ml-auto">
               <FeatureRanking />
             </section>
           </div>
         </div>
       </section>
- 
-
-
-
 
     </main>
 
-    <footer class="bg-white border-t border-slate-100 mt-0">
-      <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-12 sm:py-14">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
-          <!-- Brand -->
-          <div class="md:col-span-2 space-y-4">
+    <!-- ── Footer ── -->
+    <footer style="background: #edf1fb; border-top: 1px solid #d7dfef;">
+      <div class="max-w-[78rem] mx-auto px-4 sm:px-6 pt-10 sm:pt-12 pb-6 sm:pb-7">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_11rem_11rem_13rem] gap-10 lg:gap-12">
+          <div class="min-h-[12rem] flex flex-col justify-between gap-8">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 shrink-0">
                 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
                   <defs>
-                    <linearGradient id="fLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stop-color="#1A73E8"/>
-                      <stop offset="100%" stop-color="#0891b2"/>
+                    <linearGradient id="footerKoraGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#0071e3"/>
+                      <stop offset="100%" stop-color="#c959dd"/>
                     </linearGradient>
                   </defs>
-                  <circle cx="16" cy="16" r="15" fill="url(#fLogoGrad)"/>
+                  <circle cx="16" cy="16" r="15" fill="url(#footerKoraGrad)"/>
                   <polygon points="16,4 18.2,16 16,14.5" fill="white"/>
                   <polygon points="16,28 13.8,16 16,17.5" fill="white" fill-opacity="0.3"/>
                   <circle cx="16" cy="16" r="1.8" fill="white"/>
                 </svg>
               </div>
-              <span class="font-bold text-slate-900 text-lg tracking-tight">KoraChile</span>
+              <span class="font-semibold text-[1.65rem] tracking-tight" style="color: #111827; line-height: 1;">KoraChile</span>
             </div>
-            <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
-              Orientación vocacional para Chile con datos oficiales de Mineduc/SIES e inteligencia artificial.
-              Gratis, privado y sin publicidad.
-            </p>
-            <div class="flex items-center gap-2 text-xs text-slate-500">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 font-medium">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Datos SIES 2025-2026
+
+            <div class="space-y-4">
+              <span class="inline-flex items-center gap-2 text-sm font-medium" style="background: rgba(255, 255, 255, 0.72); border: 1px solid #d8deee; border-radius: 0.9rem; padding: 0.6rem 0.95rem; color: #334155;">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Datos oficiales operativos
               </span>
+
+              <p class="text-sm leading-7 max-w-md" style="color: #64748b;">
+                Orientación vocacional para Chile con datos Mineduc / SIES, herramientas de exploración y políticas legales públicas en una URL estable.
+              </p>
             </div>
           </div>
 
-          <!-- Producto -->
-          <div class="space-y-3">
-            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Producto</h4>
-            <ul class="space-y-2 text-sm">
-              <li><NuxtLink to="/discover" class="text-slate-600 hover:text-primary-600 transition-colors">Descubrir carrera</NuxtLink></li>
-              <li><NuxtLink to="/explore" class="text-slate-600 hover:text-primary-600 transition-colors">Explorar</NuxtLink></li>
-              <li><NuxtLink to="/compare" class="text-slate-600 hover:text-primary-600 transition-colors">Comparar</NuxtLink></li>
-              <li><NuxtLink to="/chat" class="text-slate-600 hover:text-primary-600 transition-colors">Chat con Kora</NuxtLink></li>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <h4 class="text-sm font-semibold" style="color: #111827;">Recursos</h4>
+            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
+              <li><NuxtLink to="/discover" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Descubrir</NuxtLink></li>
+              <li><NuxtLink to="/explore" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Explorar</NuxtLink></li>
+              <li><NuxtLink to="/ranking" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Ranking</NuxtLink></li>
+              <li><NuxtLink to="/paes-simulator" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Simular PAES</NuxtLink></li>
             </ul>
           </div>
 
-          <!-- Recursos -->
-          <div class="space-y-3">
-            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Recursos</h4>
-            <ul class="space-y-2 text-sm">
-              <li><a href="https://www.mifuturo.cl" target="_blank" rel="noopener" class="text-slate-600 hover:text-primary-600 transition-colors">MiFuturo.cl</a></li>
-              <li><a href="https://www.mineduc.cl" target="_blank" rel="noopener" class="text-slate-600 hover:text-primary-600 transition-colors">Mineduc</a></li>
-              <li><a href="https://acceso.mineduc.cl" target="_blank" rel="noopener" class="text-slate-600 hover:text-primary-600 transition-colors">Acceso a la educación</a></li>
-              <li><NuxtLink to="/#how-it-works" class="text-slate-600 hover:text-primary-600 transition-colors">Cómo funciona</NuxtLink></li>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <h4 class="text-sm font-semibold" style="color: #111827;">Soporte</h4>
+            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
+              <li><NuxtLink to="/#how-it-works" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Cómo funciona</NuxtLink></li>
+              <li><NuxtLink to="/chat" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Chat con Kora</NuxtLink></li>
+              <li><NuxtLink to="/compare" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Comparar</NuxtLink></li>
+              <li><NuxtLink to="/login" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Iniciar sesión</NuxtLink></li>
+            </ul>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <h4 class="text-sm font-semibold" style="color: #111827;">Legal</h4>
+            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
+              <li><NuxtLink to="/privacidad#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Privacy Policy</NuxtLink></li>
+              <li><NuxtLink to="/terminos#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Terms of Service</NuxtLink></li>
+              <li><NuxtLink to="/propiedad-intelectual#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Propiedad intelectual</NuxtLink></li>
             </ul>
           </div>
         </div>
 
-        <div class="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span>© {{ new Date().getFullYear() }} KoraChile · Hecho en Chile 🇨🇱</span>
-          <span>Fuente de datos: Mineduc / SIES · Uso responsable — la IA puede equivocarse.</span>
+        <div class="mt-10 pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="border-top: 1px solid #d7dfef; font-size: 0.82rem; color: #64748b;">
+          <span>© {{ new Date().getFullYear() }} KoraChile</span>
+          <span>Fuente de datos: Mineduc / SIES · Hecho para Chile.</span>
         </div>
       </div>
     </footer>
@@ -243,11 +294,12 @@ function shortInstitutionName(name: string) {
 const landingTabs = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'orientacion-vocacional', label: 'Orientación vocacional' },
+  { id: 'test-vocacional', label: 'Test RIASEC + MBTI' },
   { id: 'asistente-ia', label: 'Asistente Personal' },
   { id: 'datos-oficiales', label: 'Datos oficiales' },
-]
+] 
 
-const activeLandingTab = ref(landingTabs[0].id)
+const activeLandingTab = ref<string>(landingTabs[0]!.id)
 const heroSectionEl = ref<HTMLElement | null>(null)
 let scrollRAF: number | null = null
 let sectionElements: HTMLElement[] = []
@@ -275,8 +327,8 @@ function isWithinLandingSnapRange(direction: 1 | -1) {
   if (Date.now() < landingSnapLockedUntil) return false
 
   const stickyOffset = getLandingStickyOffset()
-  const firstTop = getSectionScrollTop(sectionElements[0])
-  const lastTop = getSectionScrollTop(sectionElements[sectionElements.length - 1])
+  const firstTop = getSectionScrollTop(sectionElements[0]!)
+  const lastTop = getSectionScrollTop(sectionElements[sectionElements.length - 1]!)
 
   if (direction < 0 && window.scrollY <= firstTop + 8) return false
   if (direction > 0 && window.scrollY >= lastTop + window.innerHeight * 0.35) return false
@@ -312,7 +364,7 @@ function updateActiveSection() {
 
   const stickyOffset = getLandingStickyOffset()
   const anchorY = window.scrollY + stickyOffset + 20
-  let activeId = sectionElements[0].id
+  let activeId = sectionElements[0]!.id
 
   for (const section of sectionElements) {
     const sectionTop = section.getBoundingClientRect().top + window.scrollY
@@ -492,3 +544,83 @@ const testimonials = [
   },
 ]
 </script>
+
+<style scoped>
+.bg-shadow-element-center {
+  --left-side: 50%;
+  --right-side: auto;
+  --top-side: 30%;
+  --color-shadow: rgba(100, 130, 255, 0.12);
+  --scale: 1;
+}
+
+.bg-shadow-element-center::before,
+.bg-shadow-element-left::before,
+.bg-shadow-element-right::before,
+.bg-shadow-element::before {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  width: 1px;
+  height: 1px;
+  left: var(--left-side);
+  right: var(--right-side);
+  top: var(--top-side);
+  box-shadow: 0 0 800px 470px var(--color-shadow);
+  transform: scale(var(--scale));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-reveal-line {
+  display: block;
+}
+
+.landing-feature-wrap {
+  width: 100%;
+  max-width: 72rem;
+  overflow: hidden;
+  border-radius: 2rem;
+}
+
+.landing-feature-wrap-soft {
+  background: radial-gradient(92.09% 124.47% at 50% 99.24%, rgba(221, 226, 238, 0.4) 58.91%, rgba(187, 197, 221, 0.4) 100%);
+  border: 1px solid rgba(210, 218, 234, 0.92);
+}
+
+.landing-feature-wrap-blue {
+  background: #edf1fb;
+  background-blend-mode: overlay, normal;
+  box-shadow: rgba(0, 0, 0, 0.13) 1.899px 1.77px 8.174px 0px inset, rgba(255, 255, 255, 0.13) 1.007px 0.939px 4.087px 0px inset;
+}
+
+.blur-reveal {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(8px);
+  animation: blur-reveal 1180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: filter, opacity, transform;
+}
+
+@keyframes blur-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(8px);
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blur-reveal {
+    animation: none;
+    filter: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+</style>

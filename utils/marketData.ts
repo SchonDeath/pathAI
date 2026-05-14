@@ -95,10 +95,10 @@ export function getDemandColor(demand: string): string {
  */
 export function getDemandLabel(demand: string): string {
   const labels: Record<string, string> = {
-    'muy-alta': '🔥 Muy Alta',
-    'alta': '📈 Alta',
-    'media': '📊 Media',
-    'baja': '📉 Baja',
+    'muy-alta': 'Muy Alta',
+    'alta': 'Alta',
+    'media': 'Media',
+    'baja': 'Baja',
   }
   return labels[demand] || 'Sin datos'
 }

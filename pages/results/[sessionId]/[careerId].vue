@@ -18,25 +18,24 @@
             <div
               class="w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 border"
               :class="careerIconTone(career)">
-              <svg v-if="careerIconKind(career) === 'business'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 20h16" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V8m5 8V4m5 12v-6" />
-              </svg>
-              <svg v-else-if="careerIconKind(career) === 'tech'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L6 12l3.75-5" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7L18 12l-3.75 5" />
-              </svg>
-              <svg v-else-if="careerIconKind(career) === 'health'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-              </svg>
-              <svg v-else-if="careerIconKind(career) === 'education'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9-4 9 4-9 4-9-4z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7 10.5v4.25c0 .828 2.239 2.25 5 2.25s5-1.422 5-2.25V10.5" />
-              </svg>
-              <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M7 12h10M9 17h6" />
-              </svg>
+              <TrendingUp v-if="careerIconKind(career) === 'business'" class="w-6 h-6" />
+              <Code2 v-else-if="careerIconKind(career) === 'tech'" class="w-6 h-6" />
+              <HeartPulse v-else-if="careerIconKind(career) === 'health'" class="w-6 h-6" />
+              <GraduationCap v-else-if="careerIconKind(career) === 'education'" class="w-6 h-6" />
+              <Wrench v-else-if="careerIconKind(career) === 'engineering'" class="w-6 h-6" />
+              <Scale v-else-if="careerIconKind(career) === 'law'" class="w-6 h-6" />
+              <Palette v-else-if="careerIconKind(career) === 'arts'" class="w-6 h-6" />
+              <FlaskConical v-else-if="careerIconKind(career) === 'science'" class="w-6 h-6" />
+              <Building2 v-else-if="careerIconKind(career) === 'architecture'" class="w-6 h-6" />
+              <Leaf v-else-if="careerIconKind(career) === 'agro'" class="w-6 h-6" />
+              <Users v-else-if="careerIconKind(career) === 'social'" class="w-6 h-6" />
+              <Cpu v-else-if="careerIconKind(career) === 'electronics'" class="w-6 h-6" />
+              <Truck v-else-if="careerIconKind(career) === 'logistics'" class="w-6 h-6" />
+              <Megaphone v-else-if="careerIconKind(career) === 'communication'" class="w-6 h-6" />
+              <ChefHat v-else-if="careerIconKind(career) === 'gastronomy'" class="w-6 h-6" />
+              <Shield v-else-if="careerIconKind(career) === 'security'" class="w-6 h-6" />
+              <Plane v-else-if="careerIconKind(career) === 'aviation'" class="w-6 h-6" />
+              <BookOpen v-else class="w-6 h-6" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-3 flex-wrap">
@@ -343,41 +342,21 @@
                     v-for="type in career.personality_types"
                     :key="type"
                     class="group relative">
-                    <div class="px-5 py-3 rounded-2xl bg-gradient-to-br from-primary-100 to-accent-100 border border-primary-200 cursor-default hover:scale-105 transition-transform duration-200">
-                      <span class="font-bold text-primary-700 text-lg">{{ type }}</span>
+                    <div class="px-5 pt-3 pb-2 rounded-2xl bg-gradient-to-br from-primary-100 to-accent-100 border border-primary-200 cursor-default hover:scale-105 transition-transform duration-200 text-center">
+                      <span class="font-bold text-primary-700 text-lg block">{{ type }}</span>
+                      <span v-if="store.mbtiDescriptions[type]" class="text-primary-600 text-[11px] font-medium leading-tight block mt-0.5">
+                        {{ store.mbtiDescriptions[type].label }}
+                      </span>
                     </div>
-                    <div v-if="mbtiDescriptions[type]" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 text-center leading-snug">
-                      {{ mbtiDescriptions[type] }}
+                    <div v-if="store.mbtiDescriptions[type]" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-slate-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 text-center leading-snug">
+                      {{ store.mbtiDescriptions[type].description }}
                     </div>
                   </div>
                 </div>
                 <div v-else class="text-slate-500 text-sm">No se encontraron tipos de personalidad específicos para esta carrera.</div>
               </div>
 
-              <div class="bg-gradient-to-br from-violet-50 to-pink-50 rounded-3xl p-6 border border-violet-100">
-                <div class="flex items-start gap-3">
-                  <span class="w-10 h-10 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9.75a2.25 2.25 0 114.5 0v4.5a2.25 2.25 0 11-4.5 0v-4.5z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M7 10.5A3.5 3.5 0 0110.5 7M17 10.5A3.5 3.5 0 0013.5 7M7.5 14.5A3.5 3.5 0 0011 18M16.5 14.5A3.5 3.5 0 0113 18" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h4 class="font-bold text-slate-900 mb-1">¿No conoces tu tipo MBTI?</h4>
-                    <p class="text-sm text-slate-600 mb-3">Descubre tu perfil de personalidad con un test gratuito y confirma si esta carrera es para ti.</p>
-                    <a
-                      href="https://www.16personalities.com/es/test-de-personalidad"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors">
-                      Hacer test gratuito
-                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           </template>
 
@@ -394,16 +373,54 @@
 
             <!-- DB Programs -->
             <div v-else-if="dbPrograms.length" class="space-y-4">
-              <p class="text-sm text-slate-500">Programas acreditados en Chile según datos oficiales Mineduc.</p>
+              <!-- Cabecera -->
+              <p class="text-sm font-semibold text-slate-700 tracking-wide uppercase">
+                Programas acreditados en Chile
+                <span class="text-xs font-normal normal-case text-slate-400 ml-1">según datos oficiales Mineduc</span>
+              </p>
+              <!-- Filtros -->
+              <div v-if="availableRegions.length > 1 || availableTipos.length > 1" class="flex flex-wrap gap-3">
+                <!-- Filtro región -->
+                <div v-if="availableRegions.length > 1" class="flex items-center gap-1.5 flex-1 min-w-[180px]">
+                  <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  <select
+                    v-model="selectedRegion"
+                    class="w-full text-sm rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition cursor-pointer"
+                    aria-label="Filtrar por región">
+                    <option value="">Todas las regiones</option>
+                    <option v-for="r in availableRegions" :key="r" :value="r">{{ r }}</option>
+                  </select>
+                </div>
+                <!-- Filtro tipo institución -->
+                <div v-if="availableTipos.length > 1" class="flex items-center gap-1.5 flex-1 min-w-[180px]">
+                  <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M9 8h1m-1 4h1m4-4h1m-1 4h1M3 3h18M3 8h18M3 3v18"/>
+                  </svg>
+                  <select
+                    v-model="selectedTipoInstitucion"
+                    class="w-full text-sm rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition cursor-pointer"
+                    aria-label="Filtrar por tipo de institución">
+                    <option value="">Todos los tipos</option>
+                    <option v-for="tipo in availableTipos" :key="tipo" :value="tipo">{{ tipo }}</option>
+                  </select>
+                </div>
+              </div>
+              <div v-if="filteredDbPrograms.length === 0" class="text-center py-8 text-slate-500 text-sm">
+                No hay programas con los filtros seleccionados.
+                <button @click="selectedRegion = ''; selectedTipoInstitucion = ''" class="text-primary-600 underline">Ver todos</button>
+              </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
-                  v-for="(prog, i) in dbPrograms"
+                  v-for="(prog, i) in filteredDbPrograms"
                   :key="i"
                   class="bg-white rounded-2xl p-5 border border-slate-100 shadow-card hover:shadow-card-hover transition-all duration-300 flex items-start gap-4">
                   <div class="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center bg-slate-50">
                     <InstitutionLogo
-                      v-if="prog.institution_code"
-                      :institution-code="prog.institution_code"
+                      v-if="prog.institution_code && logoCache.get(prog.institution_code)"
+                      :logo-url="logoCache.get(prog.institution_code) ?? null"
                       :institution-name="prog.nombre_institucion"
                       class="w-11 h-11 object-contain rounded-xl"
                     />
@@ -619,55 +636,22 @@
     </main>
   </div>
 
-  <!-- Chat flotante -->
-  <button
-    @click="isChatOpen = true"
-    class="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-white shadow-lg bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-600 active:scale-[0.98] transition-all duration-200">
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-    </svg>
-    Preguntale a la IA
-  </button>
-
-  <!-- Modal de chat -->
-  <Transition
-    enter-active-class="transition-all duration-200 ease-out"
-    enter-from-class="opacity-0"
-    enter-to-class="opacity-100"
-    leave-active-class="transition-all duration-150 ease-in"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0">
-    <div
-      v-if="isChatOpen"
-      class="fixed inset-0 z-50 bg-slate-900/30"
-      @click.self="isChatOpen = false">
-      <div class="absolute inset-0 pt-4 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:p-6 flex items-end justify-end pointer-events-none">
-        <Transition
-          enter-active-class="transition-all duration-220 ease-out"
-          enter-from-class="opacity-0 translate-y-2 scale-[0.96]"
-          enter-to-class="opacity-100 translate-y-0 scale-100"
-          leave-active-class="transition-all duration-160 ease-in"
-          leave-from-class="opacity-100 translate-y-0 scale-100"
-          leave-to-class="opacity-0 translate-y-2 scale-[0.96]"
-          appear>
-          <div v-if="isChatOpen" class="pointer-events-auto w-full max-w-[420px]">
-            <ResultsChatPanel mode="modal" @close="isChatOpen = false" />
-          </div>
-        </Transition>
-      </div>
-    </div>
-  </Transition>
+  
   </div>
 </template>
 
 <script setup lang="ts">
-import { BookOpen, Check, GraduationCap, Lightbulb, School, TriangleAlert } from 'lucide-vue-next'
+import { BookOpen, Check, GraduationCap, Lightbulb, School, TriangleAlert, Code2, TrendingUp, HeartPulse, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
+import { useProgramDetailStore } from '~/stores/programDetail'
+import { useInstitutionLogos } from '~/composables/useInstitutionLogos'
 
 const route = useRoute()
 const router = useRouter()
 const store = useCareerStore()
+const programDetailStore = useProgramDetailStore()
 const supabase = useSupabaseClient()
+const { prefetch: prefetchLogos, logoCache } = useInstitutionLogos()
 
 const activeTab = ref('sueldo')
 const expandedPhase = ref<number | null>(null)
@@ -687,10 +671,23 @@ const backLink = computed(() => `/results/${route.params.sessionId}`)
 function careerIconKind(careerData: any) {
   const haystack = `${careerData?.title || ''} ${careerData?.tagline || ''} ${careerData?.description || ''} ${(careerData?.skills || []).join(' ')}`.toLowerCase()
 
-  if (/(comercial|negocio|finanza|marketing|ventas|gesti[oó]n|administraci[oó]n|econom|mercado|invest|estadistic|analista)/.test(haystack)) return 'business'
-  if (/(software|datos|inform[aá]tica|program|digital|sistemas|ia|tecnolog)/.test(haystack)) return 'tech'
-  if (/(salud|m[eé]dic|cl[ií]nic|enfermer|terapia|psicolog|nutri)/.test(haystack)) return 'health'
-  if (/(pedagog|educaci[oó]n|docencia|aprendizaje|formaci[oó]n)/.test(haystack)) return 'education'
+  if (/(derecho|ley|legal|jurídic|abogad|notari|justicia)/.test(haystack)) return 'law'
+  if (/(arquitectura|urbanismo|diseño urbano|construcción|inmobiliar)/.test(haystack)) return 'architecture'
+  if (/(salud|médic|clínic|enfermer|terapia|psicolog|nutri|kinesi|farmac|odontolog|veterinar|fonoaud|obstetr)/.test(haystack)) return 'health'
+  if (/(software|datos|informática|program|digital|ia |inteligencia artificial|machine learning|web|desarrollo|ciberseguridad)/.test(haystack)) return 'tech'
+  if (/(electrónica|eléctric|telecomunicacion|electromecán|automatizac|robótic|mecatrónic)/.test(haystack)) return 'electronics'
+  if (/(ingeniería|mecánic|industrial|civil|minas|metalurgi|petróleo|estructur|procesos)/.test(haystack)) return 'engineering'
+  if (/(comercial|negocio|finanza|marketing|ventas|gestión|administración|econom|mercado|audit|contabil|analista)/.test(haystack)) return 'business'
+  if (/(pedagog|educación|docencia|aprendizaje|párvulo|básica|media|especial)/.test(haystack)) return 'education'
+  if (/(diseño|arte|música|teatro|cine|fotografía|animación|moda|creatividad)/.test(haystack)) return 'arts'
+  if (/(química|biología|física|laboratorio|ciencias|biotecnolog|genética|ambiental|geología)/.test(haystack)) return 'science'
+  if (/(agronomía|agro|forestal|silvicultura|pesca|veterinar|medioambiente|sustentabilidad)/.test(haystack)) return 'agro'
+  if (/(trabajo social|sociología|antropología|geografía|historia|filosofía|relaciones internacionales|ciencia política)/.test(haystack)) return 'social'
+  if (/(logística|transporte|cadena de suministro|comercio exterior|aduana)/.test(haystack)) return 'logistics'
+  if (/(comunicación|periodismo|publicidad|relaciones públicas|medios)/.test(haystack)) return 'communication'
+  if (/(gastronomía|chef|cocina|hotelería|turismo|enología)/.test(haystack)) return 'gastronomy'
+  if (/(seguridad|detective|policía|bombero|defensa|militar)/.test(haystack)) return 'security'
+  if (/(aviación|aeronáutica|piloto|aerolínea)/.test(haystack)) return 'aviation'
   return 'general'
 }
 
@@ -700,6 +697,19 @@ function careerIconTone(careerData: any) {
   if (kind === 'tech') return 'border-sky-200 bg-sky-50 text-sky-700'
   if (kind === 'health') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
   if (kind === 'education') return 'border-violet-200 bg-violet-50 text-violet-700'
+  if (kind === 'engineering') return 'border-orange-200 bg-orange-50 text-orange-700'
+  if (kind === 'law') return 'border-blue-200 bg-blue-50 text-blue-700'
+  if (kind === 'arts') return 'border-pink-200 bg-pink-50 text-pink-700'
+  if (kind === 'science') return 'border-teal-200 bg-teal-50 text-teal-700'
+  if (kind === 'architecture') return 'border-stone-200 bg-stone-50 text-stone-700'
+  if (kind === 'agro') return 'border-lime-200 bg-lime-50 text-lime-700'
+  if (kind === 'social') return 'border-indigo-200 bg-indigo-50 text-indigo-700'
+  if (kind === 'electronics') return 'border-cyan-200 bg-cyan-50 text-cyan-700'
+  if (kind === 'logistics') return 'border-yellow-200 bg-yellow-50 text-yellow-700'
+  if (kind === 'communication') return 'border-rose-200 bg-rose-50 text-rose-700'
+  if (kind === 'gastronomy') return 'border-red-200 bg-red-50 text-red-700'
+  if (kind === 'security') return 'border-gray-200 bg-gray-50 text-gray-700'
+  if (kind === 'aviation') return 'border-blue-200 bg-blue-50 text-blue-600'
   return 'border-slate-200 bg-slate-50 text-slate-700'
 }
 
@@ -775,26 +785,6 @@ const salaryGrowthPercent = computed(() => {
   return Math.round(((s.senior - s.junior) / s.junior) * 100)
 })
 
-// ── MBTI Descriptions ─────────────────────────────────────────────────────────
-const mbtiDescriptions: Record<string, string> = {
-  INTJ: 'Estratega. Pensamiento independiente y determinación para convertir ideas en realidad.',
-  INTP: 'Lógico. Pensador innovador con sed de conocimiento y análisis profundo.',
-  ENTJ: 'Comandante. Liderazgo audaz, voluntad fuerte y gran capacidad estratégica.',
-  ENTP: 'Innovador. Mente ágil que disfruta los desafíos intelectuales y el debate.',
-  INFJ: 'Consejero. Visionary con principios firmes e ideal para impacto social.',
-  INFP: 'Mediador. Idealista con valores profundos y creatividad artística.',
-  ENFJ: 'Protagonista. Carismático y empático, inspira y motiva a otros.',
-  ENFP: 'Activista. Entusiasta, creativo y siempre buscando nuevas conexiones.',
-  ISTJ: 'Inspector. Confiable, práctico y dedicado a mantener el orden.',
-  ISFJ: 'Defensor. Cálido, cuidadoso y muy dedicado a las personas importantes.',
-  ESTJ: 'Ejecutivo. Organizado, decidido y gran gestor de personas y proyectos.',
-  ESFJ: 'Cónsul. Sociable y atento, siempre pendiente del bienestar del grupo.',
-  ISTP: 'Artesano. Observador audaz que experimenta con flexibilidad y pragmatismo.',
-  ISFP: 'Aventurero. Artista sensible y flexible que vive el momento presente.',
-  ESTP: 'Emprendedor. Perspicaz, energético y le encanta vivir al límite.',
-  ESFP: 'Animador. Espontáneo, enérgico y disfruta hacer que otros se diviertan.',
-}
-
 // ── Save / Export ─────────────────────────────────────────────────────────────
 const isSaved = computed(() =>
   store.savedCareers.some(c => c.careerData.id === career.value?.id)
@@ -825,12 +815,23 @@ interface DbSalary {
 const dbSalary = ref<DbSalary | null>(null)
 
 async function fetchDbSalary(title: string) {
+  const careerId = career.value?.id
+  if (!careerId) return
+
+  // Verificar cache en store antes de hacer la petición
+  const cached = store.getCachedSalary(careerId) as DbSalary | undefined
+  if (cached) {
+    dbSalary.value = cached
+    return
+  }
+
   try {
     const res = await $fetch<{ salary: DbSalary | null }>('/api/careers/official-salary', {
-      query: { q: title },
+      query: { q: title, career_generic_id: career.value?.career_generic_id || undefined },
     })
     if (res.salary) {
       dbSalary.value = res.salary
+      store.setCachedSalary(careerId, res.salary)
     }
   } catch { /* fallback silently */ }
 }
@@ -843,12 +844,48 @@ interface DbProgram {
   tipo_institucion: string
   region: string
   sede: string
+  nombre_sede?: string | null
+  comuna?: string | null
   arancel_anual?: number
+  matricula_anual?: number | null
+  arancel_referencia_becas?: number | null
+  arancel_referencia_creditos?: number | null
+  brecha_arancel_becas?: number | null
+  brecha_arancel_creditos?: number | null
   duracion_formal_semestres?: number
+  jornada?: string | null
+  modalidad?: string | null
+  nivel_carrera?: string | null
+  vacantes_semestre_1?: number | null
+  vacantes_semestre_2?: number | null
+  puntaje_promedio_matriculados?: number | null
+  anio_puntajes?: number | null
   institution_code?: number | null
+  career_generic_id?: string | null
+  area_carrera_generica?: string | null
+  stats?: any
+  institution_data?: any
 }
 const dbPrograms = ref<DbProgram[]>([])
 const dbProgramsLoading = ref(false)
+const selectedRegion = ref<string>('')
+const selectedTipoInstitucion = ref<string>('')
+
+const availableRegions = computed(() => {
+  const regions = [...new Set(dbPrograms.value.map(p => p.region).filter(Boolean))]
+  return regions.sort((a, b) => a.localeCompare(b, 'es'))
+})
+
+const availableTipos = computed(() => {
+  const tipos = [...new Set(dbPrograms.value.map(p => p.tipo_institucion).filter(Boolean))]
+  return tipos.sort((a, b) => a.localeCompare(b, 'es'))
+})
+
+const filteredDbPrograms = computed(() => {
+  return dbPrograms.value
+    .filter(p => !selectedRegion.value || p.region === selectedRegion.value)
+    .filter(p => !selectedTipoInstitucion.value || p.tipo_institucion === selectedTipoInstitucion.value)
+})
 
 async function authHeaders() {
   const { data } = await supabase.auth.getSession()
@@ -888,15 +925,28 @@ async function addProgramToCompare(prog: DbProgram) {
     const safe = Array.isArray(arr) ? arr : []
     if (!safe.some((x: any) => (x?.program_unique_code || x?.code) === code)) {
       if (safe.length >= 4) safe.shift()
-      safe.push({
+      const compareProgram = {
+        ...prog,
         program_unique_code: code,
         nombre_carrera: prog.nombre_carrera,
         nombre_institucion: prog.nombre_institucion,
+        nombre_sede: prog.nombre_sede ?? prog.sede ?? null,
+        comuna: prog.comuna ?? null,
         duracion_formal_semestres: prog.duracion_formal_semestres,
         arancel_anual: prog.arancel_anual,
+        matricula_anual: prog.matricula_anual ?? null,
+        arancel_referencia_becas: prog.arancel_referencia_becas ?? null,
+        arancel_referencia_creditos: prog.arancel_referencia_creditos ?? null,
+        brecha_arancel_becas: prog.brecha_arancel_becas ?? null,
+        brecha_arancel_creditos: prog.brecha_arancel_creditos ?? null,
         tipo_institucion: prog.tipo_institucion,
-        region: prog.sede || prog.region,
-      })
+        region: prog.region,
+        source: 'results',
+        saved_from: 'career-results',
+      }
+      safe.push(compareProgram)
+      programDetailStore.set(code, compareProgram)
+      if (prog.institution_data) programDetailStore.setInstitution(code, prog.institution_data)
       localStorage.setItem(COMPARE_PROGRAMS_KEY, JSON.stringify(safe))
       compareProgramCodes.value = safe.map((x: any) => String(x.program_unique_code))
       void useIntentTracker().track({
@@ -918,6 +968,20 @@ async function addProgramToCompare(prog: DbProgram) {
 }
 
 async function fetchDbPrograms(title: string) {
+  const careerId = career.value?.id
+  if (!careerId) return
+
+  // Verificar cache en store antes de hacer la petición
+  const cached = store.getCachedPrograms(careerId) as DbProgram[] | undefined
+  if (cached) {
+    dbPrograms.value = cached
+    selectedRegion.value = ''
+    selectedTipoInstitucion.value = ''
+    const codes = cached.map(p => p.institution_code).filter(Boolean) as number[]
+    if (codes.length) prefetchLogos(codes)
+    return
+  }
+
   dbProgramsLoading.value = true
   try {
     const headers = await authHeaders()
@@ -928,9 +992,20 @@ async function fetchDbPrograms(title: string) {
     const res = await $fetch<{ results: DbProgram[] }>('/api/tools/search-career-match', {
       method: 'POST',
       headers,
-      body: { keywords: [title], limit: 12 },
+      body: {
+        keywords: [career.value?.matched_career || title],
+        career_generic_id: career.value?.career_generic_id || undefined,
+        limit: 25,
+      },
     })
     dbPrograms.value = res.results ?? []
+    // Guardar en cache del store para evitar re-fetch al volver a esta carrera
+    store.setCachedPrograms(careerId, dbPrograms.value)
+    selectedRegion.value = ''
+    selectedTipoInstitucion.value = ''
+    // Pre-cargar logos de las instituciones retornadas
+    const codes = dbPrograms.value.map(p => p.institution_code).filter(Boolean) as number[]
+    if (codes.length) await prefetchLogos(codes)
   } catch { /* fallback silently */ } finally {
     dbProgramsLoading.value = false
   }

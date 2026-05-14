@@ -85,13 +85,11 @@
                       {{ s.preview }}
                     </div>
                   </button>
-                  <div
-                    v-if="s.session_id !== activeSessionId"
-                    class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-0.5 p-1 mt-0.5 mr-0.5">
+                  <div class="shrink-0 flex items-center p-1 mt-0.5 mr-0.5">
                     <button
                       @click.stop="confirmDeleteSession(s.session_id)"
-                      title="Eliminar conversación permanentemente"
-                      class="p-1.5 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      title="Eliminar conversación"
+                      class="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </div>
@@ -287,14 +285,8 @@
             </div>
             <div class="bg-white/90 border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm max-w-[85%] space-y-3 px-4 py-3">
               <p class="text-slate-700 text-sm leading-relaxed">
-                <template v-if="careersContext">
-                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Vi que exploraste carreras relacionadas con <strong>{{ careersContext.query }}</strong>.<br><br>
-                  Te sugería <strong>{{ careersContext.careers.map(c => c.title).join(', ') }}</strong>. ¿Quieres profundizar en alguna, comparar opciones, o preguntar algo específico?
-                </template>
-                <template v-else>
-                  ¡Hola{{ userFirstName ? `, ${userFirstName}` : '' }}! Soy KoraChile, tu orientador vocacional.<br><br>
-                  Cuéntame: ¿qué materias o actividades te gustan más? ¿Tienes alguna carrera en mente o estás comenzando desde cero?
-                </template>
+                ¡Hola{{ clientUserFirstName ? `, ${clientUserFirstName}` : '' }}! Soy Kora. Te ayudaré a encontrar tu camino académico.<br><br>
+                ¿Te gustaría explorar información sobre universidades o institutos, o prefieres consultar puntajes de corte para una carrera específica?
               </p>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -376,17 +368,10 @@
                   <!-- Cabecera: logo + título + badge tipo -->
                   <div class="flex items-start gap-2">
                     <div class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
-                      <img
-                        v-if="card.institution_code && logoCache.get(card.institution_code)"
-                        :src="logoCache.get(card.institution_code)!"
-                        :alt="card.institution"
-                        class="w-full h-full object-contain p-0.5"
-                        loading="lazy">
-                      <svg v-else class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2 8l10 5 10-5-10-5Z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 10v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 8v5"/>
-                      </svg>
+                      <InstitutionLogo
+                        :logo-url="card.institution_code ? logoCache.get(card.institution_code) : null"
+                        :institution-name="card.institution"
+                        fallback-class="text-slate-400" />
                     </div>
                     <div class="flex-1 min-w-0 flex items-start justify-between gap-1">
                       <div class="font-semibold text-slate-800 text-xs sm:text-sm leading-tight line-clamp-2">{{ card.title }}</div>
@@ -404,24 +389,50 @@
                     <span v-if="card.region" class="text-slate-300">·</span>
                     <span v-if="card.region" class="shrink-0 text-slate-500">{{ card.region }}</span>
                   </div>
+                  <div v-if="card.campus || card.comuna" class="text-[11px] text-slate-500 line-clamp-1">
+                    {{ [card.campus, card.comuna].filter(Boolean).join(' · ') }}
+                  </div>
                   <!-- Pills de datos -->
                   <div class="flex flex-wrap gap-1.5 text-[11px] flex-1 items-start content-start">
+                    <span v-if="card.nivel" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200"><GraduationCap class="w-3 h-3" />{{ card.nivel }}</span>
                     <span v-if="card.semesters" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><CalendarDays class="w-3 h-3" />{{ card.semesters }} sem</span>
                     <span v-if="card.cost" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><Banknote class="w-3 h-3" />{{ formatClp(card.cost) }}</span>
                     <span v-if="card.jornada" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-600 border border-slate-200"><Clock3 class="w-3 h-3" />{{ card.jornada }}</span>
+                    <span v-if="card.empleabilidad_1er_ano_pct !== null && card.empleabilidad_1er_ano_pct !== undefined" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200"><CheckCircle2 class="w-3 h-3" />{{ formatPct(card.empleabilidad_1er_ano_pct) }} empleabilidad</span>
+                    <span v-if="card.ingreso_4to_ano_clp" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"><Banknote class="w-3 h-3" />{{ formatClp(card.ingreso_4to_ano_clp) }} 4° año</span>
                     <span v-if="card.vacantes" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 class="w-3 h-3" />{{ card.vacantes }} vacantes</span>
                     <span v-if="card.titulados" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"><GraduationCap class="w-3 h-3" />{{ card.titulados }} titulados/año</span>
                   </div>
                   <!-- Acción única: profundizar sin vender comparación desde el chat -->
-                  <div class="mt-auto pt-1">
+                  <div class="mt-auto pt-1 grid grid-cols-2 gap-2">
                     <button
-                      @click="viewProgramDetails(card)"
-                      title="Ver información completa"
-                      class="w-full px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200">
-                      Ver detalle
+                      @click="selectProgramForQuestion(card)"
+                      title="Preguntar por este programa"
+                      class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 transition-all duration-200">
+                      Preguntar
+                    </button>
+                    <button
+                      @click="addProgramToComparator(card)"
+                      :disabled="isProgramInComparator(card.code)"
+                      title="Agregar este programa al comparador"
+                      class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 disabled:cursor-default"
+                      :class="isProgramInComparator(card.code) ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'">
+                      {{ isProgramInComparator(card.code) ? 'Agregado' : '+ Comparar' }}
                     </button>
                   </div>
                 </div>
+
+              </div>
+
+              <div v-if="shouldShowQuickActions(i, msg)" class="mt-3 flex flex-wrap gap-2">
+                <button
+                  v-for="action in latestQuickActions"
+                  :key="`${action.label}-${action.prompt}`"
+                  :disabled="loading"
+                  @click="setInputValue(action.prompt)"
+                  class="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  {{ action.label }}
+                </button>
               </div>
 
             </div>
@@ -447,6 +458,50 @@
               Ir al final ↓
             </button>
           </Transition>
+
+          <div v-if="shouldShowProgramCardTray" class="mx-4 sm:mx-6 mb-3 rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm p-3">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div>
+                <div class="text-xs font-bold text-slate-800">Opciones recientes</div>
+                <div class="text-[11px] text-slate-500">Últimos programas sugeridos</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div
+                v-for="card in latestProgramCards.slice(0, 4)"
+                :key="`tray-${card.code}`"
+                class="rounded-xl border border-slate-200 bg-white p-2.5 flex items-start gap-2">
+                <div class="w-9 h-9 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                  <InstitutionLogo
+                    :logo-url="card.institution_code ? logoCache.get(card.institution_code) : null"
+                    :institution-name="card.institution"
+                    fallback-class="text-slate-400" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-bold text-slate-900 leading-tight line-clamp-2">{{ card.title }}</div>
+                  <div class="text-[11px] text-slate-500 line-clamp-1">{{ card.institution }}</div>
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    <span v-if="card.type" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{{ institutionTypeBadge(card.type) }}</span>
+                    <span v-if="card.nivel" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">{{ card.nivel }}</span>
+                  </div>
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    <button
+                      @click="selectProgramForQuestion(card)"
+                      class="px-2 py-1 rounded-md text-[11px] font-semibold border border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 transition">
+                      Preguntar
+                    </button>
+                    <button
+                      @click="addProgramToComparator(card)"
+                      :disabled="isProgramInComparator(card.code)"
+                      class="px-2 py-1 rounded-md text-[11px] font-semibold border transition disabled:cursor-default"
+                      :class="isProgramInComparator(card.code) ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'">
+                      {{ isProgramInComparator(card.code) ? 'Agregado' : '+ Comparar' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Error -->
           <div v-if="error" class="mx-4 sm:mx-6 mb-3 px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
@@ -566,6 +621,8 @@ interface ProgramCard {
   institution: string
   institution_code: number | null
   career_generic_id?: string | null
+  campus?: string | null
+  comuna?: string | null
   semesters: number | null
   cost: number | null
   type: string | null
@@ -574,9 +631,15 @@ interface ProgramCard {
   nivel: string | null
   vacantes: number | null
   titulados: number | null
+  empleabilidad_1er_ano_pct?: number | null
+  ingreso_4to_ano_clp?: number | null
 }
 
-const store = useCareerStore()
+interface QuickAction {
+  label: string
+  prompt: string
+}
+
 const authStore = useAuthStore()
 const programDetailStore = useProgramDetailStore()
 const supabase = useSupabaseClient()
@@ -591,6 +654,7 @@ const inputEl = ref<HTMLTextAreaElement | null>(null)
 const historyLoading = ref(false)
 const compactMode = false
 const latestProgramCards = ref<ProgramCard[]>([])
+const latestQuickActions = ref<QuickAction[]>([])
 const activeSessionId = ref<string>('')
 const isMobile = ref(false)
 // Inicializa cerrado para evitar flash en SSR/mobile.
@@ -651,9 +715,12 @@ interface SessionGroup {
   sessions: ChatSession[]
 }
 
+const SESSION_GROUP_LABELS = ['Hoy', 'Ayer', 'Esta semana', 'Anteriores'] as const
+type SessionGroupLabel = typeof SESSION_GROUP_LABELS[number]
+
 const sessionGroups = computed((): SessionGroup[] => {
   const now = new Date()
-  const groups: Record<string, ChatSession[]> = {
+  const groups: Record<SessionGroupLabel, ChatSession[]> = {
     'Hoy': [],
     'Ayer': [],
     'Esta semana': [],
@@ -661,14 +728,12 @@ const sessionGroups = computed((): SessionGroup[] => {
   }
   for (const s of visibleSessions.value) {
     const diff = Math.floor((now.getTime() - new Date(s.created_at).getTime()) / 86_400_000)
-    if (diff === 0) groups['Hoy'].push(s)
-    else if (diff === 1) groups['Ayer'].push(s)
-    else if (diff < 7) groups['Esta semana'].push(s)
-    else groups['Anteriores'].push(s)
+    const label: SessionGroupLabel = diff === 0 ? 'Hoy' : diff === 1 ? 'Ayer' : diff < 7 ? 'Esta semana' : 'Anteriores'
+    groups[label].push(s)
   }
-  return Object.entries(groups)
-    .filter(([, list]) => list.length > 0)
-    .map(([label, sessions]) => ({ label, sessions }))
+  return SESSION_GROUP_LABELS
+    .map(label => ({ label, sessions: groups[label] }))
+    .filter(group => group.sessions.length > 0)
 })
 
 // Borrado permanente
@@ -728,6 +793,7 @@ async function deleteAllSessions() {
 }
 const COMPARE_PROGRAMS_KEY = 'KoraChile:compare:programs'
 const PROGRAM_CARDS_SESSION_PREFIX = 'KoraChile:chat:program-cards:'
+const compareProgramCodes = ref<string[]>([])
 
 // --- typing animation (palabra por palabra, estilo Gemini) ---
 const typingMsgId = ref<string | null>(null)
@@ -782,24 +848,15 @@ function handleMessagesScroll() {
 }
 
 const CHIP_POOL = [
-  '¿Qué carreras hay en salud?',
-  '¿Cuánto gana un ingeniero en Chile?',
-  'Recomiéndame carreras con alta empleabilidad',
-  '¿Qué opciones hay en deporte y actividad física?',
-  '¿Cuáles son las carreras mejor pagadas?',
-  '¿Qué universidades tienen gratuidad?',
-  '¿Qué estudiar si me gustan las matemáticas?',
-  'Carreras con foco en sustentabilidad',
-  '¿Qué puntaje PAES necesito para Ingeniería Comercial?',
-  'Carreras cortas (CFT/IP) con buena salida laboral',
-  'Diferencias entre Psicología y Trabajo Social',
-  '¿Dónde estudiar Medicina Veterinaria en regiones?',
-  'Carreras del área tecnológica con menor duración',
-  '¿Qué hace un ingeniero civil industrial?',
-  'Carreras relacionadas con el arte y la creatividad',
-  'Profesiones con trabajo remoto en Chile',
-  'Opciones en educación con alta empleabilidad',
-  '¿Cómo elijo entre Derecho y Ciencia Política?',
+  'Quiero explorar universidades e institutos',
+  'Quiero saber qué carreras puedo estudiar con mi puntaje PAES',
+  'Quiero consultar el puntaje de corte de una carrera',
+  'Dame información de la Universidad de Chile',
+  'Busca carreras con mejor empleabilidad',
+  'Quiero ver opciones técnicas con buena salida laboral',
+  'Muéstrame alternativas profesionales con licenciatura',
+  'Algo relacionado con salud',
+  'Algo relacionado con tecnología',
 ]
 
 const QUICK_CHIPS = ref<string[]>([])
@@ -808,15 +865,23 @@ function refreshChips() {
   const shuffled = [...CHIP_POOL].sort(() => Math.random() - 0.5)
   QUICK_CHIPS.value = shuffled.slice(0, 4)
 }
-refreshChips()
+// No llamar refreshChips() en scope de módulo: genera mismatch SSR/client
+
+async function setInputValue(value: string) {
+  input.value = value
+  await nextTick()
+  autoResize()
+  focusInput()
+}
 
 // Detecta el tema de la conversación para construir el prompt de comparación contextual
 function buildComparePrompt(): string {  // Busca el último mensaje del usuario para extraer el tema
   const lastUser = [...messages.value].reverse().find(m => m.role === 'user')
   const lastAssistant = [...messages.value].reverse().find(m => m.role === 'assistant')
   // Si hay program cards, usamos su título directamente
-  if (latestProgramCards.value.length > 0) {
-    const career = latestProgramCards.value[0].title
+  const firstProgramCard = latestProgramCards.value[0]
+  if (firstProgramCard) {
+    const career = firstProgramCard.title
     return `Compárame ${career} con otra carrera similar: explica diferencias en empleabilidad, ingresos, duración y perfil de estudiante ideal.`
   }
   // Intenta extraer una carrera mencionada en el último mensaje del asistente
@@ -836,26 +901,10 @@ const MAX_CONTEXT_MESSAGES = 10
 const userAvatar = computed(() => authStore.profile?.avatar_url || null)
 const userName = computed(() => authStore.profile?.name || authStore.profile?.email || 'Tú')
 const userFirstName = computed(() => authStore.profile?.name?.split(' ')[0] || '')
+// Ref sólo-cliente para evitar mismatch SSR (auth no disponible en servidor)
+const clientUserFirstName = ref('')
 
-// Contexto de carreras descubiertas para la IA
-const careersContext = computed(() => {
-  if (!store.result?.variations?.length) return null
-  return {
-    query: store.result.query,
-    careers: store.result.variations.map(v => ({
-      title: v.title,
-      description: v.description,
-      skills: v.skills,
-      salary_range: v.salary_range,
-      salary_source: v.salary_source,
-      salary_label: v.salary_label,
-      pros: v.pros,
-      cons: v.cons,
-      match_score: v.match_score,
-      job_demand: v.job_demand,
-    }))
-  }
-})
+
 
 async function send(customText?: string | Event) {
   const resolved = typeof customText === 'string' ? customText : input.value
@@ -872,6 +921,7 @@ async function send(customText?: string | Event) {
   ensureSessionId()
   const userMsg: Message = { id: makeId(), role: 'user', content: text }
   messages.value.push(userMsg)
+  upsertSessionPreviewFromUser(text)
   if (!customText) input.value = ''
   await nextTick()
   autoResize()
@@ -893,7 +943,7 @@ async function send(customText?: string | Event) {
       loading.value = false
       return
     }
-    const data = await $fetch<{ reply: string; sessionId?: string; programCards?: ProgramCard[]; programFullData?: Record<string, any> }>('/api/chat', {
+    const data = await $fetch<{ reply: string; sessionId?: string; programCards?: ProgramCard[]; programFullData?: Record<string, any>; quickActions?: QuickAction[] }>('/api/chat', {
       method: 'POST',
       signal: currentAbortController.value.signal,
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -903,9 +953,6 @@ async function send(customText?: string | Event) {
         // Solo enviar careersContext en el primer mensaje de la sesión:
         // el servidor guarda el historial en Supabase, así que después del
         // primer turno ya tiene el contexto y re-enviarlo gasta tokens extra.
-        careersContext: messages.value.filter(m => m.role === 'assistant').length <= 1
-          ? careersContext.value
-          : null,
       },
     })
 
@@ -918,15 +965,29 @@ async function send(customText?: string | Event) {
 
     const aiMsg: Message = { id: makeId(), role: 'assistant', content: data.reply }
     messages.value.push(aiMsg)
-    latestProgramCards.value = Array.isArray(data.programCards) ? data.programCards : []
-    // Guardar datos completos en Pinia para que /compare no necesite fetch extra
-    if (data.programFullData) {
-      for (const [code, detail] of Object.entries(data.programFullData)) {
-        programDetailStore.set(code, detail)
+    latestQuickActions.value = Array.isArray(data.quickActions) ? data.quickActions : []
+    const newCards = Array.isArray(data.programCards) ? data.programCards : []
+    if (newCards.length > 0) {
+      // Solo actualiza y persiste si la respuesta trajo carreras nuevas
+      latestProgramCards.value = newCards
+      // Guardar datos completos en Pinia para que /compare no necesite fetch extra
+      if (data.programFullData) {
+        for (const [code, detail] of Object.entries(data.programFullData)) {
+          programDetailStore.set(code, detail)
+        }
+      }
+      prefetchLogos(latestProgramCards.value.map(c => c.institution_code))
+      persistLatestProgramCards()
+    } else {
+      // Mantener cards previas hasta que el usuario cambie sesión o cree
+      // una conversación nueva. Esto evita que "se pierdan" al hacer
+      // follow-ups que no traen nuevas cards o al volver desde /compare.
+      if (data.programFullData) {
+        for (const [code, detail] of Object.entries(data.programFullData)) {
+          programDetailStore.set(code, detail)
+        }
       }
     }
-    prefetchLogos(latestProgramCards.value.map(c => c.institution_code))
-    persistLatestProgramCards()
     await nextTick()
     if (isNearBottom.value) scrollToBottom()
     else hasNewBelow.value = true
@@ -950,7 +1011,7 @@ async function send(customText?: string | Event) {
 
 async function sendChip(prompt: string) {
   if (loading.value) return
-  await send(prompt)
+  await setInputValue(prompt)
 }
 
 async function sendInlineAction(actionId: string) {
@@ -985,6 +1046,15 @@ function shouldShowProgramCards(index: number, msg: Message) {
   return isLastAssistantMessage(index, msg) && latestProgramCards.value.length > 0
 }
 
+const shouldShowProgramCardTray = computed(() => {
+  if (!latestProgramCards.value.length) return false
+  return !messages.value.some((msg, index) => shouldShowProgramCards(index, msg))
+})
+
+function shouldShowQuickActions(index: number, msg: Message) {
+  return isLastAssistantMessage(index, msg) && latestQuickActions.value.length > 0
+}
+
 function getProgramCardsSessionKey() {
   ensureSessionId()
   if (!activeSessionId.value) return null
@@ -1014,6 +1084,9 @@ function loadLatestProgramCards() {
     }
     const parsed = JSON.parse(raw)
     latestProgramCards.value = Array.isArray(parsed) ? parsed : []
+    if (latestProgramCards.value.length) {
+      prefetchLogos(latestProgramCards.value.map(c => c.institution_code))
+    }
   } catch {
     latestProgramCards.value = []
   }
@@ -1030,6 +1103,8 @@ async function loadHistory() {
   if (!authStore.profile?.id) return
   historyLoading.value = true
   ensureSessionId()
+  // Cargar cards del localStorage inmediatamente (no depende de que haya msgs en DB)
+  loadLatestProgramCards()
   const { data, error: loadError } = await supabase
     .from('chat_messages')
     .select('id, role, content, created_at')
@@ -1045,7 +1120,6 @@ async function loadHistory() {
       content: m.content,
       created_at: m.created_at,
     }))
-    loadLatestProgramCards()
     await nextTick()
     scrollToBottom()
   }
@@ -1086,16 +1160,42 @@ async function loadSessions() {
 
 async function switchSession(sessionId: string) {
   if (sessionId === activeSessionId.value) return
-  clearLatestProgramCards()
   activeSessionId.value = sessionId
   if (authStore.profile?.id && typeof window !== 'undefined') {
     localStorage.setItem(`KoraChile:chat:session:${authStore.profile.id}`, sessionId)
   }
   messages.value = []
   latestProgramCards.value = []
+  latestQuickActions.value = []
   error.value = null
   if (isMobile.value) showSidebar.value = false
   await loadHistory()
+}
+
+function upsertSessionPreviewFromUser(content: string) {
+  const preview = String(content || '').trim().slice(0, 90)
+  if (!preview || !activeSessionId.value) return
+
+  const now = new Date().toISOString()
+  const idx = sessions.value.findIndex(s => s.session_id === activeSessionId.value)
+  if (idx >= 0) {
+    const existing = sessions.value[idx]!
+    sessions.value[idx] = {
+      ...existing,
+      session_id: existing.session_id,
+      preview,
+      created_at: now,
+    }
+  } else {
+    sessions.value.unshift({
+      session_id: activeSessionId.value,
+      preview,
+      created_at: now,
+    })
+  }
+  sessions.value = sessions.value
+    .slice()
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 }
 
 function formatSessionDate(iso: string) {
@@ -1140,6 +1240,7 @@ async function startNewChat() {
   }
   messages.value = []
   latestProgramCards.value = []
+  latestQuickActions.value = []
   error.value = null
   input.value = ''
   await nextTick()
@@ -1181,6 +1282,27 @@ function focusInput() {
 
 function formatClp(n: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
+}
+
+function formatPct(n: number) {
+  return `${new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }).format(n)}%`
+}
+
+function loadCompareProgramCodes() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem(COMPARE_PROGRAMS_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    compareProgramCodes.value = Array.isArray(arr)
+      ? arr.map((x: any) => String(x?.program_unique_code || x?.code || '')).filter(Boolean)
+      : []
+  } catch {
+    compareProgramCodes.value = []
+  }
+}
+
+function isProgramInComparator(code: string) {
+  return compareProgramCodes.value.includes(code)
 }
 
 function institutionTypeBadge(t: string) {
@@ -1225,6 +1347,31 @@ async function viewProgramDetails(card: ProgramCard) {
   await router.push('/compare?tab=programas')
 }
 
+function selectProgramForQuestion(card: ProgramCard) {
+  void setInputValue(`${card.title} en ${card.institution}`)
+}
+
+async function addProgramToComparator(card: ProgramCard) {
+  await queueProgramForDetail(card)
+  loadCompareProgramCodes()
+
+  void useIntentTracker().track({
+    event_name: 'compare_added',
+    source: 'chat',
+    program_unique_code: card.code,
+    institution_code: card.institution_code,
+    career_generic_id: card.career_generic_id,
+    metadata: {
+      nombre_carrera: card.title,
+      nombre_institucion: card.institution,
+      nombre_sede: card.campus,
+      comuna: card.comuna,
+      region: card.region,
+      via: 'chat_card',
+    },
+  })
+}
+
 async function queueProgramForDetail(card: ProgramCard) {
   if (typeof window === 'undefined') return
   try {
@@ -1238,9 +1385,14 @@ async function queueProgramForDetail(card: ProgramCard) {
         program_unique_code: card.code,
         nombre_carrera: card.title,
         nombre_institucion: card.institution,
+        institution_code: card.institution_code,
+        career_generic_id: card.career_generic_id,
+        nombre_sede: card.campus,
+        comuna: card.comuna,
         duracion_formal_semestres: card.semesters,
         arancel_anual: card.cost,
         tipo_institucion: card.type,
+        nivel_carrera: card.nivel,
         region: card.region,
       })
       localStorage.setItem(COMPARE_PROGRAMS_KEY, JSON.stringify(safe))
@@ -1257,11 +1409,18 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
+function handleStorage(e: StorageEvent) {
+  if (e.key === COMPARE_PROGRAMS_KEY) loadCompareProgramCodes()
+}
+
 onMounted(async () => {
   await authStore.ensureHydrated()
   applyResponsiveCompact()
   window.addEventListener('resize', applyResponsiveCompact)
+  window.addEventListener('storage', handleStorage)
   refreshChips()
+  loadCompareProgramCodes()
+  clientUserFirstName.value = authStore.profile?.name?.split(' ')[0] || ''
   await Promise.all([loadHistory(), loadSessions()])
   await nextTick()
   focusInput()
@@ -1290,6 +1449,7 @@ onBeforeUnmount(() => {
   renderedCache.clear()
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', applyResponsiveCompact)
+    window.removeEventListener('storage', handleStorage)
   }
 })
 </script>

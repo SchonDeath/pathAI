@@ -10,6 +10,6 @@ export default defineEventHandler(async (event) => {
     .select('*')
     .eq('is_active', true)
     .order('priority', { ascending: true })
-  if (error) throw createError({ statusCode: 500, statusMessage: error.message })
+  if (error) throw createError({ statusCode: 500, message: error.message })
   return { plans: data ?? [] }
 })

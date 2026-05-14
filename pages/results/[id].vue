@@ -62,20 +62,46 @@
                 </div>
 
                 <div class="grid gap-4 px-6 py-5 sm:grid-cols-3 sm:px-7">
-                  <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Top match</p>
-                    <p class="mt-2 text-lg font-semibold text-slate-900">{{ primaryCareer?.title || 'Sin dato' }}</p>
-                    <p class="mt-1 text-sm text-slate-500">{{ primaryCareer?.match_score || 0 }}% de afinidad sobre tu perfil.</p>
+                  <!-- Top match -->
+                  <div class="bg-white rounded-3xl border border-slate-100 shadow-card px-5 py-5">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-primary-50 border border-primary-100 text-primary-600 flex items-center justify-center">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.755 5.583 6.16.895-4.457 4.344 1.052 6.134L12 17.063 6.49 19.956l1.052-6.134L3.085 9.478l6.16-.895L12 3z"/></svg>
+                        </span>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Top match</p>
+                      </div>
+                      <span class="text-xs px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-100 font-semibold">{{ primaryCareer?.match_score || 0 }}%</span>
+                    </div>
+                    <p class="text-base font-bold text-slate-900 leading-tight">{{ primaryCareer?.title || 'Sin dato' }}</p>
+                    <p class="mt-1 text-xs text-slate-500">Carrera con mayor afinidad según tu perfil.</p>
                   </div>
-                  <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Cobertura salarial</p>
-                    <p class="mt-2 text-lg font-semibold text-slate-900">{{ salaryCoverage }}/{{ result.variations.length }}</p>
-                    <p class="mt-1 text-sm text-slate-500">Rutas con ingresos oficiales SIES o MiFuturo.</p>
+
+                  <!-- Cobertura salarial -->
+                  <div class="bg-white rounded-3xl border border-slate-100 shadow-card px-5 py-5">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l5-5 4 4 7-7M14 8h6v6"/></svg>
+                        </span>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Cobertura</p>
+                      </div>
+                      <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">Datos SIES</span>
+                    </div>
+                    <p class="text-base font-bold text-slate-900">{{ salaryCoverage }}<span class="text-slate-400 font-normal text-sm"> / {{ result.variations.length }} rutas</span></p>
+                    <p class="mt-1 text-xs text-slate-500">Con ingresos oficiales SIES o MiFuturo.</p>
                   </div>
-                  <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Señales dominantes</p>
-                    <p class="mt-2 text-lg font-semibold text-slate-900">{{ highlightedSkills.slice(0, 2).join(' · ') || 'Exploración vocacional' }}</p>
-                    <p class="mt-1 text-sm text-slate-500">Patrones detectados en intereses, habilidades y motivaciones.</p>
+
+                  <!-- Señales dominantes -->
+                  <div class="bg-white rounded-3xl border border-slate-100 shadow-card px-5 py-5">
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="w-8 h-8 rounded-xl bg-violet-50 border border-violet-100 text-violet-600 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                      </span>
+                      <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Señales dominantes</p>
+                    </div>
+                    <p class="text-base font-bold text-slate-900 leading-tight">{{ highlightedSkills.slice(0, 2).join(' · ') || 'Exploración vocacional' }}</p>
+                    <p class="mt-1 text-xs text-slate-500">Patrones en intereses, habilidades y motivaciones.</p>
                   </div>
                 </div>
               </section>
@@ -104,25 +130,24 @@
                           <div
                             class="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border shadow-sm"
                             :class="careerIconTone(career)">
-                            <svg v-if="careerIconKind(career) === 'business'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M4 20h16" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V8m5 8V4m5 12v-6" />
-                            </svg>
-                            <svg v-else-if="careerIconKind(career) === 'tech'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L6 12l3.75-5" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7L18 12l-3.75 5" />
-                            </svg>
-                            <svg v-else-if="careerIconKind(career) === 'health'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                            </svg>
-                            <svg v-else-if="careerIconKind(career) === 'education'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9-4 9 4-9 4-9-4z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M7 10.5v4.25c0 .828 2.239 2.25 5 2.25s5-1.422 5-2.25V10.5" />
-                            </svg>
-                            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M7 12h10M9 17h6" />
-                            </svg>
+                            <TrendingUp v-if="careerIconKind(career) === 'business'" class="h-5 w-5" />
+                            <Code2 v-else-if="careerIconKind(career) === 'tech'" class="h-5 w-5" />
+                            <HeartPulse v-else-if="careerIconKind(career) === 'health'" class="h-5 w-5" />
+                            <GraduationCap v-else-if="careerIconKind(career) === 'education'" class="h-5 w-5" />
+                            <Wrench v-else-if="careerIconKind(career) === 'engineering'" class="h-5 w-5" />
+                            <Scale v-else-if="careerIconKind(career) === 'law'" class="h-5 w-5" />
+                            <Palette v-else-if="careerIconKind(career) === 'arts'" class="h-5 w-5" />
+                            <FlaskConical v-else-if="careerIconKind(career) === 'science'" class="h-5 w-5" />
+                            <Building2 v-else-if="careerIconKind(career) === 'architecture'" class="h-5 w-5" />
+                            <Leaf v-else-if="careerIconKind(career) === 'agro'" class="h-5 w-5" />
+                            <Users v-else-if="careerIconKind(career) === 'social'" class="h-5 w-5" />
+                            <Cpu v-else-if="careerIconKind(career) === 'electronics'" class="h-5 w-5" />
+                            <Truck v-else-if="careerIconKind(career) === 'logistics'" class="h-5 w-5" />
+                            <Megaphone v-else-if="careerIconKind(career) === 'communication'" class="h-5 w-5" />
+                            <ChefHat v-else-if="careerIconKind(career) === 'gastronomy'" class="h-5 w-5" />
+                            <Shield v-else-if="careerIconKind(career) === 'security'" class="h-5 w-5" />
+                            <Plane v-else-if="careerIconKind(career) === 'aviation'" class="h-5 w-5" />
+                            <BookOpen v-else class="h-5 w-5" />
                           </div>
 
                           <div class="min-w-0">
@@ -166,10 +191,18 @@
                       </div>
 
                       <div class="mt-auto pt-5 space-y-3">
-                        <div class="rounded-[1.4rem] border border-primary-100 bg-gradient-to-br from-primary-50 to-accent-50 px-4 py-3 text-sm text-slate-600">
-                          <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-700">Ingreso oficial</p>
-                          <p class="mt-1.5 text-base font-bold tracking-tight text-slate-900 line-clamp-1">{{ salaryPreview(career) }}</p>
-                          <p class="mt-1.5 text-xs leading-5 text-slate-600 line-clamp-2">{{ salarySupportText(career) }}</p>
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-card px-4 py-3">
+                          <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-1.5">
+                              <span class="w-5 h-5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l5-5 4 4 7-7M14 8h6v6"/></svg>
+                              </span>
+                              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Ingreso oficial</p>
+                            </div>
+                            <span v-if="career.salary_source === 'sies'" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">SIES</span>
+                          </div>
+                          <p class="text-sm font-bold tracking-tight text-slate-900 line-clamp-1">{{ salaryPreview(career) }}</p>
+                          <p class="mt-1 text-[11px] leading-4 text-slate-500 line-clamp-2">{{ salarySupportText(career) }}</p>
                         </div>
 
                         <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 transition-transform group-hover:translate-x-0.5">
@@ -190,54 +223,12 @@
       </div>
     </main>
 
-    <button
-      type="button"
-      @click="isChatOpen = true"
-      class="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-40 inline-flex items-center gap-3 rounded-2xl border border-primary-500/10 bg-gradient-to-r from-primary-600 to-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200 transition-all duration-200 hover:-translate-y-0.5 hover:from-primary-700 hover:to-accent-500 active:scale-[0.98] sm:bottom-6 sm:right-6"
-      aria-label="Abrir chat con Kora sobre estos resultados">
-      <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/14 ring-1 ring-white/20">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-      </span>
-      <span class="flex flex-col items-start leading-tight">
-        <span class="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">Kora</span>
-        <span>Hablar sobre resultados</span>
-      </span>
-    </button>
-
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0">
-      <div
-        v-if="isChatOpen"
-        class="fixed inset-0 z-50 bg-slate-900/30"
-        @click.self="isChatOpen = false">
-        <div class="absolute inset-0 flex items-end justify-end px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pointer-events-none sm:p-6">
-          <Transition
-            enter-active-class="transition-all duration-220 ease-out"
-            enter-from-class="opacity-0 translate-y-2 scale-[0.96]"
-            enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all duration-160 ease-in"
-            leave-from-class="opacity-100 translate-y-0 scale-100"
-            leave-to-class="opacity-0 translate-y-2 scale-[0.96]"
-            appear>
-            <div v-if="isChatOpen" class="pointer-events-auto w-full max-w-[430px]">
-              <ResultsChatPanel mode="modal" @close="isChatOpen = false" />
-            </div>
-          </Transition>
-        </div>
-      </div>
-    </Transition>
+     
   </div>
 </template>
 
 <script setup lang="ts">
-import { TriangleAlert } from 'lucide-vue-next'
+import { TriangleAlert, Code2, TrendingUp, HeartPulse, GraduationCap, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, BookOpen, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 import type { CareerVariation, DiscoveryResult } from '~/stores/career'
 
@@ -356,10 +347,23 @@ function careerHighlights(career: CareerVariation) {
 function careerIconKind(career: CareerVariation) {
   const haystack = `${career.title} ${career.tagline} ${career.description} ${(career.skills || []).join(' ')}`.toLowerCase()
 
-  if (/(comercial|negocio|finanza|marketing|ventas|gesti[oó]n|administraci[oó]n|econom|mercado|invest|estadistic|analista)/.test(haystack)) return 'business'
-  if (/(software|datos|inform[aá]tica|program|digital|sistemas|ia|tecnolog)/.test(haystack)) return 'tech'
-  if (/(salud|m[eé]dic|cl[ií]nic|enfermer|terapia|psicolog|nutri)/.test(haystack)) return 'health'
-  if (/(pedagog|educaci[oó]n|docencia|aprendizaje|formaci[oó]n)/.test(haystack)) return 'education'
+  if (/(derecho|ley|legal|jurídic|abogad|notari|justicia)/.test(haystack)) return 'law'
+  if (/(arquitectura|urbanismo|diseño urbano|construcción|inmobiliar)/.test(haystack)) return 'architecture'
+  if (/(salud|médic|clínic|enfermer|terapia|psicolog|nutri|kinesi|farmac|odontolog|veterinar|fonoaud|obstetr)/.test(haystack)) return 'health'
+  if (/(software|datos|informática|program|digital|ia |inteligencia artificial|machine learning|web|desarrollo|ciberseguridad)/.test(haystack)) return 'tech'
+  if (/(electrónica|eléctric|telecomunicacion|electromecán|automatizac|robótic|mecatrónic)/.test(haystack)) return 'electronics'
+  if (/(ingeniería|mecánic|industrial|civil|minas|metalurgi|petróleo|estructur|procesos)/.test(haystack)) return 'engineering'
+  if (/(comercial|negocio|finanza|marketing|ventas|gestión|administración|econom|mercado|audit|contabil|analista)/.test(haystack)) return 'business'
+  if (/(pedagog|educación|docencia|aprendizaje|párvulo|básica|media|especial)/.test(haystack)) return 'education'
+  if (/(diseño|arte|música|teatro|cine|fotografía|animación|moda|creatividad)/.test(haystack)) return 'arts'
+  if (/(química|biología|física|laboratorio|ciencias|biotecnolog|genética|ambiental|geología)/.test(haystack)) return 'science'
+  if (/(agronomía|agro|forestal|silvicultura|pesca|veterinar|medioambiente|sustentabilidad)/.test(haystack)) return 'agro'
+  if (/(trabajo social|sociología|antropología|geografía|historia|filosofía|relaciones internacionales|ciencia política)/.test(haystack)) return 'social'
+  if (/(logística|transporte|cadena de suministro|comercio exterior|aduana)/.test(haystack)) return 'logistics'
+  if (/(comunicación|periodismo|publicidad|relaciones públicas|medios)/.test(haystack)) return 'communication'
+  if (/(gastronomía|chef|cocina|hotelería|turismo|enología)/.test(haystack)) return 'gastronomy'
+  if (/(seguridad|detective|policía|bombero|defensa|militar)/.test(haystack)) return 'security'
+  if (/(aviación|aeronáutica|piloto|aerolínea)/.test(haystack)) return 'aviation'
   return 'general'
 }
 
@@ -369,6 +373,19 @@ function careerIconTone(career: CareerVariation) {
   if (kind === 'tech') return 'border-sky-200 bg-sky-50 text-sky-700'
   if (kind === 'health') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
   if (kind === 'education') return 'border-violet-200 bg-violet-50 text-violet-700'
+  if (kind === 'engineering') return 'border-orange-200 bg-orange-50 text-orange-700'
+  if (kind === 'law') return 'border-blue-200 bg-blue-50 text-blue-700'
+  if (kind === 'arts') return 'border-pink-200 bg-pink-50 text-pink-700'
+  if (kind === 'science') return 'border-teal-200 bg-teal-50 text-teal-700'
+  if (kind === 'architecture') return 'border-stone-200 bg-stone-50 text-stone-700'
+  if (kind === 'agro') return 'border-lime-200 bg-lime-50 text-lime-700'
+  if (kind === 'social') return 'border-indigo-200 bg-indigo-50 text-indigo-700'
+  if (kind === 'electronics') return 'border-cyan-200 bg-cyan-50 text-cyan-700'
+  if (kind === 'logistics') return 'border-yellow-200 bg-yellow-50 text-yellow-700'
+  if (kind === 'communication') return 'border-rose-200 bg-rose-50 text-rose-700'
+  if (kind === 'gastronomy') return 'border-red-200 bg-red-50 text-red-700'
+  if (kind === 'security') return 'border-gray-200 bg-gray-50 text-gray-700'
+  if (kind === 'aviation') return 'border-blue-200 bg-blue-50 text-blue-600'
   return 'border-slate-200 bg-slate-50 text-slate-700'
 }
 

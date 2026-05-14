@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     .eq('user_id', userId)
 
   if (error) {
-    throw createError({ statusCode: 500, statusMessage: `Error al eliminar: ${error.message}` })
+    throw createError({ statusCode: 500, message: `Error al eliminar: ${error.message}` })
   }
 
   return { ok: true }

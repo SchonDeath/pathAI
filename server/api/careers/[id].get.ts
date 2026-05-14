@@ -29,5 +29,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Carrera no encontrada.' })
   }
 
-  return career
+  // Enriquecer con datos SIES reales si hay vínculo
+  const genericId = (career as any).career_generic_id as string | null
+  let siesStats: { ingreso_promedio: number | null; empleabilidad: number | null } | null = null
+
+  if (genericId) {
+    const { data: stats } = await supabase
+      .from('career_stats')
+      .select('ingreso_promedio, empleabilidad')
+      .eq('career_generic_id', genericId)
+      .limit(1)
+      .single()
+    if (stats) siesStats = stats
+  }
+
+  return {
+    ...career,
+    sies_ingreso_promedio: siesStats?.ingreso_promedio ?? null,
+    sies_empleabilidad: siesStats?.empleabilidad ?? null,
+  }
 })

@@ -111,7 +111,75 @@ export default defineEventHandler(async (event) => {
   if (error) throw createError({ statusCode: 500, statusMessage: error.message })
 
   if (!data?.length) return { match: 'none', candidates: [] }
-  if (data.length === 1) return { match: 'exact', program: enrichProgram(data[0]) }
+
+  if (data.length === 1) {
+    const program = enrichProgram(data[0])
+
+    // Fetch paralelo: institución completa + stats genéricas de la carrera
+    const [instResult, statsResult, institutionEmployabilityResult] = await Promise.all([
+      supabase
+        .from('institutions')
+        .select(`
+          institution_code, nombre_institucion, tipo_institucion, autonomia,
+          direccion_sede_central, pagina_web, rut,
+          acreditacion_estado, acreditacion_anos,
+          acreditacion_vigencia_hasta, acreditacion_areas,
+          matricula_pregrado_actual, matricula_posgrado_actual,
+          titulados_pregrado_actual, retencion_1er_ano_pct,
+          duracion_formal_semestres, duracion_real_semestres,
+          promedio_nem, promedio_paes, total_jce,
+          m2_construidos, volumenes_biblioteca, laboratorios_talleres, computadores,
+          ingresos_operacion_clp, resultado_ejercicio_clp,
+          total_activos_clp, patrimonio_total_clp,
+          matricula_pregrado_por_ano, matricula_pct_por_area, jce_por_nivel_academico
+        `)
+        .eq('institution_code', program.institution_code)
+        .single(),
+
+      program.career_generic_id
+        ? supabase
+            .from('career_stats')
+            .select(`
+              nombre_carrera_generica, tipo_institucion, area,
+              ingreso_1er_ano_clp, ingreso_2do_ano_clp, ingreso_3er_ano_clp,
+              ingreso_4to_ano_clp, ingreso_5to_ano_clp,
+              empleabilidad_1er_ano_pct, empleabilidad_2do_ano_pct,
+              retencion_1er_ano_pct,
+              duracion_formal_semestres, duracion_real_semestres,
+              titulados_2024_total,
+              matricula_total_2025_total, matricula_primer_ano_2025_total,
+              evolucion_ingreso_4
+            `)
+            .eq('career_generic_id', program.career_generic_id)
+            .limit(1)
+            .single()
+        : Promise.resolve({ data: null, error: null }),
+
+      program.institution_code && program.career_generic_id
+        ? supabase
+            .from('career_employability')
+            .select(`
+              institution_code, nombre_institucion, tipo_institucion,
+              area, career_generic_id, nombre_carrera_generica,
+              continuidad_estudios_pct, retencion_1_ano_pct,
+              empleabilidad_1_ano_pct, empleabilidad_2_ano_pct,
+              ingreso_label, ingreso_promedio_4to_ano_clp
+            `)
+            .eq('institution_code', program.institution_code)
+            .eq('career_generic_id', program.career_generic_id)
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ])
+
+    return {
+      match: 'exact',
+      program,
+      institution: instResult.data ?? null,
+      career_stats: statsResult.data ?? null,
+      institution_employability: institutionEmployabilityResult.data ?? null,
+    }
+  }
 
   return {
     match: 'multiple',

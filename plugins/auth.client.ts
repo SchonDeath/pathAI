@@ -13,11 +13,19 @@ export default defineNuxtPlugin(async () => {
 
   // Mantener sincronizado con cambios de sesión de Supabase
   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || !session?.user) {
+    // getUser() ya validó la sesión en ensureHydrated(); INITIAL_SESSION no debe
+    // forzar otro viaje a Supabase al cargar/F5.
+    if (event === 'INITIAL_SESSION') return
+
+    if (event === 'SIGNED_OUT') {
       auth.clear()
       return
     }
-    // Forzar re-fetch del perfil (rol puede haber cambiado)
+
+    if (!session?.user) return
+
+    // Forzar re-fetch solo ante cambios reales de sesión/perfil.
+    if (auth.profile?.id === session.user.id && auth.hydrated && !auth.loading) return
     void auth.ensureHydrated(true).catch((error) => {
       console.warn('[auth] no se pudo refrescar el perfil:', error?.message)
     })

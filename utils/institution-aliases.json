@@ -2,12 +2,12 @@
   {
     "code": 86,
     "nombre_oficial": "PONTIFICIA UNIVERSIDAD CATOLICA DE CHILE",
-    "aliases": ["uc", "puc", "u católica", "u. católica", "u catolica", "u. catolica", "católica de chile", "catalica de chile", "pontificia católica", "pontificia catolica"]
+    "aliases": ["uc", "puc", "u católica", "u. católica", "u catolica", "u. catolica", "universidad católica", "universidad catolica", "universidad católica de chile", "universidad catolica de chile", "católica de chile", "catalica de chile", "pontificia católica", "pontificia catolica"]
   },
   {
     "code": 89,
     "nombre_oficial": "PONTIFICIA UNIVERSIDAD CATOLICA DE VALPARAISO",
-    "aliases": ["pucv", "católica de valparaíso", "catolica de valparaiso", "católica valpo", "catolica valpo"]
+    "aliases": ["pucv", "universidad católica de valparaíso", "universidad catolica de valparaiso", "católica de valparaíso", "catolica de valparaiso", "católica valpo", "catolica valpo"]
   },
   {
     "code": 70,
@@ -87,7 +87,7 @@
   {
     "code": 91,
     "nombre_oficial": "UNIVERSIDAD CATOLICA DEL NORTE",
-    "aliases": ["ucn", "católica del norte", "catolica del norte"]
+    "aliases": ["ucn", "universidad católica del norte", "universidad catolica del norte", "católica del norte", "catolica del norte"]
   },
   {
     "code": 82,
@@ -157,12 +157,12 @@
   {
     "code": 93,
     "nombre_oficial": "UNIVERSIDAD CATOLICA DE LA SANTISIMA CONCEPCION",
-    "aliases": ["ucsc", "pucbio", "católica de concepción", "catolica de concepcion"]
+    "aliases": ["ucsc", "pucbio", "universidad católica de la santísima concepción", "universidad catolica de la santisima concepcion", "católica de la santísima concepción", "catolica de la santisima concepcion", "católica de concepción", "catolica de concepcion"]
   },
   {
     "code": 94,
     "nombre_oficial": "UNIVERSIDAD CATOLICA DE TEMUCO",
-    "aliases": ["uct", "católica de temuco", "catolica de temuco"]
+    "aliases": ["uct", "universidad católica de temuco", "universidad catolica de temuco", "católica de temuco", "catolica de temuco"]
   },
   {
     "code": 72,

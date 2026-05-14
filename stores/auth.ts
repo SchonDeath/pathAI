@@ -110,6 +110,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function signOut() {
     const supabase = useSupabaseClient()
     await supabase.auth.signOut()
+    // Limpiar carreras guardadas del store antes de borrar la sesión
+    const { useCareerStore } = await import('~/stores/career')
+    useCareerStore().clearSavedCareers()
     clear()
   }
 

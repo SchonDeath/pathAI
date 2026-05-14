@@ -26,13 +26,27 @@ export const aiTools = [
         properties: {
           keywords: { type: 'array', items: { type: 'string' }, description: 'Palabras clave de interés' },
           institution: { type: 'string', description: 'Nombre o sigla de una institución específica (ej: "Universidad de Chile", "PUCV"). Úsalo cuando el usuario pregunte por una carrera EN una institución concreta.' },
+          institution_code: { type: 'integer', description: 'Código MINEDUC de la institución si ya fue resuelta. Tiene prioridad sobre institution.' },
+          strict_institution: { type: 'boolean', description: 'Si true, devuelve solo programas de la institución indicada; no rellena con alternativas de otras instituciones.' },
+          allow_broad_fallback: { type: 'boolean', description: 'Si true, permite alternativas de otras instituciones cuando no hay resultados en la institución indicada. Por defecto debe ser false.' },
           area: { type: 'string', description: 'Área genérica de conocimiento (ej: Tecnología, Salud)' },
           tipo_institucion: {
             type: 'string',
             enum: ['Universidades', 'Institutos Profesionales', 'Centros de Formación Técnica'],
           },
-          region: { type: 'string' },
+          tipos_institucion: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['Universidades', 'Institutos Profesionales', 'Centros de Formación Técnica'],
+            },
+            description: 'Úsalo cuando el usuario acepte más de un tipo, por ejemplo IP + CFT para "institutos técnicos".',
+          },
+          region: { type: 'string', description: 'Región de Chile. Usa el nombre completo o parcial tal como aparece en el catálogo (ej: "Metropolitana", "Valparaíso", "Biobío"). Para "Santiago" usa Metropolitana salvo que el usuario pida la comuna exacta.' },
+          comuna: { type: 'string', description: 'Comuna de Chile si el usuario la menciona explícitamente (ej: Santiago, Providencia, Concepción).' },
+          nivel_carrera: { type: 'string', description: 'Nivel académico solicitado por el usuario. Para post-PAES/colegio usa nivel_carrera directo: Profesional con Licenciatura, Profesional sin Licenciatura, Licenciatura no conducente a título, Bachillerato/Ciclo Inicial/Plan Común o Técnico de Nivel Superior. Postítulo, Diplomado, Magíster, Doctorado y Especialidad Médica/Odontológica son post formación previa.' },
           max_arancel: { type: 'number', description: 'Arancel anual máximo en CLP' },
+          randomize: { type: 'boolean', description: 'Usa true cuando Kora esté explorando opciones y deba mostrar una muestra variada de programas.' },
           limit: { type: 'number', default: 10 },
         },
       },
@@ -182,7 +196,7 @@ export const aiTools = [
     function: {
       name: 'get_filters_catalog',
       description:
-        'Catálogo de valores válidos: áreas, tipos de institución, regiones de Chile. Usa si dudas del valor exacto de un filtro.',
+        'Catálogo de valores válidos: áreas, tipos de institución, niveles, regiones y comunas de Chile. Usa si dudas del valor exacto de un filtro.',
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -229,6 +243,7 @@ type ToolName =
  * misma identidad de institución.
  */
 const TOOLS_WITH_INSTITUTION = new Set<ToolName>([
+  'search_career_match',
   'get_career_employability_by_institution',
   'get_institution',
   'get_program_detail',
@@ -236,7 +251,7 @@ const TOOLS_WITH_INSTITUTION = new Set<ToolName>([
 
 async function resolveInstitutionInArgs(args: any) {
   if (!args || typeof args !== 'object') return args
-  const nombreKey = args.nombre_institucion ? 'nombre_institucion' : args.nombre ? 'nombre' : null
+  const nombreKey = args.nombre_institucion ? 'nombre_institucion' : args.nombre ? 'nombre' : args.institution ? 'institution' : null
   if (!nombreKey) return args
   if (args.institution_code) return args
   try {
@@ -248,6 +263,7 @@ async function resolveInstitutionInArgs(args: any) {
       args.institution_code = r.institution_code
       args._resolved_nombre_oficial = r.nombre_oficial
       args._resolved_via = r.via
+      if (nombreKey === 'institution') args.institution = r.nombre_oficial
     }
   } catch (e) {
     console.warn('[runTool] resolveInstitution failed:', e)

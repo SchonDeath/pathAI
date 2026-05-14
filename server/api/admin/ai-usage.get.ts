@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
     .limit(5000)
 
   if (error) {
-    throw createError({ statusCode: 500, statusMessage: error.message })
+    throw createError({ statusCode: 500, message: error.message })
   }
 
   const rows = data ?? []

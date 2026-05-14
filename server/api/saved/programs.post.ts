@@ -34,22 +34,46 @@ export default defineEventHandler(async (event) => {
     notes: cleanText(body?.notes, 400) ?? '',
   }
 
-  const { data, error } = await supabase
+  const savedSelect = `
+    id,
+    program_unique_code,
+    institution_code,
+    career_generic_id,
+    nombre_carrera_snapshot,
+    nombre_institucion_snapshot,
+    nombre_sede_snapshot,
+    region_snapshot,
+    comuna_snapshot,
+    source,
+    notes,
+    created_at
+  `
+
+  const { data: existing, error: findError } = await supabase
     .from('saved')
-    .upsert(payload, { onConflict: 'user_id,program_unique_code' })
+    .select('id')
+    .eq('user_id', userId)
+    .eq('program_unique_code', programUniqueCode)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (findError) {
+    throw createError({ statusCode: 500, statusMessage: findError.message })
+  }
+
+  const query = existing?.id
+    ? supabase
+        .from('saved')
+        .update(payload)
+        .eq('id', existing.id)
+    : supabase
+        .from('saved')
+        .insert(payload)
+
+  const { data, error } = await query
     .select(`
-      id,
-      program_unique_code,
-      institution_code,
-      career_generic_id,
-      nombre_carrera_snapshot,
-      nombre_institucion_snapshot,
-      nombre_sede_snapshot,
-      region_snapshot,
-      comuna_snapshot,
-      source,
-      notes,
-      created_at
+      ${savedSelect}
     `)
     .single()
 

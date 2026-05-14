@@ -1,6 +1,7 @@
 import { enrichDiscoverResultWithOfficialSalaries } from '~/server/utils/official-salary'
 import { captureLlmUsage, logAiUsageEvent, type CapturedLlmUsage } from '~/server/utils/ai/usage-logger'
 import { getSupabaseServiceClient, requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
+import { findCatalogCareerCandidates, getCatalogCareerById, type CatalogCareerMatch } from '~/server/utils/career-catalog'
 
 // --- Rate limiter via Supabase (funciona en entornos serverless/Vercel) ---
 async function checkRateLimit(ip: string): Promise<void> {
@@ -57,7 +58,8 @@ ANTES de generar las carreras, analiza internamente el texto del usuario aplican
 
 Usa estos insights para seleccionar las 3 carreras más alineadas con el perfil REAL de la persona, no solo con lo que declara explícitamente.
 
-Reglas (aplican a TODO el JSON): universidades chilenas reales (U. de Chile, PUC, USACH, DUOC, INACAP, UDP, UAI, CFTs); adapta al mercado chileno (tecnología, minería, fintech, salud, retail, agroindustria). No entregues sueldos ni estimaciones salariales: el backend los agrega solo si existen datos oficiales SIES.
+Reglas (aplican a TODO el JSON): recomienda solo carreras de pregrado, técnicas de nivel superior, CFT/IP/universidades o formación de Fuerzas Armadas y de Orden. No recomiendes posgrados, magíster, doctorados, diplomados, postítulos ni especialidades. Usa instituciones chilenas reales (U. de Chile, PUC, USACH, DUOC, INACAP, UDP, UAI, CFTs); adapta al mercado chileno (tecnología, minería, fintech, salud, retail, agroindustria). No entregues sueldos ni estimaciones salariales: el backend los agrega solo si existen datos oficiales SIES. Si usas una carrera del catálogo entregado, copia su career_generic_id exacto.
+Las 3 variaciones deben ser carreras distintas: no repitas title, matched_career ni career_generic_id.
 
 Estructura exacta con 3 variaciones (universitarias o no, según el perfil del usuario):
 {
@@ -65,6 +67,7 @@ Estructura exacta con 3 variaciones (universitarias o no, según el perfil del u
   "summary": string,
   "variations": [{
     "id": string (slug),
+    "career_generic_id": string|null,
     "title": string,
     "tagline": string,
     "description": string,
@@ -95,7 +98,10 @@ Analiza el texto del usuario con: Big Five, self-concept y señales semánticas 
 
 Reglas:
 - No entregues sueldos ni estimaciones salariales; si el usuario los ve, vendrán de SIES/MiFuturo.
-- Considera universidades e institutos chilenos.
+- Considera universidades, IP, CFT y formación de Fuerzas Armadas y de Orden.
+- No recomiendes posgrados, magíster, doctorados, diplomados, postítulos ni especialidades.
+- Si usas una carrera del catálogo entregado, copia su career_generic_id exacto.
+- Las 3 variaciones deben ser carreras distintas; no repitas title, matched_career ni career_generic_id.
 
 Estructura JSON obligatoria:
 {
@@ -103,6 +109,7 @@ Estructura JSON obligatoria:
   "summary": string,
   "variations": [{
     "id": string,
+    "career_generic_id": string|null,
     "title": string,
     "tagline": string,
     "description": string,
@@ -136,6 +143,7 @@ Devuelve exactamente este formato:
   "variations": [
     {
       "id": string,
+      "career_generic_id": string|null,
       "title": string,
       "tagline": string,
       "description": string,
@@ -153,8 +161,148 @@ Reglas:
 - Genera 3 variaciones.
 - match_score entero entre 70 y 99.
 - Todo adaptado a Chile.
+- Recomienda solo pregrado, técnico de nivel superior, CFT/IP/universidad o Fuerzas Armadas y de Orden.
+- No recomiendes posgrados, magíster, doctorados, diplomados, postítulos ni especialidades.
+- Si usas una carrera del catálogo entregado, copia su career_generic_id exacto.
+- Las 3 variaciones deben ser carreras distintas; no repitas title, matched_career ni career_generic_id.
 - No incluyas sueldos, ingresos ni salary_range.
 - No inventes datos absurdos ni uses markdown.`
+
+function buildDiscoverCatalogHint(candidates: CatalogCareerMatch[]) {
+  if (!candidates.length) return ''
+
+  const lines = [
+    'CATÁLOGO REAL DISPONIBLE PARA ESTA CONSULTA:',
+    'Estas son carreras de la tabla career_generic. Si eliges una, copia EXACTAMENTE su id en variations[].career_generic_id y usa su nombre como title:',
+  ]
+
+  for (const candidate of candidates.slice(0, 8)) {
+    const bits = [
+      `id=${candidate.career_generic_id}`,
+      `nombre=${candidate.nombre_carrera_generica}`,
+      candidate.area ? `area=${candidate.area}` : null,
+      candidate.tipo_institucion ? `tipo=${candidate.tipo_institucion}` : null,
+    ].filter(Boolean).join(' | ')
+    lines.push(`- ${bits}`)
+  }
+
+  lines.push('INSTRUCCIONES DE CATÁLOGO:')
+  lines.push('- Prioriza estas carreras reales cuando calcen con el perfil vocacional.')
+  lines.push('- Elige hasta 3 carreras DISTINTAS: no repitas el mismo id ni el mismo nombre.')
+  lines.push('- Solo puedes elegir carreras de pregrado/técnicas/CFT/IP/universidad/FF.AA.; nunca posgrados.')
+  lines.push('- No cambies el id. Si ninguna calza, usa career_generic_id: null y un título vocacional propio.')
+  lines.push('- No inventes sueldos; el backend cruza career_generic_id con career_stats.')
+
+  return lines.join('\n')
+}
+
+function normalizeSlug(input: string) {
+  return input
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function isDisallowedRecommendationTitle(title: string) {
+  return /\b(postgrado|posgrado|mag[ií]ster|magistr|maestr[ií]a|doctorado|diplomado|post[ií]tulo|especialidad|residencia)\b/i.test(title)
+}
+
+function uniqueCareerKey(career: any) {
+  const id = String(career?.career_generic_id || '').trim()
+  if (id) return `id:${id}`
+  return `title:${normalizeSlug(String(career?.title || career?.matched_career || ''))}`
+}
+
+function candidateCareerKey(candidate: CatalogCareerMatch) {
+  return `id:${candidate.career_generic_id}`
+}
+
+function applyCatalogCandidate(career: any, candidate: CatalogCareerMatch, index: number) {
+  return {
+    ...career,
+    id: normalizeSlug(candidate.nombre_carrera_generica) || String(career?.id || `ruta-${index + 1}`),
+    title: candidate.nombre_carrera_generica,
+    career_generic_id: candidate.career_generic_id,
+    matched_career: candidate.nombre_carrera_generica,
+  }
+}
+
+function fallbackCatalogCandidate(
+  candidates: CatalogCareerMatch[],
+  usedKeys: Set<string>,
+) {
+  return candidates.find(candidate => !usedKeys.has(candidateCareerKey(candidate))) ?? null
+}
+
+async function alignDiscoverResultWithCatalog<T extends { variations?: any[] }>(
+  result: T,
+  supabase: any,
+  catalogCandidates: CatalogCareerMatch[],
+): Promise<T> {
+  if (!Array.isArray(result.variations)) return result
+
+  const usedKeys = new Set<string>()
+  const aligned: any[] = []
+
+  for (let index = 0; index < result.variations.length; index++) {
+    const career = result.variations[index]
+    const currentId = String(career?.career_generic_id || '').trim()
+    const invalidTitle = isDisallowedRecommendationTitle(String(career?.title || ''))
+    let candidate = currentId
+      ? catalogCandidates.find(item => item.career_generic_id === currentId) ?? await getCatalogCareerById(supabase, currentId)
+      : null
+
+    const candidateIsDuplicate = candidate ? usedKeys.has(candidateCareerKey(candidate)) : false
+
+    if (!candidate || invalidTitle || candidateIsDuplicate) {
+      const searchText = [
+        career?.title,
+        career?.tagline,
+        career?.description,
+        Array.isArray(career?.skills) ? career.skills.join(' ') : '',
+      ].filter(Boolean).join(' ')
+      const localCandidates = invalidTitle
+        ? catalogCandidates
+        : await findCatalogCareerCandidates(supabase, searchText, 6)
+
+      candidate = localCandidates.find(item => !usedKeys.has(candidateCareerKey(item)))
+        ?? fallbackCatalogCandidate(catalogCandidates, usedKeys)
+        ?? (candidateIsDuplicate ? null : candidate)
+    }
+
+    const nextCareer = candidate
+      ? applyCatalogCandidate(career, candidate, index)
+      : career
+
+    const nextKey = uniqueCareerKey(nextCareer)
+    if (usedKeys.has(nextKey)) {
+      const fallback = fallbackCatalogCandidate(catalogCandidates, usedKeys)
+      if (!fallback) continue
+      const replacement = applyCatalogCandidate(career, fallback, index)
+      usedKeys.add(uniqueCareerKey(replacement))
+      aligned.push(replacement)
+      continue
+    }
+
+    usedKeys.add(nextKey)
+    aligned.push(nextCareer)
+  }
+
+  for (const fallback of catalogCandidates) {
+    if (aligned.length >= 3) break
+    const key = candidateCareerKey(fallback)
+    if (usedKeys.has(key)) continue
+    const index = aligned.length
+    const base = result.variations[index] ?? result.variations[0] ?? {}
+    const replacement = applyCatalogCandidate(base, fallback, index)
+    usedKeys.add(uniqueCareerKey(replacement))
+    aligned.push(replacement)
+  }
+
+  return { ...result, variations: aligned.slice(0, 3) }
+}
 
 function extractLikelyJson(raw: string): string {
   let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
@@ -196,6 +344,33 @@ function tryParsePossiblyTruncatedJson(raw: string): any {
   }
 }
 
+function uniqueStringList(value: unknown, limit: number) {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const item of value) {
+    const text = String(item || '').trim()
+    if (!text) continue
+    const key = normalizeSlug(text)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(text)
+    if (out.length >= limit) break
+  }
+  return out
+}
+
+function pushUniqueFallback(list: string[], values: string[], limit: number) {
+  const seen = new Set(list.map(normalizeSlug))
+  for (const value of values) {
+    if (list.length >= limit) break
+    const key = normalizeSlug(value)
+    if (seen.has(key)) continue
+    seen.add(key)
+    list.push(value)
+  }
+}
+
 function normalizeDiscoverResult(input: any, fallbackQuery: string) {
   const safeQuery = String(input?.query || fallbackQuery || '').trim() || fallbackQuery
   const safeSummary = String(input?.summary || 'Resultado vocacional generado por IA para Chile.').trim()
@@ -210,20 +385,28 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
     const title = String(v?.title || `Ruta vocacional ${idx + 1}`).trim()
     const id = String(v?.id || title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/(^-|-$)/g, '') || `ruta-${idx + 1}`
 
-    const pros = Array.isArray(v?.pros) ? v.pros.filter(Boolean).map(String).slice(0, 3) : []
-    while (pros.length < 3) pros.push('Buena proyección de aprendizaje')
+    const pros = uniqueStringList(v?.pros, 3)
+    pushUniqueFallback(pros, ['Buena proyección de aprendizaje', 'Desarrolla habilidades transferibles', 'Permite crecimiento profesional'], 3)
 
-    const cons = Array.isArray(v?.cons) ? v.cons.filter(Boolean).map(String).slice(0, 2) : []
-    while (cons.length < 2) cons.push('Exige constancia y práctica')
+    const cons = uniqueStringList(v?.cons, 2)
+    pushUniqueFallback(cons, ['Exige constancia y práctica', 'Requiere tolerancia a la frustración'], 2)
 
-    const skills = Array.isArray(v?.skills) ? v.skills.filter(Boolean).map(String).slice(0, 5) : []
-    while (skills.length < 5) skills.push('Aprendizaje continuo')
+    const skills = uniqueStringList(v?.skills, 5)
+    pushUniqueFallback(skills, ['Aprendizaje continuo', 'Pensamiento crítico', 'Comunicación efectiva', 'Resolución de problemas', 'Trabajo en equipo'], 5)
+
+    const personalityTypes = uniqueStringList(v?.personality_types, 2)
+    pushUniqueFallback(personalityTypes, ['INTJ', 'ENTP'], 2)
+
+    const funFacts = uniqueStringList(v?.fun_facts, 3)
+    pushUniqueFallback(funFacts, ['Tiene alta demanda de talento en Chile', 'Permite crecimiento profesional continuo', 'Combina teoría con aplicación práctica'], 3)
 
     const roadmap: any[] = []
 
     return {
       id,
+      career_generic_id: String(v?.career_generic_id || '').trim() || null,
       title,
+      matched_career: String(v?.matched_career || v?.catalog_title || '').trim() || undefined,
       tagline: String(v?.tagline || 'Una ruta con futuro en Chile'),
       description: String(v?.description || 'Ruta recomendada según tu perfil vocacional.'),
       emoji: String(v?.emoji || '🚀'),
@@ -233,8 +416,8 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
       skills,
       salary_source: 'none',
       salary_label: 'Sin dato oficial SIES para esta recomendación',
-      personality_types: Array.isArray(v?.personality_types) ? v.personality_types.slice(0, 2) : ['INTJ', 'ENTP'],
-      fun_facts: Array.isArray(v?.fun_facts) ? v.fun_facts.slice(0, 3) : ['Tiene alta demanda de talento en Chile', 'Permite crecimiento profesional continuo', 'Combina teoría con aplicación práctica'],
+      personality_types: personalityTypes,
+      fun_facts: funFacts,
       books: [],
       job_demand: (v?.job_demand === 'Muy Alta' || v?.job_demand === 'Alta' || v?.job_demand === 'Media') ? v.job_demand : 'Alta',
       roadmap: [],
@@ -248,7 +431,9 @@ function normalizeDiscoverResult(input: any, fallbackQuery: string) {
     const i = normalizedVariations.length + 1
     normalizedVariations.push({
       id: `ruta-${i}`,
+      career_generic_id: null,
       title: `Ruta vocacional ${i}`,
+      matched_career: undefined,
       tagline: 'Alternativa alineada a tu perfil',
       description: 'Propuesta adicional para ampliar tus opciones de estudio y trabajo.',
       emoji: '🎯',
@@ -386,6 +571,9 @@ export default defineEventHandler(async (event) => {
   const llmUsages: CapturedLlmUsage[] = []
   let repairAttempted = false
   let rawText = ''
+  const supabase = requireSupabaseServiceClient()
+  const catalogCandidates = await findCatalogCareerCandidates(supabase, trimmedQuery, 10)
+  const catalogHint = buildDiscoverCatalogHint(catalogCandidates)
 
   if (!config.githubToken && !config.groqApiKey && !config.ollamaUrl) {
     console.warn('[KoraChile] ⚠️ Ninguna variable de proveedor configurada. Define APY_GIT, GROQ u OLLAMA_URL en las variables de entorno.')
@@ -397,6 +585,7 @@ export default defineEventHandler(async (event) => {
       console.log('[KoraChile] Intentando con GitHub Models (GPT-4.1-mini)...')
       const requestMessages = [
         { role: 'system', content: SYSTEM_PROMPT },
+        ...(catalogHint ? [{ role: 'system', content: catalogHint }] : []),
         { role: 'user', content: userMessage },
       ]
       const ghRes = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -434,6 +623,7 @@ export default defineEventHandler(async (event) => {
       console.log('[KoraChile] Intentando con GitHub Models (DeepSeek-V3-0324)...')
       const requestMessages = [
         { role: 'system', content: SYSTEM_PROMPT },
+        ...(catalogHint ? [{ role: 'system', content: catalogHint }] : []),
         { role: 'user', content: userMessage },
       ]
       const deepseekRes = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -471,6 +661,7 @@ export default defineEventHandler(async (event) => {
       console.log('[KoraChile] Intentando con GitHub Models (Meta-Llama-3.1-8B)...')
       const requestMessages = [
         { role: 'system', content: GROQ_MINIMAL_PROMPT },
+        ...(catalogHint ? [{ role: 'system', content: catalogHint }] : []),
         { role: 'user', content: userMessage },
       ]
       const llamaRes = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -508,6 +699,7 @@ export default defineEventHandler(async (event) => {
       console.log('[KoraChile] Intentando con Groq...')
       const requestMessages = [
         { role: 'system', content: GROQ_MINIMAL_PROMPT },
+        ...(catalogHint ? [{ role: 'system', content: catalogHint }] : []),
         { role: 'user', content: userMessage },
       ]
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -539,6 +731,7 @@ export default defineEventHandler(async (event) => {
           const safeMessage = `Texto de la persona: "${trimmedQuery.slice(0, 450)}"`
           const retryMessages = [
             { role: 'system', content: GROQ_MINIMAL_PROMPT },
+            ...(catalogHint ? [{ role: 'system', content: catalogHint }] : []),
             { role: 'user', content: safeMessage },
           ]
           const retryRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -602,9 +795,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const supabase = requireSupabaseServiceClient()
-
   parsed = normalizeDiscoverResult(parsed, trimmedQuery)
+  parsed = await alignDiscoverResultWithCatalog(parsed, supabase, catalogCandidates)
   parsed = await enrichDiscoverResultWithOfficialSalaries(parsed, supabase)
 
   const { data: session, error: dbError } = await supabase

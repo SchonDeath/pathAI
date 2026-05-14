@@ -22,7 +22,22 @@
             width: `${indicator.width}px`,
           }"></span>
 
-        <template v-if="authReady">
+        <NuxtLink
+          to="/"
+          class="nav-link"
+          active-class="route-partial-active"
+          exact-active-class="router-link-active"
+        >
+          <span class="relative z-10 flex items-center gap-1.5"><House class="w-4 h-4" />Inicio</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/discover"
+          class="nav-link">
+          <span class="relative z-10 flex items-center gap-1.5"><Star class="w-4 h-4" />Kora descubre</span>
+        </NuxtLink>
+
+        <ClientOnly>
           <NuxtLink v-if="user" to="/chat"
             class="nav-link">
             <span class="relative z-10 flex items-center gap-1.5"><MessageCircle class="w-4 h-4" />Chat con Kora</span>
@@ -39,7 +54,7 @@
             class="nav-link">
             <span class="relative z-10 flex items-center gap-1.5"><Target class="w-4 h-4" />Simular PAES</span>
           </NuxtLink>
-        </template>
+        </ClientOnly>
         <!-- PAES dropdown -->
         <div class="relative" ref="paesMenuEl">
           <button
@@ -70,7 +85,7 @@
             </div>
           </Transition>
         </div>
-        <template v-if="authReady">
+        <ClientOnly>
           <template v-if="user">
             <NuxtLink v-if="isAdmin" to="/admin"
               class="nav-link nav-link-admin">
@@ -118,13 +133,15 @@
           </template>
           <template v-else>
             <NuxtLink to="/login"
-              class="px-4 py-2 rounded-xl text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md transition-[background-color,box-shadow] duration-200">
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-80"
+              style="background: #0071e3; border-radius: 999px;">
               Iniciar sesión
             </NuxtLink>
           </template>
-        </template>
-        <!-- Placeholder invisible mientras carga auth (evita flash) -->
-        <div v-else class="w-28 h-8"></div>
+          <template #fallback>
+            <div class="w-28 h-8"></div>
+          </template>
+        </ClientOnly>
       </nav>
 
       <button
@@ -154,12 +171,28 @@
         id="mobile-menu"
         class="md:hidden px-4 pb-4">
         <div class="rounded-2xl border border-slate-200 bg-white shadow-card p-2 flex flex-col">
-          <template v-if="authReady">
+          <NuxtLink
+            to="/"
+            @click="menuOpen = false"
+            class="px-3 py-2.5 rounded-xl text-sm font-medium transition inline-flex items-center gap-2"
+            :class="route.path === '/' ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-100'"
+          >
+            <House class="w-4 h-4" />Inicio
+          </NuxtLink>
+          <NuxtLink
+            to="/discover"
+            @click="menuOpen = false"
+            class="px-3 py-2.5 rounded-xl text-sm font-medium transition inline-flex items-center gap-2"
+            :class="route.path.startsWith('/discover') ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-100'">
+            <Star class="w-4 h-4" />Kora descubre
+          </NuxtLink>
+
+          <ClientOnly>
             <NuxtLink v-if="user" to="/chat" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><MessageCircle class="w-4 h-4" />Chat con Kora</NuxtLink>
             <NuxtLink v-if="user" to="/ranking" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Trophy class="w-4 h-4" />Ranking</NuxtLink>
             <NuxtLink v-if="user" to="/compare" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Scale class="w-4 h-4" />Comparar</NuxtLink>
             <NuxtLink v-if="user" to="/paes-simulator" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><Target class="w-4 h-4" />Simular PAES</NuxtLink>
-          </template>
+          </ClientOnly>
           <!-- PAES móvil: toggle inline -->
           <button @click="paesOpenMobile = !paesOpenMobile" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition flex items-center justify-between" :aria-expanded="paesOpenMobile" aria-label="Calendario PAES">
             <span class="inline-flex items-center gap-2"><CalendarDays class="w-4 h-4" />PAES</span>
@@ -168,16 +201,16 @@
           <div v-if="paesOpenMobile" class="px-1 pb-1">
             <PaesCalendar />
           </div>
-          <template v-if="authReady">
+          <ClientOnly>
             <template v-if="user">
               <NuxtLink v-if="isAdmin" to="/admin" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-amber-700 hover:bg-amber-50 transition inline-flex items-center gap-2"><Shield class="w-4 h-4" />Admin</NuxtLink>
               <NuxtLink to="/profile" @click="menuOpen = false" class="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition inline-flex items-center gap-2"><UserRound class="w-4 h-4" />{{ user.name?.split(' ')[0] || 'Mi perfil' }}</NuxtLink>
               <button @click="logout" class="px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition text-left inline-flex items-center gap-2"><LogOut class="w-4 h-4" />Cerrar sesión</button>
             </template>
             <template v-else>
-              <NuxtLink to="/login" @click="menuOpen = false" class="mt-1 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 transition text-center">Iniciar sesión</NuxtLink>
+              <NuxtLink to="/login" @click="menuOpen = false" class="mt-1 px-3 py-2.5 rounded-[999px] text-sm font-semibold text-white transition-opacity hover:opacity-80 text-center" style="background:#0071e3;">Iniciar sesión</NuxtLink>
             </template>
-          </template>
+          </ClientOnly>
         </div>
       </div>
     </Transition>
@@ -185,7 +218,7 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarDays, LogOut, MessageCircle, Scale, Shield, Target, Trophy, UserRound } from 'lucide-vue-next'
+import { CalendarDays, House, LogOut, MessageCircle, Scale, Shield, Star, Target, Trophy, UserRound } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
 const { y } = useWindowScroll()
@@ -198,9 +231,6 @@ const menuOpen = ref(false)
 const authStore = useAuthStore()
 const user = computed(() => authStore.profile)
 const isAdmin = computed(() => authStore.isAdmin)
-// Si el plugin ya hidratò el store (caso normal en F5 con sesión activa),
-// arrancamos en true para no mostrar el placeholder ni un solo frame.
-const authReady = ref(authStore.hydrated)
 const userMenuOpen = ref(false)
 const userMenuEl = ref<HTMLElement | null>(null)
 const paesOpen = ref(false)
@@ -240,8 +270,8 @@ const indicator = reactive({ left: 0, width: 0, visible: false })
 function findActiveLink(): HTMLElement | null {
   if (!navEl.value) return null
   // Nuxt agrega la clase 'router-link-active' al link activo
-  return navEl.value.querySelector<HTMLElement>('a.router-link-active')
-    || navEl.value.querySelector<HTMLElement>('a.router-link-exact-active')
+  return navEl.value.querySelector<HTMLElement>('a.router-link-exact-active')
+    || navEl.value.querySelector<HTMLElement>('a.router-link-active')
 }
 
 function updateIndicator(target?: HTMLElement | null) {
@@ -276,9 +306,6 @@ watch(() => route.fullPath, () => {
 })
 
 onMounted(() => {
-  authStore.ensureHydrated().finally(() => {
-    authReady.value = true
-  })
   nextTick(() => {
     updateIndicator()
     if (navEl.value) {
@@ -305,22 +332,25 @@ onBeforeUnmount(() => {
 <style scoped>
 .nav-link {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: rgb(71 85 105);
-  transition: color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  color: #474747;
+  transition: color 200ms ease;
   white-space: nowrap;
 }
 
 .nav-link:hover {
-  color: rgb(15 23 42);
+  color: #1d1d1f;
 }
 
 .nav-link.router-link-active {
-  color: rgb(26 115 232);
-  font-weight: 600;
+  color: #0071e3;
+  font-weight: 700;
 }
 
 .nav-link-admin {
@@ -337,7 +367,7 @@ onBeforeUnmount(() => {
   left: 0;
   height: calc(100% - 0.25rem);
   transform: translateX(0);
-  background: linear-gradient(135deg, rgba(26, 115, 232, 0.12), rgba(8, 145, 178, 0.12));
+  background: rgba(0, 113, 227, 0.09);
   border-radius: 0.75rem;
   transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1),
               width 380ms cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -349,11 +379,8 @@ onBeforeUnmount(() => {
 }
 
 .header-gradient {
-  background: linear-gradient(
-    to bottom,
-    rgba(239, 246, 255, 0.85) 0%,
-    rgba(240, 244, 255, 0.6) 60%,
-    transparent 100%
-  );
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 </style>

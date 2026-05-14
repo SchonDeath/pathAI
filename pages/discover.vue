@@ -13,6 +13,38 @@
           Volver al inicio
         </NuxtLink>
       </div>
+
+      <!-- Banner de sesión anterior -->
+      <div v-if="store.result && store.sessionId" class="w-full max-w-3xl mx-auto mb-6">
+        <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border"
+          :class="store.quizProfile ? 'bg-violet-50 border-violet-100' : 'bg-primary-50 border-primary-100'">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <component :is="store.quizProfile ? BrainCircuit : GraduationCap" class="w-5 h-5 shrink-0" :class="store.quizProfile ? 'text-violet-500' : 'text-primary-500'" />
+            <div class="min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-wide"
+                :class="store.quizProfile ? 'text-violet-600' : 'text-primary-600'">
+                {{ store.quizProfile ? 'Resultado del test vocacional' : 'Búsqueda anterior' }}
+              </p>
+              <p v-if="store.quizProfile" class="text-sm text-slate-700 font-medium">
+                Código Holland <span class="font-bold">{{ store.quizProfile.holland_code }}</span>
+                · MBTI <span class="font-bold">{{ store.quizProfile.mbti_type }}</span>
+              </p>
+              <p v-else class="text-sm text-slate-700 font-medium truncate">
+                {{ store.selectedCareer?.title ?? store.result.query }}
+              </p>
+            </div>
+          </div>
+          <NuxtLink
+            :to="store.selectedCareer ? `/results/${store.sessionId}/${store.selectedCareer.id}` : `/results/${store.sessionId}`"
+            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-semibold transition-colors"
+            :class="store.quizProfile ? 'bg-violet-600 hover:bg-violet-700' : 'bg-primary-600 hover:bg-primary-700'">
+            Ver resultados
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+          </NuxtLink>
+        </div>
+      </div>
       <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full opacity-20 blur-2xl"
           style="background: radial-gradient(ellipse at center, #bfdbfe 0%, #a5f3fc 50%, transparent 70%)"></div>
@@ -64,6 +96,7 @@
 <script setup lang="ts">
 import { useCareerStore } from '~/stores/career'
 import { useAuthStore } from '~/stores/auth'
+import { BrainCircuit, GraduationCap } from 'lucide-vue-next'
 
 useHead({
   title: 'Descubrir carrera · KoraChile',
@@ -92,6 +125,9 @@ const showQuiz = ref(false)
 
 async function handleDiscover(query: string) {
   if (!requireAuth()) return
+
+  // Si viene de búsqueda libre, limpiar perfil de quiz
+  store.setQuizProfile(null)
 
   const cached = store.getFromCache(query)
   if (cached) {
@@ -129,6 +165,11 @@ function handleQuizComplete(result: {
   if (!requireAuth()) return
 
   store.setQuizAnswers(result.answers)
+  store.setQuizProfile({
+    holland_code: result.holland_code,
+    mbti_type: result.mbti_type,
+    holland_profile: result.holland_profile,
+  })
 
   const topScores = Object.entries(result.riasec_scores)
     .sort(([, a], [, b]) => b - a)
