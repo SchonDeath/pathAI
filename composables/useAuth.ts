@@ -14,6 +14,11 @@ export function useAuth() {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  function getEmailRedirectTo() {
+    if (import.meta.client) return `${window.location.origin}/login`
+    return undefined
+  }
+
   async function signUp(email: string, password: string, name: string) {
     isLoading.value = true
     error.value = null
@@ -21,7 +26,10 @@ export function useAuth() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name } },
+        options: {
+          emailRedirectTo: getEmailRedirectTo(),
+          data: { name },
+        },
       })
       if (signUpError) throw signUpError
       if (data.user) await authStore.ensureHydrated(true)

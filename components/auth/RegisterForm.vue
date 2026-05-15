@@ -144,6 +144,11 @@ function sanitizeName(name: string) {
   return name.replace(/[<>"'`]/g, '').trim()
 }
 
+function getEmailRedirectTo() {
+  if (import.meta.client) return `${window.location.origin}/login`
+  return undefined
+}
+
 function validate() {
   errors.name = ''
   errors.email = ''
@@ -193,6 +198,7 @@ async function handleRegister() {
       email: form.email,
       password: form.password,
       options: {
+        emailRedirectTo: getEmailRedirectTo(),
         data: { full_name: cleanName, name: cleanName },
       },
     })

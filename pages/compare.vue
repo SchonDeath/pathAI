@@ -1,36 +1,36 @@
-<template>
+﻿<template>
   <div class="min-h-screen flex flex-col bg-surface-50">
     <AppHeader />
 
-    <main class="flex-1 pt-24 pb-16 px-6">
+    <main class="flex-1 px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24 lg:px-8">
       <div class="max-w-7xl mx-auto space-y-8">
 
         <!-- Header -->
         <div class="space-y-2">
-          <h1 class="text-4xl font-bold text-slate-900">Comparar Carreras</h1>
+          <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl">Comparar Carreras</h1>
           <p class="text-slate-500">Compara por separado las carreras sugeridas por Kora y los programas guardados desde tu puntaje PAES.</p>
         </div>
 
         <!-- Comparador desde chat de Kora -->
         <div class="space-y-3">
-        <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-slate-900">Programas para comparar desde Kora</h2>
+            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Programas para comparar desde Kora</h2>
             <p class="text-sm text-slate-500 mt-0.5">Carreras sugeridas por Kora desde el chat <span class="font-medium">({{ filteredPrograms.length }}/{{ selectedPrograms.length }})</span></p>
           </div>
-          <div class="flex items-center gap-2 flex-wrap shrink-0">
-            <NuxtLink to="/chat" class="px-3 py-1.5 rounded-lg border border-primary-200 text-xs font-semibold text-primary-700 hover:bg-primary-50 transition bg-white">
+          <div class="flex w-full flex-wrap items-stretch gap-2 shrink-0 sm:w-auto sm:items-center">
+            <NuxtLink to="/chat" class="inline-flex w-full items-center justify-center rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700 transition hover:bg-primary-50 sm:w-auto sm:py-1.5">
               + Agregar desde chat
             </NuxtLink>
             <button
               @click="clearProgramQueue"
               :disabled="selectedPrograms.length === 0"
-              class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-40 bg-white">
+              class="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-40 sm:w-auto sm:py-1.5">
               Limpiar
             </button>
             <button
               @click="toggleSection('koraPrograms')"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-600 bg-primary-600 text-xs font-semibold text-white hover:bg-primary-700 hover:border-primary-700 transition shadow-sm shadow-primary-200"
+              class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary-600 bg-primary-600 px-3 py-2 text-xs font-semibold text-white transition shadow-sm shadow-primary-200 hover:border-primary-700 hover:bg-primary-700 sm:w-auto sm:py-1.5"
               :aria-expanded="!collapsedSections.koraPrograms">
               {{ collapsedSections.koraPrograms ? 'Expandir' : 'Contraer' }}
               <ChevronDown class="w-3.5 h-3.5 transition-transform duration-300 ease-out" :class="collapsedSections.koraPrograms ? '-rotate-90' : 'rotate-0'" />
@@ -39,23 +39,25 @@
         </div>
         <div
           class="bg-white rounded-2xl border border-slate-200 overflow-hidden transition-[max-height,opacity,transform,padding,border-color] duration-300 ease-out will-change-[max-height,opacity,transform]"
-          :class="collapsedSections.koraPrograms ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[7200px] opacity-100 translate-y-0 p-6'"
+          :class="collapsedSections.koraPrograms ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[7200px] opacity-100 translate-y-0 p-4 sm:p-6'"
           :aria-hidden="collapsedSections.koraPrograms"
           :inert="collapsedSections.koraPrograms">
           <div class="space-y-4">
 
           <!-- Filtros -->
-          <div v-if="selectedPrograms.length > 1" class="flex flex-wrap gap-2 items-center text-xs">
-            <span class="text-slate-500 font-medium">Filtrar:</span>
-            <select v-model="filterTipo" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">Todos los tipos</option>
-              <option v-for="t in availableTipos" :key="t" :value="t">{{ t }}</option>
-            </select>
-            <select v-model="filterRegion" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">Todas las regiones</option>
-              <option v-for="r in availableRegiones" :key="r" :value="r">{{ r }}</option>
-            </select>
-            <button v-if="filterTipo || filterRegion" @click="filterTipo = ''; filterRegion = ''" class="text-primary-600 hover:underline">Limpiar filtros</button>
+          <div v-if="selectedPrograms.length > 1" class="flex items-stretch">
+            <div class="flex w-full flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm sm:inline-flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:py-2.5">
+              <span class="text-sm font-semibold text-slate-500">Filtrar:</span>
+              <select v-model="filterTipo" class="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 sm:min-w-[12rem] sm:w-auto sm:py-1.5">
+                <option value="">Todos los tipos</option>
+                <option v-for="t in availableTipos" :key="t" :value="t">{{ t }}</option>
+              </select>
+              <select v-model="filterRegion" class="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400 sm:min-w-[12rem] sm:w-auto sm:py-1.5">
+                <option value="">Todas las regiones</option>
+                <option v-for="r in availableRegiones" :key="r" :value="r">{{ r }}</option>
+              </select>
+              <button v-if="filterTipo || filterRegion" @click="filterTipo = ''; filterRegion = ''" class="text-sm text-primary-600 hover:underline font-medium">Limpiar filtros</button>
+            </div>
           </div>
 
           <div v-if="selectedPrograms.length === 0" class="text-sm text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-6 text-center">
@@ -108,12 +110,13 @@
 
           <div
             v-if="!serviceHydrating && filteredPrograms.length >= 2"
-            class="overflow-x-auto transition-all duration-250 ease-out"
+            class="-mx-4 overflow-x-auto px-4 pb-2 transition-all duration-250 ease-out sm:mx-0 sm:px-0"
             :class="compareAnimating ? 'opacity-90 scale-[0.992]' : 'opacity-100 scale-100'">
-            <table class="w-full text-sm">
+            <div class="mb-2 text-xs text-slate-400 sm:hidden">Desliza la tabla para ver todas las columnas.</div>
+            <table class="min-w-full text-sm">
               <thead>
-                <tr class="border-b border-slate-200">
-                  <th class="text-left py-3 pr-4 font-semibold text-slate-500 w-44">Criterio</th>
+                <tr class="border-b-2 border-slate-200 bg-slate-50/50">
+                  <th class="sticky left-0 z-20 min-w-[10rem] bg-slate-50/95 py-3 pr-4 text-left font-semibold text-slate-500 backdrop-blur-sm">Criterio</th>
                   <th v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 text-left font-bold text-slate-900 min-w-[250px]">
                     <div class="flex items-start gap-3 mb-1">
                       <div class="w-12 h-12 rounded-xl border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
@@ -142,75 +145,75 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Arancel sin beca</td>
+              <tbody class="divide-y divide-slate-200">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Arancel sin beca</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 font-semibold text-slate-800">{{ formatMoney(p.arancel_anual) }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Arancel con beca (referencia)</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Arancel con beca (referencia)</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 font-semibold text-slate-800">{{ formatMoney(p.arancel_referencia_becas) }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Copago sin cubrir (beca)</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Copago sin cubrir (beca)</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="p.brecha_arancel_becas > 0" class="text-orange-600 font-semibold">{{ formatMoney(p.brecha_arancel_becas) }}</span>
                     <span v-else-if="p.brecha_arancel_becas === 0" class="text-emerald-600 font-semibold">$0</span>
                     <span v-else class="text-slate-400">—</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Arancel con crédito (referencia)</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Arancel con crédito (referencia)</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 font-semibold text-slate-800">{{ formatMoney(p.arancel_referencia_creditos) }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Copago sin cubrir (crédito)</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Copago sin cubrir (crédito)</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="p.brecha_arancel_creditos > 0" class="text-orange-600 font-semibold">{{ formatMoney(p.brecha_arancel_creditos) }}</span>
                     <span v-else-if="p.brecha_arancel_creditos === 0" class="text-emerald-600 font-semibold">$0</span>
                     <span v-else class="text-slate-400">—</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Matrícula anual</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Matrícula anual</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ formatMoney(p.matricula_anual) }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Duración formal</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Duración formal</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.duracion_formal_semestres ? `${p.duracion_formal_semestres} semestres` : '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Jornada / Modalidad</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Jornada / Modalidad</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.jornada || '—' }} <span v-if="p.modalidad" class="text-slate-500">· {{ p.modalidad }}</span></td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Región / Sede</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Región / Sede</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.nombre_sede || '—' }}<div class="text-xs text-slate-500">{{ p.region || '' }}</div></td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Tipo de institución</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Tipo de institución</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.tipo_institucion || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Gratuidad</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Gratuidad</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="gratuidadLabel(p)" class="text-xs font-semibold" :class="p?.gratuidad?.adscrita ? 'text-emerald-700' : 'text-slate-500'">{{ gratuidadPrefix(p) }} {{ gratuidadLabel(p) }}</span>
                     <span v-else class="text-xs text-slate-400">Sin información</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje ingreso</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Puntaje ingreso</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <div class="font-semibold text-slate-800">{{ scoreLabel(p) }}</div>
                     <div v-if="scoreDetail(p)" class="text-xs text-slate-500 mt-0.5">{{ scoreDetail(p) }}</div>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje corte primero</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Puntaje corte primero</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.puntaje_corte_primero ?? '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Ponderaciones PAES</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Ponderaciones PAES</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <div class="flex flex-wrap gap-1">
                       <span v-if="p.pond_nem" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">NEM {{ p.pond_nem }}%</span>
@@ -223,23 +226,23 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Vacantes</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ (p.vacantes_semestre_1 || 0) + (p.vacantes_semestre_2 || 0) || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Matrícula total 2025</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.matricula_total_2025 ?? '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Matrícula 1er año 2025</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.matricula_primer_ano_2025 ?? '—' }}<span v-if="p.porcentaje_matricula_primer_ano_2025" class="text-xs text-slate-500 ml-1">({{ p.porcentaje_matricula_primer_ano_2025 }}%)</span></td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">NEM promedio ingreso</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.promedio_nem ? Number(p.promedio_nem).toFixed(2) : '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Empleabilidad 1er/2do año</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="employabilityMap[p.program_unique_code]">
@@ -248,7 +251,7 @@
                     <span v-else class="text-slate-500">—</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Ingreso 1er / 4° año</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="employabilityMap[p.program_unique_code]">
@@ -262,7 +265,7 @@
                 <tr class="bg-blue-50/60">
                   <td class="py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-blue-700" :colspan="filteredPrograms.length + 1">Institución</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Acreditación</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span v-if="institutionMap[p.program_unique_code]?.acreditacion_anos" class="inline-flex items-center gap-1 text-emerald-700 font-semibold">
@@ -272,25 +275,25 @@
                     <span v-else class="text-slate-400">—</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Retención inst. 1er año</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     {{ institutionMap[p.program_unique_code]?.retencion_1er_ano_pct ? `${institutionMap[p.program_unique_code].retencion_1er_ano_pct.toFixed(1)}%` : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Matrícula pregrado inst.</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     {{ institutionMap[p.program_unique_code]?.matricula_pregrado_actual ? formatNum(institutionMap[p.program_unique_code].matricula_pregrado_actual) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">PAES promedio inst.</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     {{ institutionMap[p.program_unique_code]?.promedio_paes ? Math.round(institutionMap[p.program_unique_code].promedio_paes) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 pr-4 text-slate-500 font-medium">Infraestructura</td>
                   <td v-for="p in filteredPrograms" :key="p.program_unique_code" class="py-3 px-4 text-xs text-slate-600 space-y-0.5">
                     <div v-if="institutionMap[p.program_unique_code]?.m2_construidos">M²: {{ formatNum(institutionMap[p.program_unique_code].m2_construidos) }}</div>
@@ -308,24 +311,24 @@
 
         <!-- ── Comparador de puntaje PAES ── -->
         <div class="space-y-3">
-        <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-slate-900">Programas para comparar puntaje PAES</h2>
+            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Programas para comparar puntaje PAES</h2>
             <p class="text-sm text-slate-500 mt-0.5">Programas guardados desde el simulador PAES <span class="font-medium">({{ selectedPaesPrograms.length }}/4)</span></p>
           </div>
-          <div class="flex items-center gap-2 flex-wrap shrink-0">
-            <NuxtLink to="/paes-simulator" class="px-3 py-1.5 rounded-lg border border-primary-200 text-xs font-semibold text-primary-700 hover:bg-primary-50 transition bg-white">
+          <div class="flex w-full flex-wrap items-stretch gap-2 shrink-0 sm:w-auto sm:items-center">
+            <NuxtLink to="/paes-simulator" class="inline-flex w-full items-center justify-center rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700 transition hover:bg-primary-50 sm:w-auto sm:py-1.5">
               + Agregar desde simulador PAES
             </NuxtLink>
             <button
               @click="clearPaesProgramQueue"
               :disabled="selectedPaesPrograms.length === 0"
-              class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-40 bg-white">
+              class="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-40 sm:w-auto sm:py-1.5">
               Limpiar
             </button>
             <button
               @click="toggleSection('paesPrograms')"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-600 bg-primary-600 text-xs font-semibold text-white hover:bg-primary-700 hover:border-primary-700 transition shadow-sm shadow-primary-200"
+              class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary-600 bg-primary-600 px-3 py-2 text-xs font-semibold text-white transition shadow-sm shadow-primary-200 hover:border-primary-700 hover:bg-primary-700 sm:w-auto sm:py-1.5"
               :aria-expanded="!collapsedSections.paesPrograms">
               {{ collapsedSections.paesPrograms ? 'Expandir' : 'Contraer' }}
               <ChevronDown class="w-3.5 h-3.5 transition-transform duration-300 ease-out" :class="collapsedSections.paesPrograms ? '-rotate-90' : 'rotate-0'" />
@@ -334,7 +337,7 @@
         </div>
         <div
           class="bg-white rounded-2xl border border-slate-200 overflow-hidden transition-[max-height,opacity,transform,padding,border-color] duration-300 ease-out will-change-[max-height,opacity,transform]"
-          :class="collapsedSections.paesPrograms ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[5200px] opacity-100 translate-y-0 p-6'"
+          :class="collapsedSections.paesPrograms ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[5200px] opacity-100 translate-y-0 p-4 sm:p-6'"
           :aria-hidden="collapsedSections.paesPrograms"
           :inert="collapsedSections.paesPrograms">
           <div class="space-y-4">
@@ -345,12 +348,13 @@
 
           <div
             v-if="selectedPaesPrograms.length >= 2"
-            class="overflow-x-auto transition-all duration-250 ease-out"
+            class="-mx-4 overflow-x-auto px-4 pb-2 transition-all duration-250 ease-out sm:mx-0 sm:px-0"
             :class="compareAnimating ? 'opacity-90 scale-[0.992]' : 'opacity-100 scale-100'">
-            <table class="w-full text-sm">
+            <div class="mb-2 text-xs text-slate-400 sm:hidden">Desliza la tabla para ver todas las columnas.</div>
+            <table class="min-w-full text-sm">
               <thead>
-                <tr class="border-b border-slate-200">
-                  <th class="text-left py-3 pr-4 font-semibold text-slate-500 w-44">Criterio</th>
+                <tr class="border-b-2 border-slate-200 bg-slate-50/50">
+                  <th class="sticky left-0 z-20 min-w-[10rem] bg-slate-50/95 py-3 pr-4 text-left font-semibold text-slate-500 backdrop-blur-sm">Criterio</th>
                   <th v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4 text-left font-bold text-slate-900 min-w-[220px]">
                     <div class="flex items-start gap-3">
                       <div class="w-10 h-10 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
@@ -368,43 +372,43 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Tu puntaje calculado</td>
+              <tbody class="divide-y divide-slate-200">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Tu puntaje calculado</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4 font-semibold text-slate-800">{{ formatScore(p.puntaje_calculado) || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Puntaje de referencia</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Puntaje de referencia</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4 font-semibold text-slate-800">{{ formatScore(p.puntaje_referencia) || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Holgura</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Holgura</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <span class="font-semibold" :class="Number(p.diferencia) >= 20 ? 'text-emerald-700' : 'text-amber-700'">+{{ formatScore(p.diferencia) || '—' }}</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Arancel anual</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Arancel anual</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ formatMoney(p.arancel_anual) }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Duración formal</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Duración formal</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.duracion_formal_semestres ? `${p.duracion_formal_semestres} semestres` : '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Jornada</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Jornada</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.jornada || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Región / Sede</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Región / Sede</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ p.nombre_sede || '—' }}<div class="text-xs text-slate-500">{{ p.region || '' }}</div></td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Vacantes</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Vacantes</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">{{ (p.vacantes_semestre_1 || 0) + (p.vacantes_semestre_2 || 0) || '—' }}</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 pr-4 text-slate-500 font-medium">Ponderaciones PAES</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Ponderaciones PAES</td>
                   <td v-for="p in selectedPaesPrograms" :key="p.program_unique_code" class="py-3 px-4">
                     <div class="flex flex-wrap gap-1">
                       <span v-if="p.pond_nem" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">NEM {{ p.pond_nem }}%</span>
@@ -426,24 +430,24 @@
 
         <!-- ── Comparador de instituciones (desde Ranking) ── -->
         <div class="space-y-3">
-        <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-slate-900 inline-flex items-center gap-2"><Trophy class="w-6 h-6 text-amber-500" />Instituciones agregadas</h2>
+            <h2 class="inline-flex items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl"><Trophy class="w-6 h-6 text-amber-500" />Instituciones agregadas</h2>
             <p class="text-sm text-slate-500 mt-0.5">Instituciones comparadas desde el ranking <span class="font-medium">({{ selectedInstitutions.length }}/4)</span></p>
           </div>
-          <div class="flex items-center gap-2 flex-wrap shrink-0">
-            <NuxtLink to="/ranking" class="px-3 py-1.5 rounded-lg border border-primary-200 text-xs font-semibold text-primary-700 hover:bg-primary-50 transition bg-white">
+          <div class="flex w-full flex-wrap items-stretch gap-2 shrink-0 sm:w-auto sm:items-center">
+            <NuxtLink to="/ranking" class="inline-flex w-full items-center justify-center rounded-lg border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700 transition hover:bg-primary-50 sm:w-auto sm:py-1.5">
               + Agregar desde Instituciones
             </NuxtLink>
             <button
               @click="clearInstitutionQueue"
               :disabled="selectedInstitutions.length === 0"
-              class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-40 bg-white">
+              class="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-40 sm:w-auto sm:py-1.5">
               Limpiar
             </button>
             <button
               @click="toggleSection('institutions')"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-600 bg-primary-600 text-xs font-semibold text-white hover:bg-primary-700 hover:border-primary-700 transition shadow-sm shadow-primary-200"
+              class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary-600 bg-primary-600 px-3 py-2 text-xs font-semibold text-white transition shadow-sm shadow-primary-200 hover:border-primary-700 hover:bg-primary-700 sm:w-auto sm:py-1.5"
               :aria-expanded="!collapsedSections.institutions">
               {{ collapsedSections.institutions ? 'Expandir' : 'Contraer' }}
               <ChevronDown class="w-3.5 h-3.5 transition-transform duration-300 ease-out" :class="collapsedSections.institutions ? '-rotate-90' : 'rotate-0'" />
@@ -452,7 +456,7 @@
         </div>
         <div
           class="bg-white rounded-2xl border border-slate-200 overflow-hidden transition-[max-height,opacity,transform,padding,border-color] duration-300 ease-out will-change-[max-height,opacity,transform]"
-          :class="collapsedSections.institutions ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[6200px] opacity-100 translate-y-0 p-6'"
+          :class="collapsedSections.institutions ? 'max-h-0 opacity-0 -translate-y-1 pointer-events-none p-0 border-transparent' : 'max-h-[6200px] opacity-100 translate-y-0 p-4 sm:p-6'"
           :aria-hidden="collapsedSections.institutions"
           :inert="collapsedSections.institutions">
           <div class="space-y-4">
@@ -463,11 +467,12 @@
             y usa "Agregar a comparador".
           </div>
 
-          <div v-else class="overflow-x-auto">
-            <table class="w-full text-sm">
+          <div v-else class="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+            <div class="mb-2 text-xs text-slate-400 sm:hidden">Desliza la tabla para ver todas las columnas.</div>
+            <table class="min-w-full text-sm">
               <thead>
-                <tr class="border-b border-slate-200">
-                  <th class="py-3 text-left font-semibold text-slate-600 w-44">Indicador</th>
+                <tr class="border-b-2 border-slate-200 bg-slate-50/50">
+                  <th class="sticky left-0 z-20 min-w-[10rem] bg-slate-50/95 py-3 pr-4 text-left font-semibold text-slate-600 backdrop-blur-sm">Indicador</th>
                   <th
                     v-for="inst in selectedInstitutions"
                     :key="inst.institution_code"
@@ -489,13 +494,13 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-200">
                 <!-- Información General -->
                 <tr class="bg-slate-50/80">
-                  <td class="py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-slate-500" :colspan="selectedInstitutions.length + 1">Información General</td>
+                  <td class="sticky left-0 z-10 bg-slate-50/80 py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-slate-500" :colspan="selectedInstitutions.length + 1">Información General</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Acreditación</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Acreditación</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4">
                     <div v-if="inst.acreditacion_anos" class="space-y-1">
                       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold"><Award class="w-3 h-3" />{{ inst.acreditacion_anos }} años</span>
@@ -505,55 +510,55 @@
                     <span v-else class="text-slate-400">—</span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Autonomía</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Autonomía</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700 text-xs">
                     {{ inst.autonomia || '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Retención 1er año</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Retención 1er año</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.retencion_1er_ano_pct ? inst.retencion_1er_ano_pct.toFixed(1) + '%' : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Promedio PAES</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Promedio PAES</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.promedio_paes ? Math.round(inst.promedio_paes) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Promedio NEM</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-white py-3 pr-4 text-slate-500 font-medium">Promedio NEM</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.promedio_nem ? inst.promedio_nem.toFixed(1) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 text-slate-500 font-medium">Matrícula pregrado</td>
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
+                  <td class="sticky left-0 z-10 bg-slate-50/60 py-3 pr-4 text-slate-500 font-medium">Matrícula pregrado</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.matricula_pregrado_actual ? new Intl.NumberFormat('es-CL').format(inst.matricula_pregrado_actual) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Matrícula posgrado</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.matricula_posgrado_actual ? new Intl.NumberFormat('es-CL').format(inst.matricula_posgrado_actual) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Titulados pregrado/año</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.titulados_pregrado_actual ? new Intl.NumberFormat('es-CL').format(inst.titulados_pregrado_actual) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Titulados posgrado/año</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.titulados_posgrado_actual ? new Intl.NumberFormat('es-CL').format(inst.titulados_posgrado_actual) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Duración real titulación</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.duracion_real_semestres ? Math.floor(inst.duracion_real_semestres) + ' sem' : '—' }}
@@ -563,25 +568,25 @@
                 <tr class="bg-blue-50/60">
                   <td class="py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-blue-700" :colspan="selectedInstitutions.length + 1">Infraestructura</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">M² construidos</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.m2_construidos ? new Intl.NumberFormat('es-CL').format(inst.m2_construidos) + ' m²' : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Volúmenes biblioteca</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.volumenes_biblioteca ? new Intl.NumberFormat('es-CL').format(inst.volumenes_biblioteca) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Laboratorios / Talleres</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.laboratorios_talleres ? new Intl.NumberFormat('es-CL').format(inst.laboratorios_talleres) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Computadores</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.computadores ? new Intl.NumberFormat('es-CL').format(inst.computadores) : '—' }}
@@ -591,13 +596,13 @@
                 <tr class="bg-emerald-50/60">
                   <td class="py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-emerald-700" :colspan="selectedInstitutions.length + 1">Financiero</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Ingresos de operación</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.ingresos_operacion_clp ? formatMoney(inst.ingresos_operacion_clp) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Resultado del ejercicio</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4">
                     <span :class="inst.resultado_ejercicio_clp !== null ? (inst.resultado_ejercicio_clp >= 0 ? 'text-emerald-700' : 'text-red-600') : 'text-slate-400'">
@@ -605,13 +610,13 @@
                     </span>
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Total activos</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.total_activos_clp ? formatMoney(inst.total_activos_clp) : '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Patrimonio total</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-700">
                     {{ inst.patrimonio_total_clp ? formatMoney(inst.patrimonio_total_clp) : '—' }}
@@ -621,13 +626,13 @@
                 <tr class="bg-slate-50/80">
                   <td class="py-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-slate-500" :colspan="selectedInstitutions.length + 1">Contacto</td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Dirección sede central</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4 text-slate-600 text-xs">
                     {{ inst.direccion_sede_central || '—' }}
                   </td>
                 </tr>
-                <tr class="hover:bg-slate-50">
+                <tr class="even:bg-slate-50/60 hover:bg-primary-50/20 transition-colors">
                   <td class="py-3 text-slate-500 font-medium">Sitio web</td>
                   <td v-for="inst in selectedInstitutions" :key="inst.institution_code" class="py-3 px-4">
                     <a v-if="inst.pagina_web" :href="inst.pagina_web.startsWith('http') ? inst.pagina_web : 'https://' + inst.pagina_web" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:underline text-xs">
