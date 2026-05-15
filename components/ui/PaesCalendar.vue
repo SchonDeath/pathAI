@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <!-- Header -->
-    <div class="px-5 py-3 bg-gradient-to-r from-primary-50 to-accent-50 border-b border-slate-200 space-y-2">
+    <div class="space-y-2 border-b border-slate-200 bg-gradient-to-r from-primary-50 to-accent-50 px-4 py-3 sm:px-5">
       <div class="flex items-center gap-2">
         <CalendarDays class="w-4 h-4 text-primary-700" />
         <span class="font-bold text-slate-800 text-sm">Calendario PAES {{ PAES_YEAR }}</span>
@@ -22,9 +22,9 @@
     </div>
 
     <!-- Próximo evento destacado -->
-    <div v-if="nextEvent" class="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/60 to-white">
-      <div class="flex items-center gap-3">
-        <div class="shrink-0 text-center bg-white border-2 rounded-xl p-2 min-w-[52px]"
+    <div v-if="nextEvent" class="border-b border-slate-100 bg-gradient-to-r from-slate-50/60 to-white px-4 py-4 sm:px-5">
+      <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+        <div class="min-w-[48px] shrink-0 rounded-xl border-2 bg-white p-2 text-center"
           :class="eventBorderColor(nextEvent.type)">
           <div class="text-[10px] font-bold uppercase tracking-wider" :class="eventTextColor(nextEvent.type)">{{ monthShort(nextEvent.date) }}</div>
           <div class="text-xl font-extrabold text-slate-900 leading-none">{{ dayNum(nextEvent.date) }}</div>
@@ -48,7 +48,7 @@
           :href="nextEvent.url"
           target="_blank"
           rel="noopener"
-          class="shrink-0 px-2.5 py-1.5 rounded-lg border border-primary-200 text-primary-700 text-xs font-semibold hover:bg-primary-50 transition">
+          class="shrink-0 rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-semibold text-primary-700 transition hover:bg-primary-50">
           Ver →
         </a>
       </div>
@@ -59,7 +59,7 @@
       <div
         v-for="event in filteredEvents"
         :key="event.id"
-        class="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/60 transition"
+        class="flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50/60 sm:px-5"
         :class="isPast(event.date) ? 'opacity-45' : ''">
         <!-- Fecha mini -->
         <div class="shrink-0 text-center min-w-[40px]">
@@ -86,7 +86,7 @@
     </div>
 
     <!-- Footer -->
-    <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+    <div class="flex flex-col gap-1 border-t border-slate-200 bg-slate-50 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <p class="text-[10px] text-slate-500">Fuente: DEMRE · Fechas referenciales {{ PAES_YEAR }}</p>
       <a href="https://demre.cl" target="_blank" rel="noopener" class="text-[10px] text-primary-600 hover:underline font-semibold">demre.cl →</a>
     </div>

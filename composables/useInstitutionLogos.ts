@@ -4,10 +4,11 @@
  * El Map es global (singleton por app) y sobrevive navegación intra-SPA.
  */
 import { useSupabaseClient } from '#imports'
+import { reactive } from 'vue'
 
 const LOGO_CACHE_TTL_MS = 30 * 60_000
 const MAX_LOGO_CACHE_ENTRIES = 200
-const logoCache = new Map<number, string | null>()
+const logoCache = reactive(new Map<number, string | null>())
 const logoCacheTouchedAt = new Map<number, number>()
 const pending = new Set<number>()
 

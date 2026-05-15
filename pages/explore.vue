@@ -2,21 +2,21 @@
   <div class="min-h-screen flex flex-col bg-surface-50">
     <AppHeader />
 
-    <main class="flex-1 pt-24 pb-16 px-6">
+    <main class="page-shell">
       <div class="max-w-7xl mx-auto space-y-8">
 
         <!-- Header -->
         <div class="space-y-2">
-          <h1 class="text-4xl font-bold text-slate-900">Explorar Carreras</h1>
-          <p class="text-slate-500">
+          <h1 class="page-title">Explorar Carreras</h1>
+          <p class="page-subtitle">
             Fichas con datos oficiales SIES/Mineduc: salarios, empleabilidad e instituciones que las imparten en Chile.
           </p>
         </div>
 
         <!-- Filtros -->
-        <div class="bg-white rounded-2xl border border-slate-100 p-4 space-y-3">
-          <div class="flex flex-wrap gap-3 items-center">
-            <div class="flex-1 min-w-[200px] max-w-md relative">
+        <div class="space-y-3 rounded-2xl border border-slate-100 bg-white p-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="relative w-full flex-1 sm:min-w-[200px] sm:max-w-md">
               <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -28,20 +28,20 @@
                 @input="debouncedFetch"
               />
             </div>
-            <div class="text-xs text-slate-500 flex items-center gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
               <span v-if="!loading && total > 0">
                 <strong class="text-slate-700">{{ total }}</strong> carreras encontradas
               </span>
             </div>
           </div>
 
-          <div class="flex gap-2 flex-wrap">
+          <div class="flex flex-wrap gap-2">
             <button
               v-for="cat in CATEGORIES"
               :key="cat.value"
               @click="selectCategory(cat.value)"
               :class="[
-                'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors border',
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors sm:px-3.5 sm:text-xs',
                 selectedCategory === cat.value
                   ? 'bg-primary-600 text-white border-primary-600'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-primary-400 hover:text-primary-600'
@@ -75,7 +75,7 @@
           <article
             v-for="career in careers"
             :key="career.id"
-            class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-6 flex flex-col gap-3 group relative">
+            class="relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-6 group">
 
             <!-- Save button -->
             <button
@@ -159,12 +159,12 @@
         </div>
 
         <!-- Paginación numerada -->
-        <div v-if="!loading && total > limit" class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div v-if="!loading && total > limit" class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-xs text-slate-500">
             Página <strong>{{ currentPage }}</strong> de <strong>{{ totalPages }}</strong>
             · Mostrando {{ offset + 1 }}–{{ Math.min(offset + limit, total) }} de {{ total }}
           </p>
-          <div class="flex items-center gap-1">
+          <div class="flex w-full items-center gap-1 overflow-x-auto pb-1 sm:w-auto scrollbar-hide">
             <button
               :disabled="currentPage === 1"
               @click="goToPage(1)"

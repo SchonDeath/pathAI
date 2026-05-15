@@ -7,10 +7,8 @@
       <div class="max-w-5xl mx-auto space-y-8">
         <!-- Header -->
         <div class="space-y-4">
-          <NuxtLink :to="backLink" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors group">
-            <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+          <NuxtLink :to="backLink" class="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-primary-700 shadow-sm shadow-primary-100/60 transition-all group hover:-translate-y-0.5 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-800">
+            <ArrowLeft class="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             Volver a resultados
           </NuxtLink>
 
@@ -64,7 +62,15 @@
         </div>
 
         <!-- Fun Facts strip -->
-        <div v-if="career?.fun_facts?.length" class="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+        <div v-if="career?.fun_facts?.length" class="space-y-2">
+          <div class="flex items-center justify-between gap-3 rounded-2xl border border-primary-100 bg-primary-50/70 px-3 py-2 text-xs font-medium text-primary-700 sm:hidden">
+            <span class="inline-flex items-center gap-1.5">
+              <ArrowLeft class="h-3.5 w-3.5" />
+              Desliza para ver más datos rápidos
+              <ArrowRight class="h-3.5 w-3.5" />
+            </span>
+          </div>
+          <div class="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
           <div
             v-for="(fact, i) in career.fun_facts"
             :key="i"
@@ -72,6 +78,7 @@
             <Lightbulb class="w-4 h-4 text-amber-500 mt-0.5" />
             <p class="text-sm text-slate-700 leading-snug">{{ fact }}</p>
           </div>
+        </div>
         </div>
 
         <!-- Descripción -->
@@ -113,7 +120,15 @@
         </div>
 
         <!-- Tabs -->
-        <div class="flex gap-1 border-b border-slate-200 overflow-x-auto scrollbar-hide">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 sm:hidden">
+            <span class="inline-flex items-center gap-1.5">
+              <ArrowLeft class="h-3.5 w-3.5" />
+              Desliza para navegar entre secciones
+              <ArrowRight class="h-3.5 w-3.5" />
+            </span>
+          </div>
+          <div class="flex gap-1 border-b border-slate-200 overflow-x-auto scrollbar-hide">
           <button
             v-for="tab in TABS"
             :key="tab.key"
@@ -123,6 +138,7 @@
             {{ tab.label }}
             <div v-if="activeTab === tab.key" class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-600 to-accent-500 rounded-t-full"></div>
           </button>
+        </div>
         </div>
 
         <!-- Tab Contents -->
@@ -641,7 +657,7 @@
 </template>
 
 <script setup lang="ts">
-import { BookOpen, Check, GraduationCap, Lightbulb, School, TriangleAlert, Code2, TrendingUp, HeartPulse, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, Lightbulb, School, TriangleAlert, Code2, TrendingUp, HeartPulse, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 import { useProgramDetailStore } from '~/stores/programDetail'
 import { useInstitutionLogos } from '~/composables/useInstitutionLogos'

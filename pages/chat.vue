@@ -1,6 +1,8 @@
 <template>
   <div class="h-screen chat-starfield overflow-hidden">
-    <AppHeader />
+    <div class="hidden sm:block">
+      <AppHeader />
+    </div>
 
     <!-- ── Sidebar teleportado al body para evitar clipping por overflow-hidden ── -->
     <Teleport to="body">
@@ -214,52 +216,164 @@
 
     <!-- ── Contenido principal (el sidebar es fixed, no desplaza el layout) ── -->
     <main
-      class="absolute top-16 left-0 right-0 bottom-0 overflow-hidden px-3 sm:px-4 pb-4 sm:pb-6 pt-4 sm:pt-6">
+      class="absolute left-0 right-0 bottom-0 overflow-hidden px-0 pb-0 pt-0 sm:px-4 sm:pb-6 sm:pt-6"
+      :class="isMobile ? 'top-0' : 'top-16'">
       <div class="mx-auto w-full h-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
-        <section class="relative h-full flex flex-col overflow-hidden rounded-3xl chat-glass-card">
+        <section
+          class="relative h-full flex flex-col overflow-hidden"
+          :class="isMobile ? 'bg-white rounded-none' : 'rounded-3xl chat-glass-card'">
 
           <!-- Header -->
-          <div class="border-b border-slate-200/70 bg-white/80 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
-            <div class="text-left min-w-0">
-              <div class="flex items-center gap-3 min-w-0">
-              
-                <h1 class="text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">
-                  
-                  <span style="background: linear-gradient(135deg, #1A73E8, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Habla con Kora</span>
-                </h1>
-
-                
-              </div>
-              <p class="text-xs sm:text-sm text-slate-500 leading-snug hidden sm:block">Acá te ayudo a descubrir tu carrera ideal o saber sobre instituciones</p>
-
-              <div class="sm:hidden mt-1 inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-2.5 py-1 shadow-sm">
-                <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-cyan-100 bg-cyan-50 shrink-0">
-                  <MascotIcon />
-                </div>
-                <span class="text-xs font-semibold text-slate-900">Kora</span>
-                <span class="text-xs text-emerald-600 inline-flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  en línea
-                </span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <!-- Botón historial (solo mobile, abre sidebar) -->
+          <div
+            class="shrink-0 border-b border-slate-200/70"
+            :class="isMobile ? 'bg-white px-4 py-3' : 'bg-white/80 px-4 py-3 sm:px-6 sm:py-4'">
+            <div v-if="isMobile" class="flex items-center justify-between gap-3">
               <button
                 @click="showSidebar = true"
-                title="Ver conversaciones"
-                aria-label="Ver conversaciones"
-                class="sm:hidden w-9 h-9 rounded-full text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                title="Abrir conversaciones"
+                aria-label="Abrir conversaciones"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10" />
+                </svg>
               </button>
-              <button
-                @click="startNewChat"
-                title="Nueva conversación"
-                aria-label="Nueva conversación"
-                class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span class="hidden sm:inline">Nueva conversación</span>
-              </button>
+
+              <div class="min-w-0 flex-1 text-left">
+                <h1 class="truncate text-base font-bold text-slate-900">Habla con Kora</h1>
+                <div class="mt-0.5 inline-flex items-center gap-1.5 text-[11px] text-emerald-600">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Kora en línea
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div ref="mobileMenuEl" class="relative">
+                  <button
+                    @click="mobileOptionsOpen = !mobileOptionsOpen"
+                    title="Opciones"
+                    aria-label="Opciones del chat"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:-translate-y-[1px] hover:bg-slate-50 hover:shadow-md">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 5h.01M12 12h.01M12 19h.01" />
+                    </svg>
+                  </button>
+
+                  <Transition name="chat-menu">
+                    <div
+                      v-if="mobileOptionsOpen"
+                      class="absolute right-0 top-full z-20 mt-2 w-64 origin-top-right overflow-hidden rounded-[1.35rem] border border-slate-200/90 bg-white/95 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+                      <div class="space-y-1">
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Chat</p>
+                        <button
+                          v-for="item in chatPrimaryMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                          <component :is="item.icon" class="h-4 w-4 text-slate-500" />
+                          {{ item.label }}
+                        </button>
+                        <div class="mx-1 my-2 h-px bg-slate-100"></div>
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Navegar</p>
+                        <button
+                          v-for="item in chatNavigationMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                          <component :is="item.icon" class="h-4 w-4 text-slate-500" />
+                          {{ item.label }}
+                        </button>
+                        <div class="mx-1 my-2 h-px bg-slate-100"></div>
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Cuenta</p>
+                        <button
+                          v-for="item in chatAccountMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition hover:bg-slate-50"
+                          :class="item.key === 'logout' ? 'text-red-600' : 'text-slate-700'">
+                          <component :is="item.icon" class="h-4 w-4" :class="item.key === 'logout' ? 'text-red-400' : 'text-slate-500'" />
+                          {{ item.label }}
+                        </button>
+                      </div>
+                    </div>
+                  </Transition>
+                </div>
+
+                <UserAvatar
+                  :avatar="userAvatar"
+                  :name="userName"
+                  size="xs" />
+              </div>
+            </div>
+
+            <div v-else class="flex items-center justify-between gap-3">
+              <div class="min-w-0 text-left">
+                <div class="flex items-center gap-3 min-w-0">
+                  <h1 class="truncate text-lg font-bold leading-tight sm:text-xl md:text-2xl">
+                    <span style="background: linear-gradient(135deg, #1A73E8, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Habla con Kora</span>
+                  </h1>
+                </div>
+                <p class="hidden text-xs leading-snug text-slate-500 sm:block sm:text-sm">Acá te ayudo a descubrir tu carrera ideal o saber sobre instituciones</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button
+                  @click="startNewChat"
+                  title="Nueva conversación"
+                  aria-label="Nueva conversación"
+                  class="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:text-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <span>Nueva conversación</span>
+                </button>
+                <div ref="mobileMenuEl" class="relative">
+                  <button
+                    @click="mobileOptionsOpen = !mobileOptionsOpen"
+                    title="Opciones"
+                    aria-label="Opciones del chat"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:-translate-y-[1px] hover:bg-slate-50 hover:shadow-md">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 5h.01M12 12h.01M12 19h.01" />
+                    </svg>
+                  </button>
+
+                  <Transition name="chat-menu">
+                    <div
+                      v-if="mobileOptionsOpen"
+                      class="absolute right-0 top-full z-20 mt-2 w-64 origin-top-right overflow-hidden rounded-[1.35rem] border border-slate-200/90 bg-white/95 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+                      <div class="space-y-1">
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Chat</p>
+                        <button
+                          v-for="item in chatPrimaryMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                          <component :is="item.icon" class="h-4 w-4 text-slate-500" />
+                          {{ item.label }}
+                        </button>
+                        <div class="mx-1 my-2 h-px bg-slate-100"></div>
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Navegar</p>
+                        <button
+                          v-for="item in chatNavigationMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                          <component :is="item.icon" class="h-4 w-4 text-slate-500" />
+                          {{ item.label }}
+                        </button>
+                        <div class="mx-1 my-2 h-px bg-slate-100"></div>
+                        <p class="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Cuenta</p>
+                        <button
+                          v-for="item in chatAccountMenuItems"
+                          :key="item.key"
+                          @click="handleMenuItemClick(item)"
+                          class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition hover:bg-slate-50"
+                          :class="item.key === 'logout' ? 'text-red-600' : 'text-slate-700'">
+                          <component :is="item.icon" class="h-4 w-4" :class="item.key === 'logout' ? 'text-red-400' : 'text-slate-500'" />
+                          {{ item.label }}
+                        </button>
+                      </div>
+                    </div>
+                  </Transition>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -267,7 +381,8 @@
           <div
             ref="messagesEl"
             @scroll="handleMessagesScroll"
-            class="relative flex-1 overflow-y-auto space-y-4 px-4 sm:px-6 pt-4 pb-4"
+            class="relative flex-1 overflow-y-auto"
+            :class="isMobile ? 'space-y-5 px-3 pt-3 pb-3' : 'space-y-4 px-4 sm:px-6 pt-4 pb-4'"
             role="log"
             aria-live="polite"
             aria-relevant="additions"
@@ -279,11 +394,14 @@
 
         <!-- Mensaje de bienvenida -->
         <Transition name="welcome-enter">
-          <div v-if="messages.length === 0 && !chatResetting && !historyLoading" class="flex gap-3">
-            <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-slate-200/80">
+          <div v-if="messages.length === 0 && !chatResetting && !historyLoading" class="flex gap-3" :class="isMobile ? 'items-start' : ''">
+            <div v-if="!isMobile" class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm ring-2 ring-slate-200/80">
               <MascotIcon />
             </div>
-            <div class="bg-white/90 border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm max-w-[85%] space-y-3 px-4 py-3">
+            <div v-else class="flex h-6 w-6 shrink-0 items-center justify-center pt-0.5 text-primary-500">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 5.9L20 10l-5.9 2.1L12 18l-2.1-5.9L4 10l5.9-2.1L12 2z" /></svg>
+            </div>
+            <div :class="isMobile ? 'max-w-full space-y-3 px-0 py-0 text-[15px] text-slate-800' : 'bg-white/90 border border-slate-200/70 shadow-sm rounded-2xl rounded-tl-sm max-w-[85%] space-y-3 px-4 py-3'">
               <p class="text-slate-700 text-sm leading-relaxed">
                 ¡Hola{{ clientUserFirstName ? `, ${clientUserFirstName}` : '' }}! Soy Kora. Te ayudaré a encontrar tu camino académico.<br><br>
                 ¿Te gustaría explorar información sobre universidades o institutos, o prefieres consultar puntajes de corte para una carrera específica?
@@ -335,26 +453,36 @@
 
         <TransitionGroup name="msg" tag="div" class="space-y-4">
           <div v-for="(msg, i) in messages" :key="msg.id || `${msg.role}-${i}-${msg.created_at || ''}`" class="flex gap-3 items-start" :class="msg.role === 'user' ? 'flex-row-reverse' : ''">
-            <div class="flex-shrink-0">
+            <div v-if="msg.role === 'user' && !isMobile" class="flex-shrink-0">
               <UserAvatar
-                v-if="msg.role === 'user'"
                 :avatar="userAvatar"
                 :name="userName"
                 :size="compactMode ? 'xs' : 'sm'" />
+            </div>
+            <div v-else-if="msg.role === 'assistant'" class="flex-shrink-0" :class="isMobile ? 'pt-1 text-primary-500' : ''">
+              <div v-if="isMobile" class="flex h-5 w-5 items-center justify-center">
+                <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 5.9L20 10l-5.9 2.1L12 18l-2.1-5.9L4 10l5.9-2.1L12 2z" /></svg>
+              </div>
               <div v-else :class="compactMode ? 'w-8 h-8 rounded-full overflow-hidden shadow-sm ring-2 ring-slate-200/80' : 'w-9 h-9 rounded-full overflow-hidden shadow-sm ring-2 ring-slate-200/80'">
                 <MascotIcon />
               </div>
             </div>
             <div :class="[
-              'rounded-2xl max-w-[85%] leading-relaxed',
-              compactMode ? 'px-3 py-2.5 text-[13px]' : 'px-4 py-3 text-sm',
+              'leading-relaxed',
+              isMobile && msg.role === 'assistant' ? 'max-w-full px-0 py-0 text-[15px]' : 'max-w-[85%] rounded-2xl',
+              !isMobile && compactMode ? 'px-3 py-2.5 text-[13px]' : !isMobile ? 'px-4 py-3 text-sm' : '',
               msg.role === 'user'
-                ? 'bg-primary-600 border border-primary-500/30 text-white rounded-tr-sm'
-                : 'bg-white/90 border border-slate-200/70 text-slate-800 rounded-tl-sm shadow-sm'
+                ? isMobile
+                  ? 'rounded-[1.7rem] bg-slate-100 px-4 py-3 text-[15px] text-slate-800 shadow-none'
+                  : 'bg-primary-600 border border-primary-500/30 text-white rounded-tr-sm'
+                : isMobile
+                  ? 'bg-transparent text-slate-800 shadow-none'
+                  : 'bg-white/90 border border-slate-200/70 text-slate-800 rounded-tl-sm shadow-sm'
             ]">
               <div
                 v-if="msg.role === 'assistant'"
                 class="prose prose-sm prose-slate max-w-none chat-markdown"
+                :class="isMobile ? 'mobile-assistant-copy' : ''"
                 v-html="displayContent(msg)"
               ></div>
               <span v-if="msg.role === 'assistant' && msg.id === typingMsgId" class="inline-block w-1.5 h-4 align-[-2px] bg-primary-400 ml-0.5 animate-pulse rounded-sm"></span>
@@ -465,38 +593,59 @@
                 <div class="text-xs font-bold text-slate-800">Opciones recientes</div>
                 <div class="text-[11px] text-slate-500">Últimos programas sugeridos</div>
               </div>
+              <button
+                @click="recentTrayCollapsed = !recentTrayCollapsed"
+                :title="recentTrayCollapsed ? 'Mostrar opciones recientes' : 'Ocultar opciones recientes'"
+                :aria-label="recentTrayCollapsed ? 'Mostrar opciones recientes' : 'Ocultar opciones recientes'"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700">
+                <svg
+                  class="w-4 h-4 transition-transform duration-200"
+                  :class="recentTrayCollapsed ? '-rotate-90' : 'rotate-0'"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2.2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div
-                v-for="card in latestProgramCards.slice(0, 4)"
-                :key="`tray-${card.code}`"
-                class="rounded-xl border border-slate-200 bg-white p-2.5 flex items-start gap-2">
-                <div class="w-9 h-9 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
-                  <InstitutionLogo
-                    :logo-url="card.institution_code ? logoCache.get(card.institution_code) : null"
-                    :institution-name="card.institution"
-                    fallback-class="text-slate-400" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="text-xs font-bold text-slate-900 leading-tight line-clamp-2">{{ card.title }}</div>
-                  <div class="text-[11px] text-slate-500 line-clamp-1">{{ card.institution }}</div>
-                  <div class="mt-1 flex flex-wrap gap-1">
-                    <span v-if="card.type" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{{ institutionTypeBadge(card.type) }}</span>
-                    <span v-if="card.nivel" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">{{ card.nivel }}</span>
-                  </div>
-                  <div class="mt-2 flex flex-wrap gap-1.5">
-                    <button
-                      @click="selectProgramForQuestion(card)"
-                      class="px-2 py-1 rounded-md text-[11px] font-semibold border border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 transition">
-                      Preguntar
-                    </button>
-                    <button
-                      @click="addProgramToComparator(card)"
-                      :disabled="isProgramInComparator(card.code)"
-                      class="px-2 py-1 rounded-md text-[11px] font-semibold border transition disabled:cursor-default"
-                      :class="isProgramInComparator(card.code) ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'">
-                      {{ isProgramInComparator(card.code) ? 'Agregado' : '+ Comparar' }}
-                    </button>
+            <div
+              class="grid transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              :class="recentTrayCollapsed ? 'grid-rows-[0fr] opacity-0 -translate-y-1 pointer-events-none' : 'grid-rows-[1fr] opacity-100 translate-y-0'">
+              <div class="overflow-hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div
+                    v-for="card in latestProgramCards.slice(0, 4)"
+                    :key="`tray-${card.code}`"
+                    class="rounded-xl border border-slate-200 bg-white p-2.5 flex items-start gap-2">
+                    <div class="w-9 h-9 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                      <InstitutionLogo
+                        :logo-url="card.institution_code ? logoCache.get(card.institution_code) : null"
+                        :institution-name="card.institution"
+                        fallback-class="text-slate-400" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs font-bold text-slate-900 leading-tight line-clamp-2">{{ card.title }}</div>
+                      <div class="text-[11px] text-slate-500 line-clamp-1">{{ card.institution }}</div>
+                      <div class="mt-1 flex flex-wrap gap-1">
+                        <span v-if="card.type" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{{ institutionTypeBadge(card.type) }}</span>
+                        <span v-if="card.nivel" class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">{{ card.nivel }}</span>
+                      </div>
+                      <div class="mt-2 flex flex-wrap gap-1.5">
+                        <button
+                          @click="selectProgramForQuestion(card)"
+                          class="px-2 py-1 rounded-md text-[11px] font-semibold border border-primary-200 text-primary-700 bg-primary-50 hover:bg-primary-100 transition">
+                          Preguntar
+                        </button>
+                        <button
+                          @click="addProgramToComparator(card)"
+                          :disabled="isProgramInComparator(card.code)"
+                          class="px-2 py-1 rounded-md text-[11px] font-semibold border transition disabled:cursor-default"
+                          :class="isProgramInComparator(card.code) ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'">
+                          {{ isProgramInComparator(card.code) ? 'Agregado' : '+ Comparar' }}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -510,8 +659,8 @@
 
           <!-- Input -->
           <div :class="[
-            'pt-1 border-t border-slate-200/60 bg-white/85',
-            compactMode ? 'px-3 sm:px-4 pb-3' : 'px-4 sm:px-6 pb-4'
+            'border-t border-slate-200/60 bg-white/85',
+            isMobile ? 'px-3 pb-3 pt-2' : compactMode ? 'px-3 sm:px-4 pb-3 pt-1' : 'px-4 sm:px-6 pb-4 pt-1'
           ]">
             <div class="bg-white/80 border border-slate-200 rounded-2xl flex items-end gap-2 p-2 focus-within:border-primary-400/70 transition-colors shadow-sm">
               <textarea
@@ -533,7 +682,7 @@
                 <span class="hidden sm:inline">Enviar</span>
               </button>
             </div>
-            <p class="text-xs text-slate-500/70 text-center mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
+            <p class="mt-2 text-center text-xs text-slate-500/70">Enter para enviar · Shift+Enter para nueva línea</p>
           </div>
         </section>
       </div>
@@ -584,7 +733,8 @@
 </template>
 
 <script setup lang="ts">
-import { Banknote, CalendarDays, CheckCircle2, Clock3, GraduationCap } from 'lucide-vue-next'
+import type { Component } from 'vue'
+import { Banknote, CalendarDays, CheckCircle2, Clock3, GraduationCap, House, LogOut, Menu, MessageCircle, Scale, Shield, Sparkles, Star, Target, Trophy, UserRound } from 'lucide-vue-next'
 definePageMeta({ middleware: 'auth' })
 import { marked } from 'marked'
 import { useAuthStore } from '~/stores/auth'
@@ -640,11 +790,20 @@ interface QuickAction {
   prompt: string
 }
 
+interface ChatMenuItem {
+  key: string
+  label: string
+  icon: Component
+  to?: string
+  action?: 'new' | 'history' | 'logout'
+}
+
 const authStore = useAuthStore()
 const programDetailStore = useProgramDetailStore()
 const supabase = useSupabaseClient()
 const { prefetch: prefetchLogos, logoCache } = useInstitutionLogos()
 const router = useRouter()
+const isAdmin = computed(() => authStore.isAdmin)
 const messages = ref<Message[]>([])
 const input = ref('')
 const loading = ref(false)
@@ -652,11 +811,13 @@ const error = ref<string | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 const historyLoading = ref(false)
-const compactMode = false
+const compactMode = computed(() => isMobile.value)
 const latestProgramCards = ref<ProgramCard[]>([])
 const latestQuickActions = ref<QuickAction[]>([])
 const activeSessionId = ref<string>('')
 const isMobile = ref(false)
+const recentTrayCollapsed = ref(false)
+const mobileOptionsOpen = ref(false)
 // Inicializa cerrado para evitar flash en SSR/mobile.
 // Se abre tras mount solo en desktop.
 const showSidebar = ref(false)
@@ -665,23 +826,63 @@ const showSidebar = ref(false)
 const deleteAllModalEl = ref<HTMLElement | null>(null)
 const deleteOneModalEl = ref<HTMLElement | null>(null)
 const loginGateEl = ref<HTMLElement | null>(null)
+const mobileMenuEl = ref<HTMLElement | null>(null)
+
+const chatPrimaryMenuItems = computed<ChatMenuItem[]>(() => [
+  { key: 'new', label: 'Nueva conversación', icon: Sparkles, action: 'new' },
+  { key: 'history', label: 'Conversaciones', icon: Menu, action: 'history' },
+])
+
+const chatNavigationMenuItems = computed<ChatMenuItem[]>(() => [
+  { key: 'home', label: 'Inicio', icon: House, to: '/' },
+  { key: 'discover', label: 'Kora descubre', icon: Star, to: '/discover' },
+  { key: 'chat', label: 'Chat con Kora', icon: MessageCircle, to: '/chat' },
+  { key: 'ranking', label: 'Ranking', icon: Trophy, to: '/ranking' },
+  { key: 'compare', label: 'Comparar', icon: Scale, to: '/compare' },
+  { key: 'paes', label: 'Simular PAES', icon: Target, to: '/paes-simulator' },
+])
+
+const chatAccountMenuItems = computed<ChatMenuItem[]>(() => {
+  const items: ChatMenuItem[] = [
+    { key: 'profile', label: 'Mi perfil', icon: UserRound, to: '/profile' },
+  ]
+
+  if (isAdmin.value) {
+    items.push({ key: 'admin', label: 'Admin', icon: Shield, to: '/admin' })
+  }
+
+  items.push({ key: 'logout', label: 'Cerrar sesión', icon: LogOut, action: 'logout' })
+  return items
+})
 
 onMounted(() => {
-  const checkMobile = () => { isMobile.value = window.innerWidth < 640 }
+  const checkMobile = () => {
+    isMobile.value = window.innerWidth < 640
+    if (!isMobile.value) mobileOptionsOpen.value = false
+  }
   checkMobile()
   showSidebar.value = !isMobile.value
   window.addEventListener('resize', checkMobile)
+  const handlePointer = (event: MouseEvent) => {
+    if (!mobileOptionsOpen.value) return
+    if (mobileMenuEl.value && !mobileMenuEl.value.contains(event.target as Node)) {
+      mobileOptionsOpen.value = false
+    }
+  }
+  document.addEventListener('click', handlePointer)
   // Cierra modales y sidebar (mobile) con Esc
   const handleEscape = (e: KeyboardEvent) => {
     if (e.key !== 'Escape') return
     if (deleteAllConfirm.value) { deleteAllConfirm.value = false; return }
     if (deleteConfirmId.value) { deleteConfirmId.value = null; return }
     if (showLoginGate.value) { showLoginGate.value = false; return }
+    if (mobileOptionsOpen.value) { mobileOptionsOpen.value = false; return }
     if (isMobile.value && showSidebar.value) showSidebar.value = false
   }
   document.addEventListener('keydown', handleEscape)
   onUnmounted(() => {
     window.removeEventListener('resize', checkMobile)
+    document.removeEventListener('click', handlePointer)
     document.removeEventListener('keydown', handleEscape)
   })
 })
@@ -1229,6 +1430,7 @@ async function startNewChat() {
   }
   // En mobile, cerrar sidebar para ver el chat al instante
   if (isMobile.value) showSidebar.value = false
+  mobileOptionsOpen.value = false
   // Animación: flash de salida
   chatResetting.value = true
   await nextTick()
@@ -1248,6 +1450,44 @@ async function startNewChat() {
   await nextTick()
   autoResize()
   focusInput()
+}
+
+async function handleMobileMenuAction(action: 'new' | 'history' | 'compare' | 'profile' | 'logout') {
+  mobileOptionsOpen.value = false
+  if (action === 'new') {
+    await startNewChat()
+    return
+  }
+  if (action === 'history') {
+    showSidebar.value = true
+    return
+  }
+  if (action === 'compare') {
+    await router.push('/compare')
+    return
+  }
+  if (action === 'logout') {
+    await authStore.signOut()
+    await router.push('/login')
+    return
+  }
+  await router.push('/profile')
+}
+
+async function handleMenuItemClick(item: ChatMenuItem) {
+  if (item.action) {
+    if (item.action === 'logout') {
+      await handleMobileMenuAction('logout')
+      return
+    }
+    await handleMobileMenuAction(item.action)
+    return
+  }
+
+  mobileOptionsOpen.value = false
+  if (item.to) {
+    await router.push(item.to)
+  }
 }
 
 function ensureSessionId() {
@@ -1550,6 +1790,18 @@ onBeforeUnmount(() => {
 .fade-icon-enter-active { transition: opacity 0.2s ease 0.15s, transform 0.2s ease 0.15s; }
 .fade-icon-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .fade-icon-enter-from, .fade-icon-leave-to { opacity: 0; transform: scale(0.6); }
+
+.chat-menu-enter-active,
+.chat-menu-leave-active {
+  transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), filter 0.22s ease;
+}
+
+.chat-menu-enter-from,
+.chat-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+  filter: blur(6px);
+}
 
 /* ── Sidebar: desliza desde la izquierda en todas las pantallas ── */
 .sidebar-panel {

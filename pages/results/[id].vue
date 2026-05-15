@@ -117,13 +117,22 @@
                   <p class="max-w-md text-sm leading-6 text-slate-500">La misma lectura visual del detalle, pero condensada para que compares las tres rutas antes de abrir cada una.</p>
                 </div>
 
-                <div class="mt-6 -mx-2 overflow-x-auto pb-2 lg:overflow-visible">
+                <div class="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-primary-100 bg-primary-50/70 px-3 py-2.5 text-xs font-medium text-primary-700 lg:hidden">
+                  <span class="inline-flex items-center gap-1.5">
+                    <ArrowLeft class="h-3.5 w-3.5" />
+                    Desliza para ver más carreras
+                    <ArrowRight class="h-3.5 w-3.5" />
+                  </span>
+                  <span class="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-500">Swipe</span>
+                </div>
+
+                <div class="mt-4 -mx-2 overflow-x-auto pb-2 lg:overflow-visible">
                   <div class="flex gap-4 px-2 snap-x snap-mandatory lg:flex-wrap lg:justify-center lg:gap-5 lg:px-0">
                     <button
                       v-for="career in result.variations"
                       :key="career.id"
                       type="button"
-                      class="group flex min-h-[295px] min-w-[320px] max-w-[340px] snap-start flex-col rounded-[1.9rem] border border-slate-100 bg-white p-5 text-left shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover sm:min-w-[350px] sm:max-w-[360px] lg:min-w-0 lg:flex-[0_1_380px]"
+                      class="group flex min-h-[295px] w-[84vw] min-w-[84vw] max-w-[84vw] snap-start flex-col rounded-[1.9rem] border border-slate-100 bg-white p-5 text-left shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover sm:min-w-[350px] sm:max-w-[360px] sm:w-auto lg:min-w-0 lg:flex-[0_1_380px]"
                       @click="openCareer(career)">
                       <div class="flex items-start justify-between gap-3">
                         <div class="flex min-w-0 items-start gap-3">
@@ -228,7 +237,7 @@
 </template>
 
 <script setup lang="ts">
-import { TriangleAlert, Code2, TrendingUp, HeartPulse, GraduationCap, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, BookOpen, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, TriangleAlert, Code2, TrendingUp, HeartPulse, GraduationCap, Wrench, Scale, Palette, FlaskConical, Building2, Leaf, Users, BookOpen, Cpu, Truck, Megaphone, ChefHat, Shield, Plane } from 'lucide-vue-next'
 import { useCareerStore } from '~/stores/career'
 import type { CareerVariation, DiscoveryResult } from '~/stores/career'
 

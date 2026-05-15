@@ -53,7 +53,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3 font-semibold text-white text-sm transition-opacity duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white transition-opacity duration-200 sm:px-6 sm:py-3;
     background: #0071e3;
     border-radius: 999px;
   }
@@ -72,6 +72,18 @@
 
   .card:hover {
     @apply shadow-card-hover;
+  }
+
+  .page-shell {
+    @apply flex-1 px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24 lg:px-8;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold text-slate-900 sm:text-4xl;
+  }
+
+  .page-subtitle {
+    @apply text-sm leading-relaxed text-slate-500 sm:text-base;
   }
 
   .tag {
@@ -159,6 +171,15 @@
 
   .opacity-0-init {
     opacity: 0;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

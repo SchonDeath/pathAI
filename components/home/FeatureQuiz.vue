@@ -5,8 +5,8 @@
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
         <!-- Texto -->
-        <div class="space-y-8">
-          <div>
+        <div class="flex flex-col gap-8">
+          <div class="order-1">
             <span class="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-semibold uppercase tracking-wider" style="background:#f0f6ff; border:1px solid #cce0ff; color:#0071e3; border-radius:999px;">
               <BrainCircuit class="w-4 h-4" />Test vocacional
             </span>
@@ -19,8 +19,14 @@
             </p>
           </div>
 
+          <NuxtLink to="/discover?quiz=1"
+            class="order-2 sm:order-3 inline-flex w-full sm:w-fit items-center justify-center gap-2 font-semibold text-sm transition-opacity hover:opacity-80"
+            style="background:#0071e3; color:#ffffff; border-radius:999px; padding:0.75rem 1.75rem;">
+            Hacer el test gratis <ArrowRight class="w-4 h-4" />
+          </NuxtLink>
+
           <!-- RIASEC -->
-          <div>
+          <div class="order-3 sm:order-2">
             <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:#86868b;">Código RIASEC — 6 dimensiones</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div v-for="dim in riasecDims" :key="dim.letter"
@@ -39,12 +45,6 @@
               </div>
             </div>
           </div>
-
-          <NuxtLink to="/discover?quiz=1"
-            class="inline-flex items-center gap-2 font-semibold text-sm transition-opacity hover:opacity-80"
-            style="background:#0071e3; color:#ffffff; border-radius:999px; padding:0.75rem 1.75rem;">
-            Hacer el test gratis <ArrowRight class="w-4 h-4" />
-          </NuxtLink>
         </div>
 
         <!-- Mockup tipos MBTI -->

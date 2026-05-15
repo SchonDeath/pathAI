@@ -20,10 +20,10 @@
     </div>
 
     <!-- Contenido derecho -->
-    <div class="flex-1 min-w-0 p-5 flex flex-col justify-between">
+    <div class="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between">
       <!-- Cabecera -->
       <div>
-        <div class="flex items-center justify-between mb-2 gap-3">
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
           <span v-if="career.job_demand" class="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
             :class="{
               'text-emerald-600': career.job_demand === 'Muy Alta',
@@ -37,7 +37,7 @@
         </div>
 
         <!-- Título -->
-        <h3 class="font-extrabold text-slate-950 text-xl leading-tight tracking-tight">{{ career.title }}</h3>
+        <h3 class="text-lg font-extrabold leading-tight tracking-tight text-slate-950 sm:text-xl">{{ career.title }}</h3>
         <!-- Descripción -->
         <p class="text-sm text-slate-600 mt-2 leading-relaxed line-clamp-2">{{ career.description || career.tagline }}</p>
 
@@ -54,8 +54,8 @@
       </div>
 
       <!-- Footer: sueldo oficial + botón -->
-      <div class="mt-5 pt-4 border-t border-slate-100 flex items-end justify-between gap-4 flex-wrap">
-        <div v-if="hasOfficialSalary" class="grid grid-cols-2 gap-2 min-w-0 flex-1">
+      <div class="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div v-if="hasOfficialSalary" class="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
           <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-3 py-2">
             <p class="text-[10px] font-bold tracking-widest text-emerald-700 uppercase">Ingreso 1° año</p>
             <p class="text-sm font-extrabold text-slate-900 mt-0.5">{{ formatCLP(officialSalary?.junior) }}</p>
@@ -68,12 +68,12 @@
             Fuente: {{ salarySourceLabel }}. No usamos estimaciones de IA para sueldos.
           </p>
         </div>
-        <div v-else class="rounded-2xl bg-slate-50 border border-slate-200 px-3 py-2 flex-1 min-w-[220px]">
+        <div v-else class="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
           <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Sueldo oficial</p>
           <p class="text-sm font-semibold text-slate-700 mt-0.5">Sin dato SIES para esta recomendación</p>
         </div>
 
-        <button class="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition-colors duration-200 group-hover:shadow-md">
+        <button class="flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-xs font-semibold text-white transition-colors duration-200 group-hover:shadow-md hover:bg-primary-700 sm:w-auto">
           Ver carrera
           <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

@@ -11,15 +11,15 @@
         rows="1"
         aria-label="Describe tu idea o intereses para descubrir carreras"
         maxlength="500"
-        class="w-full resize-none px-6 pt-5 pb-4 text-slate-900 text-base placeholder:text-slate-500 bg-transparent rounded-3xl outline-none leading-relaxed font-medium"
-        :style="{ minHeight: '100px', maxHeight: '180px' }"
+        class="w-full resize-none rounded-3xl bg-transparent px-4 pb-3 pt-4 text-sm font-medium leading-relaxed text-slate-900 placeholder:text-slate-500 outline-none sm:px-6 sm:pb-4 sm:pt-5 sm:text-base"
+        :style="{ minHeight: '88px', maxHeight: '180px' }"
         @focus="focused = true"
         @blur="focused = false"
         @keydown.enter.prevent="handleSubmit"
         @input="autoResize"
       />
 
-      <div class="flex items-center justify-between px-4 pb-4">
+      <div class="flex flex-col gap-3 px-4 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-2">
           <span class="text-xs text-slate-500">{{ inputValue.length }}/500</span>
           <template v-if="!loading && inputValue.length > 0">
@@ -34,7 +34,7 @@
 
         <button
           :disabled="!canSubmit"
-          class="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+          class="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 sm:w-auto"
           :class="loading ? 'animate-pulse-subtle' : ''"
           @click="handleSubmit">
           <template v-if="loading">
@@ -65,7 +65,7 @@
       <button
         v-for="suggestion in rotatedSuggestions"
         :key="suggestion"
-        class="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-slate-100 hover:bg-primary-50 hover:text-primary-700 border border-slate-200 hover:border-primary-200 transition-all duration-200"
+        class="px-3 py-1.5 rounded-full border border-slate-200 bg-slate-100 text-[11px] font-medium text-slate-600 transition-all duration-200 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 sm:px-3.5 sm:text-xs"
         @click="useSuggestion(suggestion)">
         {{ suggestion }}
       </button>

@@ -340,15 +340,16 @@ onBeforeUnmount(() => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #474747;
-  transition: color 200ms ease;
+  transition: color 220ms ease, opacity 220ms ease;
   white-space: nowrap;
 }
 
 .nav-link:hover {
-  color: #1d1d1f;
+  color: #0071e3;
 }
 
-.nav-link.router-link-active {
+.nav-link.router-link-active,
+.nav-link.route-partial-active {
   color: #0071e3;
   font-weight: 700;
 }

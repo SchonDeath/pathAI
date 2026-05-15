@@ -83,8 +83,9 @@
       <button
         v-if="currentIdx > 0"
         @click="previous"
-        class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
-        ← Anterior
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50">
+        <ChevronLeft class="h-4 w-4" />
+        Anterior
       </button>
       <div v-else></div>
 
@@ -92,23 +93,24 @@
         v-if="currentIdx < totalQuestions - 1"
         @click="next"
         :disabled="currentQuestion.kind !== 'free' && !answers[currentQuestion.id]"
-        class="px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-        Siguiente →
+        class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-200/70 transition-all hover:-translate-y-0.5 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
+        Siguiente
+        <ChevronRight class="h-4 w-4" />
       </button>
 
       <button
         v-else
         @click="submit"
         :disabled="!isComplete"
-        class="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-accent-500 text-white text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-        Ver mis carreras <Sparkles class="w-3.5 h-3.5" />
+        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-200/70 transition-all hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
+        Ver mis carreras <ChevronRight class="h-4 w-4" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Brain, Compass, PencilLine, Sparkles } from 'lucide-vue-next'
+import { Brain, ChevronLeft, ChevronRight, Compass, PencilLine } from 'lucide-vue-next'
 /**
  * Quiz vocacional basado en:
  *  - RIASEC (Holland): 6 preguntas, una por dimensión (Realista, Investigador, Artístico, Social, Emprendedor, Convencional).

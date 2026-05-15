@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col bg-surface-50">
     <AppHeader />
 
-    <main class="flex-1 pt-24 pb-16 px-6">
+    <main class="page-shell">
       <div class="max-w-4xl mx-auto space-y-8">
 
         <LoadingSpinner v-if="!authStore.hydrated" label="Cargando perfil..." />
@@ -17,8 +17,8 @@
 
         <template v-else>
           <!-- Perfil -->
-          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
-            <div class="flex items-start gap-6 flex-wrap">
+          <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6 sm:flex-wrap">
               <div class="relative">
                 <UserAvatar
                   :avatar="profile?.avatar_url"
@@ -28,7 +28,7 @@
                   bordered />
               </div>
 
-              <div class="flex-1 min-w-[240px] space-y-3">
+              <div class="min-w-0 flex-1 space-y-3 sm:min-w-[240px]">
                 <template v-if="!editMode">
                   <h1 class="text-2xl font-bold text-slate-900">{{ profile?.name || 'Usuario' }}</h1>
                   <p class="text-slate-500">{{ profile?.email }}</p>
@@ -159,20 +159,20 @@
                   </div>
 
                   <p v-if="saveError" class="text-xs text-red-500">{{ saveError }}</p>
-                  <div class="flex items-center gap-2 pt-1">
+                  <div class="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
                     <button type="submit" :disabled="saving"
-                      class="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition disabled:opacity-60">
+                      class="w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60 sm:w-auto">
                       {{ saving ? 'Guardando...' : 'Guardar' }}
                     </button>
                     <button type="button" @click="cancelEdit"
-                      class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                      class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:w-auto">
                       Cancelar
                     </button>
                   </div>
                 </form>
               </div>
 
-              <button @click="signOut" class="text-sm text-slate-500 hover:text-red-500 transition">
+              <button @click="signOut" class="self-start text-sm text-slate-500 transition hover:text-red-500 sm:self-auto">
                 Cerrar sesión
               </button>
             </div>
@@ -180,7 +180,7 @@
 
           <!-- Carreras guardadas -->
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 class="text-xl font-bold text-slate-900">Carreras guardadas</h2>
               <NuxtLink to="/explore" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Explorar más →</NuxtLink>
             </div>
@@ -193,11 +193,11 @@
               <NuxtLink to="/explore" class="btn-primary text-sm inline-flex">Explorar Carreras</NuxtLink>
             </div>
 
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div
                 v-for="item in savedCareers"
                 :key="item.id"
-                class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex gap-4 items-start hover:shadow-md transition">
+                class="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5">
                 <BookOpen class="w-8 h-8 text-primary-600 shrink-0" />
                 <div class="flex-1 min-w-0">
                   <NuxtLink :to="`/careers/${item.career?.slug || item.career_id}`" class="font-bold text-slate-900 hover:text-primary-600 transition line-clamp-1">

@@ -29,7 +29,7 @@
           <!-- Headline -->
           <h1
             class="font-semibold tracking-tight leading-[1.07]"
-            style="font-size: clamp(2.4rem, 6vw, 4rem); color: #1d1d1f; letter-spacing: -0.025em; margin-bottom: 1.25rem;">
+            style="font-size: clamp(2rem, 8vw, 4rem); color: #1d1d1f; letter-spacing: -0.025em; margin-bottom: 1.25rem;">
             <span class="blur-reveal hero-reveal-line" style="animation-delay: 190ms;">
               Todo lo que necesitas
             </span>
@@ -43,8 +43,8 @@
 
           <!-- Subheadline -->
           <p
-            class="blur-reveal mx-auto leading-relaxed"
-            style="animation-delay: 570ms; font-size: 1.1rem; color: #474747; max-width: 520px; margin-bottom: 2rem; font-weight: 400;">
+            class="blur-reveal mx-auto leading-relaxed text-base sm:text-lg"
+            style="animation-delay: 570ms; color: #474747; max-width: 520px; margin-bottom: 2rem; font-weight: 400;">
             Descubre carreras a tu medida, consulta datos oficiales de todas las instituciones del país y conversa con Kora, tu asistente de orientación vocacional.
           </p>
 
@@ -52,13 +52,13 @@
           <div class="blur-reveal flex flex-col sm:flex-row gap-3 justify-center" style="animation-delay: 760ms;">
             <NuxtLink
               to="/discover"
-              class="inline-flex items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
+              class="inline-flex w-full sm:w-auto items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
               style="background: #0071e3; color: #ffffff; border-radius: 999px; padding: 0.75rem 1.75rem; font-size: 0.95rem;">
               Descubrir mi carrera
             </NuxtLink>
             <NuxtLink
               to="/chat"
-              class="inline-flex items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
+              class="inline-flex w-full sm:w-auto items-center justify-center font-semibold transition-opacity hover:opacity-80 active:opacity-60"
               style="background: transparent; color: #0071e3; border-radius: 999px; padding: 0.75rem 1.75rem; font-size: 0.95rem; border: 1.5px solid #0071e3;">
               Hablar con Kora
             </NuxtLink>
@@ -66,12 +66,12 @@
 
           <button
             type="button"
-            class="blur-reveal group mx-auto mt-5 hidden sm:inline-flex flex-col items-center gap-1.5 text-[0.8rem] font-semibold tracking-[0.02em] transition-all hover:text-slate-700"
+            class="blur-reveal group mx-auto mt-5 inline-flex flex-col items-center gap-1.5 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[0.8rem] font-semibold tracking-[0.02em] shadow-sm transition-all hover:border-slate-300 hover:text-slate-700 hover:shadow-md"
             style="animation-delay: 930ms; color: #64748b;"
             @click="scrollToLandingSection('orientacion-vocacional')"
           >
             <span>Explorar</span>
-            <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m0 0l-6-6m6 6l6-6" />
             </svg>
           </button>
@@ -116,7 +116,7 @@
         <div class="max-w-[90rem] mx-auto px-4 sm:px-6 py-0 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-10 xl:gap-14">
 
           <!-- Sidebar nav -->
-          <aside class="lg:sticky lg:top-20 lg:self-start lg:pt-8">
+          <aside class="hidden lg:block lg:sticky lg:top-20 lg:self-start lg:pt-8">
             <div class="lg:pl-2">
               <div class="hidden lg:block mb-7">
                 <div class="text-[10px] font-semibold uppercase tracking-[0.22em]" style="color: #86868b;">Recorrido</div>
@@ -167,8 +167,8 @@
     <!-- ── Footer ── -->
     <footer style="background: #edf1fb; border-top: 1px solid #d7dfef;">
       <div class="max-w-[78rem] mx-auto px-4 sm:px-6 pt-10 sm:pt-12 pb-6 sm:pb-7">
-        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_11rem_11rem_13rem] gap-10 lg:gap-12">
-          <div class="min-h-[12rem] flex flex-col justify-between gap-8">
+        <div class="flex flex-col gap-8">
+          <div class="flex flex-col gap-6 sm:gap-8 lg:min-h-[12rem] lg:justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 shrink-0">
                 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
@@ -199,33 +199,35 @@
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <h4 class="text-sm font-semibold" style="color: #111827;">Recursos</h4>
-            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
-              <li><NuxtLink to="/discover" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Descubrir</NuxtLink></li>
-              <li><NuxtLink to="/explore" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Explorar</NuxtLink></li>
-              <li><NuxtLink to="/ranking" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Ranking</NuxtLink></li>
-              <li><NuxtLink to="/paes-simulator" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Simular PAES</NuxtLink></li>
-            </ul>
-          </div>
+          <div class="grid grid-cols-3 gap-5 sm:gap-8 lg:grid-cols-[11rem_11rem_13rem] lg:justify-start">
+            <div class="min-w-0 flex flex-col gap-3.5">
+              <h4 class="text-sm font-semibold" style="color: #111827;">Recursos</h4>
+              <ul class="flex flex-col gap-2.5">
+                <li><NuxtLink to="/discover" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Descubrir</NuxtLink></li>
+                <li><NuxtLink to="/explore" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Explorar</NuxtLink></li>
+                <li><NuxtLink to="/ranking" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Ranking</NuxtLink></li>
+                <li><NuxtLink to="/paes-simulator" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Simular PAES</NuxtLink></li>
+              </ul>
+            </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <h4 class="text-sm font-semibold" style="color: #111827;">Soporte</h4>
-            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
-              <li><NuxtLink to="/#how-it-works" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Cómo funciona</NuxtLink></li>
-              <li><NuxtLink to="/chat" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Chat con Kora</NuxtLink></li>
-              <li><NuxtLink to="/compare" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Comparar</NuxtLink></li>
-              <li><NuxtLink to="/login" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Iniciar sesión</NuxtLink></li>
-            </ul>
-          </div>
+            <div class="min-w-0 flex flex-col gap-3.5">
+              <h4 class="text-sm font-semibold" style="color: #111827;">Soporte</h4>
+              <ul class="flex flex-col gap-2.5">
+                <li><NuxtLink to="/#how-it-works" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Cómo funciona</NuxtLink></li>
+                <li><NuxtLink to="/chat" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Chat con Kora</NuxtLink></li>
+                <li><NuxtLink to="/compare" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Comparar</NuxtLink></li>
+                <li><NuxtLink to="/login" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Iniciar sesión</NuxtLink></li>
+              </ul>
+            </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <h4 class="text-sm font-semibold" style="color: #111827;">Legal</h4>
-            <ul style="display: flex; flex-direction: column; gap: 0.7rem;">
-              <li><NuxtLink to="/privacidad#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Privacy Policy</NuxtLink></li>
-              <li><NuxtLink to="/terminos#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Terms of Service</NuxtLink></li>
-              <li><NuxtLink to="/propiedad-intelectual#resumen" class="text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Propiedad intelectual</NuxtLink></li>
-            </ul>
+            <div class="min-w-0 flex flex-col gap-3.5">
+              <h4 class="text-sm font-semibold" style="color: #111827;">Legal</h4>
+              <ul class="flex flex-col gap-2.5">
+                <li><NuxtLink to="/privacidad#resumen" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Privacy Policy</NuxtLink></li>
+                <li><NuxtLink to="/terminos#resumen" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Terms of Service</NuxtLink></li>
+                <li><NuxtLink to="/propiedad-intelectual#resumen" class="text-[13px] sm:text-sm transition-opacity hover:opacity-60" style="color: #1f2937;">Propiedad intelectual</NuxtLink></li>
+              </ul>
+            </div>
           </div>
         </div>
 

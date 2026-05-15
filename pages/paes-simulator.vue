@@ -15,15 +15,15 @@
           <!-- overlay solo en la mitad izquierda -->
           <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(15,23,42,0.82) 0%, rgba(15,23,42,0.60) 55%, transparent 100%);"></div>
 
-          <div class="relative z-10 flex flex-col justify-center px-8 sm:px-12 py-12 sm:py-14 max-w-xl space-y-4">
+          <div class="relative z-10 flex max-w-xl flex-col justify-center space-y-4 px-5 py-8 sm:px-12 sm:py-14">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white text-xs font-semibold uppercase tracking-wider w-fit">
               Simulador PAES 2026
             </span>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            <h1 class="text-2xl font-extrabold leading-tight text-white sm:text-4xl">
               ¿A qué carreras puedes entrar<br />
               <span class="text-sky-400"> con tu puntaje?</span>
             </h1>
-            <p class="text-white/75 text-sm sm:text-base leading-relaxed">
+            <p class="text-sm leading-relaxed text-white/75 sm:text-base">
               Ingresa tus puntajes PAES y NEM y calcula en segundos los programas reales a los que accedes, con datos oficiales MINEDUC.
             </p>
           </div>
@@ -192,7 +192,7 @@
         </div>
 
         <!-- Filtros -->
-        <div class="px-4 py-3 border-b border-slate-100 bg-white shrink-0 space-y-2">
+          <div class="space-y-2 border-b border-slate-100 bg-white px-4 py-3 shrink-0">
           <!-- Búsqueda -->
           <div class="relative">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -206,24 +206,24 @@
             />
           </div>
           <!-- Selects en fila -->
-          <div class="flex gap-2">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <select
               v-model="filterArea"
-              class="flex-1 px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              class="min-w-0 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Todas las áreas</option>
               <option v-for="area in availableAreas" :key="area" :value="area">{{ area }}</option>
             </select>
             <select
               v-model="filterRegion"
-              class="flex-1 px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              class="min-w-0 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Todas las regiones</option>
               <option v-for="r in availableRegions" :key="r" :value="r">{{ REGIONES[r] ?? r }}</option>
             </select>
             <select
               v-model="sortBy"
-              class="flex-1 px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              class="min-w-0 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="diferencia">Mayor holgura</option>
               <option value="corte_desc">Mayor puntaje</option>
@@ -231,7 +231,7 @@
               <option value="nombre">Por nombre</option>
             </select>
           </div>
-          <p class="text-[11px] text-slate-400">
+          <p class="text-[11px] leading-5 text-slate-400">
             Mostrando {{ Math.min(paginatedPrograms.length, filteredPrograms.length) }} de {{ filteredPrograms.length }} programas
           </p>
         </div>
@@ -245,80 +245,83 @@
 
           <div
             v-for="(p, i) in paginatedPrograms"
-            :key="i"
+            :key="p.program_unique_code || `${p.institution_code}-${p.nombre_carrera}`"
             class="bg-white rounded-2xl border transition-all hover:shadow-md hover:border-slate-300 overflow-hidden"
             :class="getBorderClass(p.diferencia)"
           >
             <div class="p-4 flex flex-col gap-3">
 
               <!-- Fila superior: logo + info + puntajes -->
-              <div class="flex items-start gap-3">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
 
-                <!-- Logo institución -->
-                <div class="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
-                  <InstitutionLogo
-                    :logo-url="p.institution_code ? logoCache.get(p.institution_code) ?? null : null"
-                    :institution-name="p.nombre_institucion"
-                    fallback-class="text-slate-400"
-                  />
-                </div>
+                <div class="flex min-w-0 flex-1 items-start gap-3">
 
-                <!-- Info texto -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-start gap-1.5 mb-1 flex-wrap">
-                    <span
-                      class="shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
-                      :class="getBadgeClass(p.diferencia)"
-                    >
-                      {{ getBadgeLabel(p.diferencia) }}
-                    </span>
-                    <span v-if="p.area_conocimiento" class="text-[10px] text-slate-500 font-medium uppercase tracking-wide">{{ p.area_conocimiento }}</span>
-                    <span v-if="p.nivel_carrera" class="text-[10px] px-1.5 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-100 font-bold">{{ p.nivel_carrera }}</span>
+                  <!-- Logo institución -->
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <InstitutionLogo
+                      :logo-url="p.institution_code ? logoCache.get(p.institution_code) ?? null : null"
+                      :institution-name="p.nombre_institucion"
+                      fallback-class="text-slate-400"
+                    />
                   </div>
-                  <h3 class="font-semibold text-slate-900 text-sm leading-snug">{{ p.nombre_carrera }}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5">
-                    {{ p.nombre_institucion }}
-                    <span v-if="p.nombre_sede && p.nombre_sede !== p.nombre_institucion"> · {{ p.nombre_sede }}</span>
-                    <span v-if="p.region"> · {{ REGIONES[p.region] ?? p.region }}</span>
-                  </p>
-                  <div class="flex flex-wrap gap-2 mt-1.5 text-[11px] text-slate-500">
-                    <span v-if="p.jornada">{{ p.jornada }}</span>
-                    <span v-if="p.duracion_formal_semestres">{{ p.duracion_formal_semestres }} sem.</span>
-                    <span v-if="p.arancel_anual">Arancel: <strong class="text-slate-600">{{ formatCLP(p.arancel_anual) }}</strong></span>
-                    <span v-if="p.vacantes_semestre_1">{{ p.vacantes_semestre_1 }} vacantes</span>
-                  </div>
-                  <div class="flex flex-wrap gap-1 mt-1.5">
-                    <span v-if="p.pond_nem" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">NEM {{ p.pond_nem }}%</span>
-                    <span v-if="p.pond_ranking" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Rank {{ p.pond_ranking }}%</span>
-                    <span v-if="p.pond_lenguaje" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Leng {{ p.pond_lenguaje }}%</span>
-                    <span v-if="p.pond_matematicas" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">M1 {{ p.pond_matematicas }}%</span>
-                    <span v-if="p.pond_matematicas_2" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">M2 {{ p.pond_matematicas_2 }}%</span>
-                    <span v-if="p.pond_historia" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Hist {{ p.pond_historia }}%</span>
-                    <span v-if="p.pond_ciencias" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Cs {{ p.pond_ciencias }}%</span>
+
+                  <!-- Info texto -->
+                  <div class="min-w-0 flex-1">
+                    <div class="mb-1 flex flex-wrap items-start gap-1.5">
+                      <span
+                        class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                        :class="getBadgeClass(p.diferencia)"
+                      >
+                        {{ getBadgeLabel(p.diferencia) }}
+                      </span>
+                      <span v-if="p.area_conocimiento" class="text-[10px] font-medium uppercase tracking-wide text-slate-500">{{ p.area_conocimiento }}</span>
+                      <span v-if="p.nivel_carrera" class="rounded-md border border-violet-100 bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">{{ p.nivel_carrera }}</span>
+                    </div>
+                    <h3 class="text-sm font-semibold leading-snug text-slate-900">{{ p.nombre_carrera }}</h3>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                      {{ p.nombre_institucion }}
+                      <span v-if="p.nombre_sede && p.nombre_sede !== p.nombre_institucion"> · {{ p.nombre_sede }}</span>
+                      <span v-if="p.region"> · {{ REGIONES[p.region] ?? p.region }}</span>
+                    </p>
+                    <div class="mt-1.5 flex flex-wrap gap-2 text-[11px] text-slate-500">
+                      <span v-if="p.jornada">{{ p.jornada }}</span>
+                      <span v-if="p.duracion_formal_semestres">{{ p.duracion_formal_semestres }} sem.</span>
+                      <span v-if="p.arancel_anual">Arancel: <strong class="text-slate-600">{{ formatCLP(p.arancel_anual) }}</strong></span>
+                      <span v-if="p.vacantes_semestre_1">{{ p.vacantes_semestre_1 }} vacantes</span>
+                    </div>
+                    <div class="mt-1.5 flex flex-wrap gap-1">
+                      <span v-if="p.pond_nem" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">NEM {{ p.pond_nem }}%</span>
+                      <span v-if="p.pond_ranking" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">Rank {{ p.pond_ranking }}%</span>
+                      <span v-if="p.pond_lenguaje" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">Leng {{ p.pond_lenguaje }}%</span>
+                      <span v-if="p.pond_matematicas" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">M1 {{ p.pond_matematicas }}%</span>
+                      <span v-if="p.pond_matematicas_2" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">M2 {{ p.pond_matematicas_2 }}%</span>
+                      <span v-if="p.pond_historia" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">Hist {{ p.pond_historia }}%</span>
+                      <span v-if="p.pond_ciencias" class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">Cs {{ p.pond_ciencias }}%</span>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Puntajes -->
-                <div class="flex flex-col gap-1 shrink-0 text-center">
-                  <div class="text-center">
-                    <p class="text-slate-500 text-[10px] uppercase font-semibold">Tu pts.</p>
-                    <p class="text-base font-bold text-slate-900">{{ p.puntaje_calculado }}</p>
+                <div class="grid w-full grid-cols-3 gap-2 text-center sm:w-auto sm:min-w-[5.5rem] sm:grid-cols-1 sm:gap-1">
+                  <div class="rounded-xl bg-slate-50 px-2 py-2 sm:px-3">
+                    <p class="text-[10px] font-semibold uppercase text-slate-500">Tu pts.</p>
+                    <p class="text-sm font-bold text-slate-900 sm:text-base">{{ formatScore(p.puntaje_calculado) }}</p>
                   </div>
-                  <div class="text-center">
-                    <p class="text-slate-500 text-[10px] uppercase font-semibold">Ref.</p>
-                    <p class="text-base font-bold" :class="getScoreClass(p.diferencia)">{{ formatScore(p.puntaje_referencia) }}</p>
+                  <div class="rounded-xl bg-slate-50 px-2 py-2 sm:px-3">
+                    <p class="text-[10px] font-semibold uppercase text-slate-500">Ref.</p>
+                    <p class="text-sm font-bold sm:text-base" :class="getScoreClass(p.diferencia)">{{ formatScore(p.puntaje_referencia) }}</p>
                   </div>
-                  <div class="text-center">
-                    <p class="text-slate-500 text-[10px] uppercase font-semibold">+pts</p>
-                    <p class="text-base font-bold" :class="getScoreClass(p.diferencia)">+{{ formatScore(p.diferencia) }}</p>
+                  <div class="rounded-xl bg-slate-50 px-2 py-2 sm:px-3">
+                    <p class="text-[10px] font-semibold uppercase text-slate-500">Holgura</p>
+                    <p class="text-sm font-bold sm:text-base" :class="getScoreClass(p.diferencia)">{{ formatSignedScore(p.diferencia) }}</p>
                   </div>
                 </div>
               </div>
 
               <!-- Acciones -->
-              <div class="flex items-center gap-2 pt-1 border-t border-slate-100">
+              <div class="flex flex-col gap-2 border-t border-slate-100 pt-1 sm:flex-row sm:items-center">
                 <button
-                  class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition disabled:cursor-default disabled:opacity-80"
+                  class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-semibold transition disabled:cursor-default disabled:opacity-80 sm:w-auto sm:justify-start sm:py-1.5"
                   :class="isInCompare(p.program_unique_code) ? 'border-primary-300 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
                   :disabled="isInCompare(p.program_unique_code)"
                   @click="queueProgramForCompare(p)"
@@ -328,7 +331,7 @@
                 </button>
                 <NuxtLink
                   :to="`/careers/${p.program_unique_code}`"
-                  class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary-200 bg-primary-50 text-primary-700 text-xs font-semibold hover:bg-primary-100 transition"
+                  class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary-200 bg-primary-50 px-2.5 py-2 text-xs font-semibold text-primary-700 transition hover:bg-primary-100 sm:w-auto sm:justify-start sm:py-1.5"
                 >
                   Ver detalle →
                 </NuxtLink>
@@ -372,8 +375,10 @@
 <script setup lang="ts">
 useHead({ title: 'Simulador PAES · KoraChile' })
 
+import { storeToRefs } from 'pinia'
 import { useInstitutionLogos } from '~/composables/useInstitutionLogos'
 import { useProgramDetailStore } from '~/stores/programDetail'
+import { usePaesSimulatorStore } from '~/stores/paesSimulator'
 import {
   HeartPulse, Monitor, Cog, BookOpen, BarChart3,
   Scale, Paintbrush, Users, BookMarked, Leaf, FlaskConical,
@@ -381,10 +386,28 @@ import {
 
 const { prefetch: prefetchLogos, logoCache } = useInstitutionLogos()
 const programDetailStore = useProgramDetailStore()
+const paesSimulatorStore = usePaesSimulatorStore()
+const {
+  scores,
+  selectedAreas,
+  results,
+  drawerOpen,
+  filterText,
+  filterArea,
+  filterRegion,
+  sortBy,
+  page,
+} = storeToRefs(paesSimulatorStore)
 const COMPARE_PAES_PROGRAMS_KEY = 'KoraChile:compare:carrera-paes'
 const compareProgramCodes = ref<string[]>([])
 
-onMounted(() => loadCompareProgramCodes())
+onMounted(() => {
+  loadCompareProgramCodes()
+  paesSimulatorStore.hydrate()
+
+  const codes = (results.value?.programs ?? []).map((program: any) => program.institution_code).filter(Boolean)
+  if (codes.length) prefetchLogos(codes)
+})
 
 function loadCompareProgramCodes() {
   if (typeof window === 'undefined') return
@@ -471,7 +494,6 @@ const AREAS_DISPONIBLES = [
   { value: 'ciencias basicas',          icon: FlaskConical, label: 'Cs. Básicas' },
 ]
 
-const selectedAreas = ref<string[]>([])
 function toggleArea(area: string) {
   const idx = selectedAreas.value.indexOf(area)
   if (idx >= 0) selectedAreas.value.splice(idx, 1)
@@ -492,55 +514,30 @@ const optionalFields = [
   { key: 'ciencias', label: 'Ciencias',      min: 100, max: 1000, placeholder: 'opcional' },
 ]
 
-interface Scores {
-  nem: number | null
-  ranking: number | null
-  cl: number | null
-  m1: number | null
-  m2: number | null
-  historia: number | null
-  ciencias: number | null
-  [key: string]: number | null
-}
-
-const scores = reactive<Scores>({
-  nem: null, ranking: null, cl: null, m1: null,
-  m2: null, historia: null, ciencias: null,
-})
-
 const canSimulate = computed(() =>
-  scores.nem != null && scores.ranking != null && scores.cl != null && scores.m1 != null,
+  scores.value.nem != null && scores.value.ranking != null && scores.value.cl != null && scores.value.m1 != null,
 )
 
 // ── Estado ──
 const loading    = ref(false)
 const error      = ref<string | null>(null)
-const results    = ref<{ total: number; programs: any[] } | null>(null)
-const drawerOpen = ref(false)
-
-// Filtros y ordenamiento
-const filterText   = ref('')
-const filterArea   = ref('')
-const filterRegion = ref('')
-const sortBy       = ref('diferencia')
-const page       = ref(0)
 const pageSize   = 30
 
 const supabase = useSupabaseClient()
 
 // ── Clamping de inputs ──
-function clampOnInput(key: keyof Scores, max: number) {
-  const v = scores[key]
+function clampOnInput(key: string, max: number) {
+  const v = scores.value[key]
   if (v === null || v === undefined) return
-  if (v < 0) scores[key] = 0
-  if (v > max) scores[key] = max
+  if (v < 0) scores.value[key] = 0
+  if (v > max) scores.value[key] = max
 }
 
-function clampOnBlur(key: keyof Scores, min: number, max: number) {
-  const v = scores[key]
+function clampOnBlur(key: string, min: number, max: number) {
+  const v = scores.value[key]
   if (v === null || v === undefined) return
-  if (v < min) scores[key] = min
-  if (v > max) scores[key] = max
+  if (v < min) scores.value[key] = min
+  if (v > max) scores.value[key] = max
 }
 
 // ── Simular ──
@@ -548,8 +545,6 @@ async function simulate() {
   if (!canSimulate.value) return
   loading.value = true
   error.value   = null
-  results.value = null
-  page.value    = 0
 
   try {
     const { data: { session } } = await supabase.auth.getSession()
@@ -557,17 +552,18 @@ async function simulate() {
       method: 'POST',
       headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
       body: {
-        nem:      scores.nem,
-        ranking:  scores.ranking,
-        cl:       scores.cl,
-        m1:       scores.m1,
-        m2:       scores.m2 ?? undefined,
-        historia: scores.historia ?? undefined,
-        ciencias: scores.ciencias ?? undefined,
+        nem:      scores.value.nem,
+        ranking:  scores.value.ranking,
+        cl:       scores.value.cl,
+        m1:       scores.value.m1,
+        m2:       scores.value.m2 ?? undefined,
+        historia: scores.value.historia ?? undefined,
+        ciencias: scores.value.ciencias ?? undefined,
         areas:    selectedAreas.value.length ? selectedAreas.value : undefined,
       },
     })
-    results.value = data as any
+    paesSimulatorStore.resetTransientFilters()
+    paesSimulatorStore.setResultsSnapshot(data as any)
     drawerOpen.value = true
     // Pre-cargar logos de las instituciones devueltas
     const codes = (results.value?.programs ?? []).map((p: any) => p.institution_code).filter(Boolean)
@@ -681,6 +677,11 @@ function formatCLP(value: number) {
 function formatScore(value: number) {
   const truncatedValue = Math.trunc(value * 10) / 10
   return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }).format(truncatedValue)
+}
+
+function formatSignedScore(value: number) {
+  const prefix = value > 0 ? '+' : ''
+  return `${prefix}${formatScore(value)}`
 }
 </script>
 

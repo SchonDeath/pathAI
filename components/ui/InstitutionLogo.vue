@@ -45,13 +45,15 @@ const props = withDefaults(defineProps<{
 })
 
 const isLoaded = ref(false)
+const imageFailed = ref(false)
 
-const showImage = computed(() => !!props.logoUrl)
+const showImage = computed(() => !!props.logoUrl && !imageFailed.value)
 const showLoader = computed(() => showImage.value && !isLoaded.value)
 const altText = computed(() => props.institutionName || 'Institución')
 
 watch(() => props.logoUrl, () => {
   isLoaded.value = false
+  imageFailed.value = false
 })
 
 function onLoad() {
@@ -60,5 +62,6 @@ function onLoad() {
 
 function onError() {
   isLoaded.value = false
+  imageFailed.value = true
 }
 </script>

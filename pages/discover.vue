@@ -6,10 +6,8 @@
     <main class="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 overflow-hidden">
       <!-- Botón volver -->
       <div class="w-full max-w-3xl mx-auto mb-6">
-        <NuxtLink to="/" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-          </svg>
+        <NuxtLink to="/" class="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-primary-700 shadow-sm shadow-primary-100/60 transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-800">
+          <ArrowLeft class="h-4 w-4" />
           Volver al inicio
         </NuxtLink>
       </div>
@@ -72,8 +70,9 @@
           <div class="text-center">
             <button
               @click="showQuiz = true"
-              class="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
-              ¿Prefieres responder un quiz? →
+              class="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 shadow-sm shadow-primary-100/60 transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:bg-primary-100">
+              ¿Prefieres responder un quiz?
+              <ArrowRight class="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -83,8 +82,9 @@
           <div class="text-center">
             <button
               @click="showQuiz = false"
-              class="text-sm text-slate-600 hover:text-slate-700 font-medium transition-colors">
-              ← Volver a búsqueda libre
+              class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900">
+              <ArrowLeft class="h-4 w-4" />
+              Volver a búsqueda libre
             </button>
           </div>
         </div>
@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import { useCareerStore } from '~/stores/career'
 import { useAuthStore } from '~/stores/auth'
-import { BrainCircuit, GraduationCap } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, BrainCircuit, GraduationCap } from 'lucide-vue-next'
 
 useHead({
   title: 'Descubrir carrera · KoraChile',
