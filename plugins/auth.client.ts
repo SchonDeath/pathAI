@@ -3,8 +3,17 @@
  * y escucha cambios de sesión de Supabase para mantenerlo sincronizado.
  */
 import { useAuthStore } from '~/stores/auth'
+import { hasSupabaseConfig } from '~/composables/useSupabaseClient'
 
 export default defineNuxtPlugin(async () => {
+  // Sin credenciales de Supabase la app no puede autenticar, pero tampoco debe
+  // caerse: un throw aquí aborta la inicialización de Nuxt y deja la pantalla
+  // en blanco. Degradamos a "sesión anónima" y dejamos que la UI se muestre.
+  if (!hasSupabaseConfig()) {
+    console.warn('[auth] Supabase no configurado: la app arranca sin sesión. Revisa tu .env.')
+    return
+  }
+
   const auth = useAuthStore()
   const supabase = useSupabaseClient()
 

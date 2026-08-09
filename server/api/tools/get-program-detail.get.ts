@@ -110,7 +110,13 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await q
   if (error) throw createError({ statusCode: 500, statusMessage: error.message })
 
-  if (!data?.length) return { match: 'none', candidates: [] }
+  if (!data?.length) {
+    return {
+      match: 'none',
+      candidates: [],
+      message: 'No se encontró ningún programa con esos filtros. Reintenta sin sede ni jornada, o usa search_career_match para localizar el program_unique_code correcto. NO inventes aranceles, puntajes ni vacantes.',
+    }
+  }
 
   if (data.length === 1) {
     const program = enrichProgram(data[0])

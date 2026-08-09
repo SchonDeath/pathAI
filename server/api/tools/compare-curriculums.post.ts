@@ -15,6 +15,9 @@
 import { requireAuth } from '~/server/utils/require-auth'
 import { requireSupabaseServiceClient } from '~/server/utils/supabase-clients'
 
+/** Ramos devueltos por programa. Suficiente para comparar sin inflar el payload. */
+const MAX_SUBJECTS_PER_PROGRAM = 24
+
 export default defineEventHandler(async (event) => {
   await requireAuth(event, { skipRateLimit: true })
   const body = await readBody<{ programCodes?: string[] }>(event)
@@ -80,7 +83,14 @@ export default defineEventHandler(async (event) => {
         arancel_anual: p.arancel_anual,
         status: 'ok' as const,
         source: malla.source,
-        subjects: malla.subjects,
+        // Tope en el endpoint, no solo en el summarizer del chat: una malla son
+        // 40-60 ramos y con 5 programas el payload se dispara a miles de tokens
+        // para cualquier consumidor.
+        subjects: Array.isArray(malla.subjects) ? malla.subjects.slice(0, MAX_SUBJECTS_PER_PROGRAM) : malla.subjects,
+        subjects_count: Array.isArray(malla.subjects) ? malla.subjects.length : null,
+        subjects_truncated: Array.isArray(malla.subjects)
+          ? Math.max(0, malla.subjects.length - MAX_SUBJECTS_PER_PROGRAM)
+          : 0,
       }
     }
 

@@ -16,7 +16,7 @@ import { requireAuth } from '~/server/utils/require-auth'
 import { classifyChatIntent } from '~/server/utils/ai/intent-router'
 import { getAiBudgetState } from '~/server/utils/ai/budget'
 import { normalizeSessionId, persistChatTurn } from '~/server/utils/ai/chat-persistence'
-import { captureLlmUsage, logAiUsageEvent, type CapturedLlmUsage } from '~/server/utils/ai/usage-logger'
+import { captureLlmUsage, logAiUsageEvent, summarizeAiUsage, type CapturedLlmUsage } from '~/server/utils/ai/usage-logger'
 import { resolveGratuidad } from '~/server/utils/gratuidad'
 import { randomUUID } from 'node:crypto'
 
@@ -28,13 +28,15 @@ TOOLS — cuándo usar cada una:
 - Puntaje, arancel, vacantes, duración, malla → get_program_detail o search_career_match.
 - Info de institución (sede, acreditación, matrícula, CRUCH) → get_institution; para CRUCH lee tipo_institucion_detalle.
 - Ranking/comparación → rank_careers / rank_institutions / compare_institutions.
-- Carrera en institución específica: usa parámetro "institution" en search_career_match. Si found_in_institution=true, muestra SOLO los resultados de esa institución; si hay múltiples nivel_carrera distintos (Pregrado, Magíster, etc.), agrúpalos por nivel en la respuesta. Si found_in_institution=false, muestra primero related_in_institution ("programas relacionados en esa institución") y luego results como alternativas en otras instituciones.
+- Carrera en institución específica: usa el parámetro "nombre_institucion" en search_career_match. Si found_in_institution=true, muestra SOLO los resultados de esa institución; si hay múltiples nivel_carrera distintos (Pregrado, Magíster, etc.), agrúpalos por nivel en la respuesta. Si found_in_institution=false, muestra primero related_in_institution ("programas relacionados en esa institución") y luego results como alternativas en otras instituciones.
+- IP y CFT: cuando el usuario hable de un Instituto Profesional o un CFT, pasa SIEMPRE tipo_institucion en get_career_stats_detailed y rank_careers. Los ingresos universitarios son bastante más altos y contaminarían el promedio.
+- Si una tool falla porque un filtro no fue reconocido (área, región, nivel), llama get_filters_catalog para ver los valores válidos y reintenta con el valor correcto.
 
 FLUJO KORA:
 - Si el usuario menciona una institución sin carrera concreta, consulta get_institution, resume datos clave y pregunta qué nivel académico quiere explorar.
 - Mantén contexto activo {institución, nivel académico, área}. En follow-ups como "salud" o "mejor empleabilidad", conserva institución+nivel y añade el nuevo filtro.
 - Si el usuario cambia de institución (ej: "¿y en la PUC?"), reinicia nivel/área y vuelve a preguntar nivel antes de listar programas.
-- Si ya hay institución+nivel, search_career_match debe llevar institution, nivel_carrera y randomize=true cuando estés mostrando opciones de descubrimiento.
+- Si ya hay institución+nivel, search_career_match debe llevar nombre_institucion, nivel_carrera y randomize=true cuando estés mostrando opciones de descubrimiento.
 - Cuando el usuario pida mejor empleabilidad, contextualiza con la institución/nivel activo y usa datos oficiales antes de recomendar.
 
 NIVELES ACADÉMICOS:
@@ -142,6 +144,75 @@ const MAX_USER_TURNS = 5        // últimos 5 turnos user/assistant
 const MAX_TOOL_ROUND_HISTORY = 2 // conservar solo últimas 2 rondas de tools
 const MAX_REQUEST_MESSAGES = 20
 const MAX_TOOL_RESULT_CHARS = 3200
+const TOOL_TIMEOUT_MS = 8000
+
+type ToolErrorKind = 'validation' | 'not_found' | 'timeout' | 'unknown_tool' | 'bad_arguments' | 'upstream'
+
+interface ToolCallLogEntry {
+  name: string
+  ok: boolean
+  latency_ms: number
+  round: number
+  error_kind?: ToolErrorKind
+  deduped?: boolean
+}
+
+/**
+ * Clasifica un fallo de tool para poder agregarlo en telemetría. Sin esto todos
+ * los errores (timeout, 400 de validación, 500 de Supabase) son un único blob
+ * indistinguible y no se puede saber qué arreglar.
+ */
+function classifyToolError(e: any): ToolErrorKind {
+  const status = Number(e?.statusCode ?? e?.status ?? e?.response?.status)
+  const message = String(e?.message ?? '')
+
+  if (/unknown tool/i.test(message)) return 'unknown_tool'
+  if (/abort|timeout/i.test(message) || e?.name === 'AbortError' || e?.name === 'TimeoutError') return 'timeout'
+  if (status === 400 || status === 422) return 'validation'
+  if (status === 404) return 'not_found'
+  return 'upstream'
+}
+
+/**
+ * Extrae el mensaje accionable que el endpoint construyó (`statusMessage`).
+ * `e.message` de ofetch es `[GET] "http://host/api/...": 400 Bad Request`, que
+ * no le dice nada al modelo y además filtra la URL interna del servidor al
+ * contexto del LLM. Los endpoints sí producen mensajes útiles —p. ej.
+ * rank-careers devuelve la lista exacta de métricas válidas— y son los que
+ * permiten al modelo autocorregirse en la siguiente ronda.
+ */
+function extractToolErrorMessage(e: any): string | null {
+  const candidates = [
+    e?.data?.statusMessage,
+    e?.data?.message,
+    e?.statusMessage,
+    e?.response?._data?.statusMessage,
+    e?.response?._data?.message,
+  ]
+  for (const candidate of candidates) {
+    const text = typeof candidate === 'string' ? candidate.trim() : ''
+    // Descarta los mensajes genéricos de HTTP que no orientan al modelo.
+    if (text && !/^\d{3}\b/.test(text) && !/^(bad request|not found|internal server error)$/i.test(text)) {
+      return text
+    }
+  }
+  return null
+}
+
+/** Clave estable para deduplicar: mismo nombre + mismos args (orden irrelevante). */
+function toolCallSignature(name: string, args: any): string {
+  const normalize = (value: any): any => {
+    if (Array.isArray(value)) return value.map(normalize)
+    if (value && typeof value === 'object') {
+      return Object.keys(value)
+        .filter(k => !k.startsWith('_'))
+        .sort()
+        .reduce((acc: any, k) => { acc[k] = normalize(value[k]); return acc }, {})
+    }
+    return value
+  }
+  return `${name}:${JSON.stringify(normalize(args ?? {}))}`
+}
 
 function clipText(value: unknown, max = 600): string {
   const text = String(value ?? '')
@@ -803,16 +874,22 @@ function pickTools(userMsg: string) {
     names.add('search_career_match')
   }
 
+  // Catálogo de filtros: solo cuando el usuario nombra un filtro que puede no
+  // existir tal cual (región/área/nivel). Sin esta regla la tool era
+  // inalcanzable desde el chat pese a estar implementada.
+  if (/\bregi(o|ó)n\b|\bcomuna\b|\b(a|á)rea\b|nivel\s+(academico|académico)|que\s+(areas|áreas)|que\s+regiones/.test(normalized)) {
+    names.add('get_filters_catalog')
+  }
+
   if (!names.size) {
-    // Sin intención clara: enviamos solo el set mínimo esencial (no las 11)
-    // para que el modelo aún pueda decidir consultar BD si lo necesita,
-    // ahorrando ~2k tokens de schema en cada turno.
+    // Sin intención clara: enviamos solo el set mínimo esencial (no el catálogo
+    // completo) para que el modelo aún pueda decidir consultar BD si lo
+    // necesita, ahorrando ~2k tokens de schema en cada turno.
     const fallback = ['search_career_match', 'get_career_stats_detailed', 'get_institution']
     return (aiTools as readonly any[]).filter(t => fallback.includes(t.function?.name))
   }
 
-  const picked = (aiTools as readonly any[]).filter(t => names.has(t.function?.name))
-  return picked.length ? picked : (aiTools as any)
+  return (aiTools as readonly any[]).filter(t => names.has(t.function?.name))
 }
 
 // Deja al sistema + últimos N turnos user/assistant.
@@ -926,6 +1003,50 @@ function summarizeInstitution(row: any) {
 }
 
 function summarizeToolResult(name: string, result: any) {
+  // Rankings: solo la métrica pedida + identificación. Antes caían al
+  // compactForPrompt genérico y arrastraban dirección, is_featured y priority.
+  if ((name === 'rank_institutions' || name === 'rank_careers') && Array.isArray(result?.results)) {
+    // El endpoint devuelve `metric` con la clave corta ("ingreso_4to") pero la
+    // columna en la fila es la expandida ("ingreso_4to_ano_clp"), así que el
+    // valor se identifica por descarte: es el campo que no es de identidad.
+    const IDENTITY_KEYS = new Set([
+      'institution_code', 'nombre_institucion', 'tipo_institucion', 'direccion_sede_central',
+      'is_featured', 'priority', 'area', 'nombre_carrera_generica',
+    ])
+    return {
+      metric: result?.metric,
+      order: result?.order,
+      count: result?.count,
+      results: result.results.slice(0, 15).map((row: any, index: number) => {
+        const metricEntry = Object.entries(row ?? {}).find(([key]) => !IDENTITY_KEYS.has(key))
+        return {
+          posicion: index + 1,
+          nombre: row?.nombre_institucion ?? row?.nombre_carrera_generica ?? null,
+          tipo_institucion: row?.tipo_institucion ?? null,
+          ...(row?.area ? { area: row.area } : {}),
+          valor: metricEntry ? metricEntry[1] : null,
+        }
+      }),
+    }
+  }
+
+  if (name === 'get_career_stats_detailed' && Array.isArray(result?.results)) {
+    return {
+      count: result.count,
+      results: result.results.slice(0, 6),
+      ...(result.message ? { message: result.message } : {}),
+    }
+  }
+
+  if (name === 'get_career_employability_by_institution' && Array.isArray(result?.results)) {
+    return {
+      count: result.count,
+      // `resolution` es telemetría interna del resolver; el modelo no la necesita.
+      results: result.results.slice(0, 12),
+      ...(result.message ? { message: result.message } : {}),
+    }
+  }
+
   if (name === 'search_career_match' && Array.isArray(result?.results)) {
     const maxResults = 8
     return {
@@ -939,6 +1060,7 @@ function summarizeToolResult(name: string, result: any) {
         : [],
       results: result.results.slice(0, maxResults).map(summarizeProgram),
       truncated_results: Math.max(0, result.results.length - maxResults),
+      ...(result.message ? { message: result.message } : {}),
     }
   }
 
@@ -1025,11 +1147,52 @@ function summarizeToolResult(name: string, result: any) {
   return compactForPrompt(result)
 }
 
+/**
+ * Serializa el resultado de una tool respetando el presupuesto de caracteres.
+ *
+ * Recorta a nivel de DATOS (quita elementos del array más largo y reintenta),
+ * no con un slice() sobre el string ya serializado: eso cortaba el JSON a mitad
+ * de estructura y entregaba al modelo un documento sintácticamente inválido.
+ * Importa sobre todo con los modelos pequeños de la cadena de fallback.
+ */
 function stringifyToolResultForPrompt(name: string, result: any) {
-  const json = JSON.stringify(summarizeToolResult(name, result))
-  return json.length > MAX_TOOL_RESULT_CHARS
-    ? `${json.slice(0, MAX_TOOL_RESULT_CHARS)}… [resultado truncado para proteger memoria]`
-    : json
+  let payload: any = summarizeToolResult(name, result)
+  let json = JSON.stringify(payload)
+  if (json.length <= MAX_TOOL_RESULT_CHARS) return json
+
+  // Encuentra el array más largo del primer nivel y ve recortándolo por mitades.
+  for (let attempt = 0; attempt < 8 && json.length > MAX_TOOL_RESULT_CHARS; attempt++) {
+    if (!payload || typeof payload !== 'object') break
+
+    let longestKey: string | null = null
+    let longestLength = 0
+    for (const [key, value] of Object.entries(payload)) {
+      if (Array.isArray(value) && value.length > longestLength) {
+        longestKey = key
+        longestLength = value.length
+      }
+    }
+    if (!longestKey || longestLength <= 1) break
+
+    const keep = Math.max(1, Math.floor(longestLength / 2))
+    payload = {
+      ...payload,
+      [longestKey]: (payload[longestKey] as any[]).slice(0, keep),
+      [`${longestKey}_omitidos`]: longestLength - keep,
+      nota_truncado: 'Se recortaron resultados por límite de contexto. Pide un filtro más específico si necesitas ver más.',
+    }
+    json = JSON.stringify(payload)
+  }
+
+  // Red de seguridad: si aún no cabe (objeto único enorme, sin arrays que
+  // recortar), devolvemos un objeto de error VÁLIDO en vez de un JSON partido.
+  if (json.length > MAX_TOOL_RESULT_CHARS) {
+    return JSON.stringify({
+      error: 'El resultado es demasiado grande para el contexto.',
+      hint: 'Reintenta con filtros más específicos o un limit menor.',
+    })
+  }
+  return json
 }
 
 function withLLMMeta(data: any, provider: string, model: string) {
@@ -1296,6 +1459,11 @@ export default defineEventHandler(async (event) => {
   // Si el cliente no envía sesión (o envía un ID inválido), generamos una en backend.
   // Así el chat funciona "out of the box" sin que el frontend tenga que gestionar UUID.
   const sessionId = normalizeSessionId(body?.sessionId) ?? randomUUID()
+  // Opt-in por request: adjunta un bloque `diagnostics` a la respuesta con la
+  // ruta tomada, tool calls y tokens. Sólo para usuarios autenticados (ya lo
+  // garantiza requireAuth arriba); lo usa el runner de evals y sirve para
+  // depurar en producción sin abrir la tabla de telemetría.
+  const wantsDiagnostics = body?.diagnostics === true
   if (!Array.isArray(messages) || messages.length === 0) {
     throw createError({ statusCode: 400, message: 'Se requiere un array de mensajes.' })
   }
@@ -1378,6 +1546,15 @@ export default defineEventHandler(async (event) => {
   let llmCallCount = 0
   let totalToolCallCount = 0
   let skippedToolCallCount = 0
+  // Telemetría por tool call: sin esto una tool que falló es indistinguible de
+  // una exitosa en `tools_used`, y `latency_ms` es una caja negra que no se
+  // puede descomponer en tiempo de LLM vs. tiempo de tools.
+  const toolCallLog: ToolCallLogEntry[] = []
+  const toolsFailed: string[] = []
+  // Dedupe por turno: el LLM repite llamadas idénticas entre rondas porque
+  // pruneToolHistory le borra los resultados antiguos de la vista.
+  const toolResultCache = new Map<string, Promise<any>>()
+  let toolCallsDeduped = 0
   // Datos completos de programas para cachear en el cliente (sin requests adicionales)
   const programFullData: Record<string, any> = {}
   let programCards: ProgramCard[] = []
@@ -1474,6 +1651,11 @@ export default defineEventHandler(async (event) => {
           needs_official_data: intent.needsOfficialData,
           selected_tools: selectedToolNames,
           skipped_tool_calls: skippedToolCallCount,
+          tool_calls: toolCallLog,
+          tools_failed: [...new Set(toolsFailed)],
+          tool_error_count: toolCallLog.filter(t => !t.ok).length,
+          tool_calls_deduped: toolCallsDeduped,
+          tool_latency_ms_total: toolCallLog.reduce((sum, t) => sum + t.latency_ms, 0),
           tool_limits: {
             max_rounds: intent.maxToolRounds,
             max_per_round: intent.maxToolCallsPerRound,
@@ -1502,6 +1684,24 @@ export default defineEventHandler(async (event) => {
       // Datos completos para que el cliente los cachee en Pinia sin fetch extra
       programFullData: Object.keys(programFullData).length ? programFullData : undefined,
       sessionId,
+      // Diagnóstico opt-in (body.diagnostics = true). Lo consume el runner de
+      // evals para verificar qué ruta tomó el turno y cuánto costó, sin tener
+      // que leer la tabla ai_usage_events. Ausente en las respuestas normales.
+      diagnostics: wantsDiagnostics
+        ? {
+            deterministic_route: deterministicRoute,
+            intent: intent.kind,
+            conversation_type: conversationType,
+            selected_tools: selectedToolNames,
+            tool_calls: toolCallLog,
+            tools_failed: [...new Set(toolsFailed)],
+            tool_calls_deduped: toolCallsDeduped,
+            cache_hit: opts.cacheHit ?? payload.cached ?? false,
+            llm_call_count: llmCallCount,
+            tokens: summarizeAiUsage(llmUsages).totalTokens,
+            latency_ms: Date.now() - startedAt,
+          }
+        : undefined,
     }
   }
 
@@ -1802,7 +2002,7 @@ export default defineEventHandler(async (event) => {
       totalToolCallCount++
       toolsUsed.push('get_career_stats_detailed')
       const result = await runTool('get_career_stats_detailed', args, event)
-      const rows = Array.isArray(result?.stats) ? result.stats.slice(0, 5) : []
+      const rows = Array.isArray(result?.results) ? result.results.slice(0, 5) : []
 
       const reply = rows.length
         ? `Con datos SIES 2026 para **${careerQuery}**, encontré estas referencias:\n\n${rows.map((row: any, index: number) => {
@@ -1976,8 +2176,20 @@ INSTRUCCIONES:
           let args: any = {}
           try { args = JSON.parse(tc.function?.arguments ?? '{}') }
           catch (e: any) {
+            // Devolver el error de sintaxis al modelo en vez de ejecutar con {}:
+            // así puede reintentar con JSON válido. Antes se tragaba en silencio
+            // y el modelo recibía un resultado irrelevante sin saber por qué.
             console.warn('[Chat] tool args parse failed for', name, ':', e?.message)
-            args = {}
+            toolCallLog.push({ name, ok: false, latency_ms: 0, round, error_kind: 'bad_arguments' })
+            toolsFailed.push(name)
+            return {
+              tool_call_id: tc.id,
+              name,
+              content: JSON.stringify({
+                error: 'Los argumentos no son JSON válido y no se ejecutó la herramienta.',
+                hint: 'Vuelve a llamar la herramienta con un objeto JSON bien formado.',
+              }),
+            }
           }
 
           // Guardrail: si el usuario mencionó una institución específica, forzar
@@ -1985,7 +2197,11 @@ INSTRUCCIONES:
           // resultados de otra IES o nivel.
           if (activeInstitution) {
             if (name === 'search_career_match') {
-              if (!args.institution && !args.institution_code) args.institution = activeInstitution
+              // El schema unificó el parámetro a `nombre_institucion`; runTool
+              // lo traduce al `institution` que espera el endpoint.
+              if (!args.nombre_institucion && !args.institution && !args.institution_code) {
+                args.nombre_institucion = activeInstitution
+              }
               if (chatContext.nivel && !args.nivel_carrera) args.nivel_carrera = chatContext.nivel
               if (chatContext.area && !args.area) args.area = chatContext.area
               if (chatContext.lastNivel || chatContext.lastArea) {
@@ -2026,9 +2242,29 @@ INSTRUCCIONES:
               : 12
           }
 
-          toolsUsed.push(name)
+          // Dedupe DESPUÉS de los guardrails: éstos rellenan institution/nivel/
+          // limit, así que dos tool calls distintas del LLM pueden quedar
+          // idénticas aquí. La firma ignora claves internas (_resolved_*).
+          const signature = toolCallSignature(name, args)
+          const cached = toolResultCache.get(signature)
+          const isDuplicate = !!cached
+          if (isDuplicate) toolCallsDeduped += 1
+
+          const toolStartedAt = Date.now()
           try {
-            const result = await runTool(name, args, event)
+            const resultPromise = cached ?? runTool(name, args, event)
+            if (!cached) toolResultCache.set(signature, resultPromise)
+            const result = await resultPromise
+
+            toolsUsed.push(name)
+            toolCallLog.push({
+              name,
+              ok: true,
+              latency_ms: Date.now() - toolStartedAt,
+              round,
+              ...(isDuplicate ? { deduped: true } : {}),
+            })
+
             if (name === 'search_career_match' && Array.isArray(result?.results) && !asksInstitutionMeta) {
               const filteredByInstitution = scopedProgramRows(result)
 
@@ -2055,7 +2291,36 @@ INSTRUCCIONES:
 
             return { tool_call_id: tc.id, name, content: stringifyToolResultForPrompt(name, result) }
           } catch (e: any) {
-            return { tool_call_id: tc.id, name, content: JSON.stringify({ error: e?.message || 'tool failed' }) }
+            // Un fallo no debe quedar cacheado: la siguiente ronda puede reintentar.
+            toolResultCache.delete(signature)
+
+            const errorKind = classifyToolError(e)
+            toolsFailed.push(name)
+            toolCallLog.push({
+              name,
+              ok: false,
+              latency_ms: Date.now() - toolStartedAt,
+              round,
+              error_kind: errorKind,
+            })
+
+            // Prioriza el statusMessage que construyó el endpoint (accionable)
+            // sobre e.message de ofetch (genérico + filtra la URL interna).
+            const detail = extractToolErrorMessage(e)
+            console.warn('[Chat] tool failed:', name, errorKind, detail || e?.message)
+
+            return {
+              tool_call_id: tc.id,
+              name,
+              content: JSON.stringify({
+                error: detail || 'La herramienta no pudo completar la consulta.',
+                ...(detail ? {} : {
+                  hint: errorKind === 'timeout'
+                    ? 'La consulta tardó demasiado. Reintenta con filtros más específicos o un limit menor.'
+                    : 'Reintenta con parámetros más específicos, o usa get_filters_catalog para ver los valores válidos de área, región, nivel y tipo de institución.',
+                }),
+              }),
+            }
           }
         }),
       )

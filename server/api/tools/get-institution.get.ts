@@ -46,12 +46,12 @@ export default defineEventHandler(async (event) => {
       m2_construidos, volumenes_biblioteca,
       laboratorios_talleres, computadores,
       ingresos_operacion_clp, resultado_ejercicio_clp,
-      total_activos_clp, patrimonio_total_clp,
-      matricula_pregrado_por_ano, matricula_posgrado_por_ano,
-      titulados_pregrado_por_ano, titulados_posgrado_por_ano,
-      matricula_pct_por_area, matricula_pct_por_origen,
-      jce_por_nivel_academico
+      total_activos_clp, patrimonio_total_clp
     `)
+    // Nota: las series temporales (matricula_*_por_ano, titulados_*_por_ano,
+    // matricula_pct_por_*, jce_por_nivel_academico) NO se traen aquí. Son blobs
+    // JSON de miles de tokens que el summarizer del chat descartaba siempre.
+    // La UI los obtiene de /api/ranking/institutions, que sí los necesita.
     .limit(5)
 
   if (resolvedCode) {
@@ -68,7 +68,13 @@ export default defineEventHandler(async (event) => {
     casa_central: row.direccion_sede_central ?? null,
   })
 
-  if (!data?.length) return { match: 'none', candidates: [] }
+  if (!data?.length) {
+    return {
+      match: 'none',
+      candidates: [],
+      message: `No se encontró ninguna institución que coincida con "${nombre ?? institution_code ?? ''}". Verifica el nombre con el usuario (puede ser una sigla poco común) o pídele el nombre completo. NO inventes datos de esta institución.`,
+    }
+  }
 
   // Si hay match único o exacto, devolver ficha completa.
   // Si hay varios, devolver lista resumida para que la IA pida confirmación.

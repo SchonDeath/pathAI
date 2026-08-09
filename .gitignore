@@ -17,6 +17,9 @@ convertidor/scripts/*.pdf
 convertidor/scripts/*.xlsx
 convertidor/scripts/*.csv
 
+# Resultados de evaluaciones (el dataset SI se versiona)
+evals/results/
+
 # Artefactos accidentales
 127.0.0.1/
 *.bak

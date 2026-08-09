@@ -21,7 +21,24 @@ export default defineEventHandler(async (event) => {
   if (nombre_carrera_generica) {
     const { data } = await supabase
       .from('career_stats')
-      .select('*')
+      // Columnas explícitas: `select('*')` exponía cualquier columna nueva
+      // (ids, timestamps, series JSON) sin que nadie lo notara.
+      .select(`
+        nombre_carrera_generica,
+        area,
+        tipo_institucion,
+        ingreso_1er_ano_clp,
+        ingreso_2do_ano_clp,
+        ingreso_4to_ano_clp,
+        ingreso_5to_ano_clp,
+        empleabilidad_1er_ano_pct,
+        empleabilidad_2do_ano_pct,
+        retencion_1er_ano_pct,
+        duracion_real_semestres,
+        duracion_formal_semestres,
+        titulados_2024_total,
+        matricula_total_2025_total
+      `)
       .eq('area', area)
       .eq('tipo_institucion', tipo_institucion)
       .eq('nombre_carrera_generica', nombre_carrera_generica)

@@ -778,10 +778,26 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Sin resultados: orienta al agente sobre qué aflojar. Un `count: 0` mudo lo
+  // deja reintentando a ciegas o inventando programas.
+  const emptyMessage = selected.length === 0
+    ? (() => {
+        const applied: string[] = []
+        if (body.keywords?.length) applied.push(`keywords="${body.keywords.join(', ')}"`)
+        if (body.region) applied.push(`region="${body.region}"`)
+        if (body.comuna) applied.push(`comuna="${body.comuna}"`)
+        if (body.nivel_carrera) applied.push(`nivel_carrera="${body.nivel_carrera}"`)
+        if (body.tipo_institucion) applied.push(`tipo_institucion="${body.tipo_institucion}"`)
+        if (body.max_arancel) applied.push(`max_arancel=${body.max_arancel}`)
+        return `No hay programas con estos filtros (${applied.join(', ') || 'sin filtros'}). Reintenta quitando el filtro más restrictivo (región o arancel suelen serlo), o usa get_filters_catalog para confirmar que los valores de área, región y nivel existen. NO inventes programas.`
+      })()
+    : null
+
   return {
     count: selected.length,
     source_count: allPrograms.length,
     institutions_count: buckets.size,
+    ...(emptyMessage ? { message: emptyMessage } : {}),
     // Programas relacionados en la misma institución (cuando no hay match exacto)
     related_in_institution: relatedInInstitution.length
       ? relatedInInstitution.slice(0, 5).map(summarizeRelated)

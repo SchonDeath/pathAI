@@ -60,6 +60,75 @@
             </div>
           </section>
 
+          <!-- Fiabilidad: sin esto el panel solo mide costo, no si el agente funciona. -->
+          <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+              <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Latencia p50</p>
+              <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ formatMs(report.total.latency_p50_ms) }}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+              <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Latencia p95</p>
+              <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ formatMs(report.total.latency_p95_ms) }}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+              <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Errores de tools</p>
+              <p class="text-3xl font-extrabold mt-2" :class="report.total.tool_error_count ? 'text-red-600' : 'text-slate-900'">
+                {{ formatInt(report.total.tool_error_count) }}
+              </p>
+              <p class="text-xs text-slate-500 mt-1">{{ toolErrorRate }}% de {{ formatInt(report.total.tool_call_count) }} llamadas</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+              <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Llamadas deduplicadas</p>
+              <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ formatInt(report.total.tool_calls_deduped) }}</p>
+              <p class="text-xs text-slate-500 mt-1">Repeticiones evitadas</p>
+            </div>
+          </section>
+
+          <!-- Salud por tool: `tools_used` se persistía hace tiempo pero nunca se mostró. -->
+          <section v-if="report.byTool?.length" class="bg-white rounded-2xl border border-slate-200 p-5 mb-6 overflow-x-auto">
+            <h2 class="font-bold text-slate-900 mb-3">Salud por herramienta</h2>
+            <table class="w-full text-sm min-w-[640px]">
+              <thead>
+                <tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-2 pr-3">Herramienta</th>
+                  <th class="py-2 pr-3 text-right">Llamadas</th>
+                  <th class="py-2 pr-3 text-right">Errores</th>
+                  <th class="py-2 pr-3 text-right">% error</th>
+                  <th class="py-2 pr-3 text-right">p50</th>
+                  <th class="py-2 text-right">p95</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="tool in report.byTool" :key="tool.key" class="border-b border-slate-100 last:border-0">
+                  <td class="py-2 pr-3 font-medium text-slate-800 font-mono text-xs">{{ tool.key }}</td>
+                  <td class="py-2 pr-3 text-right">{{ formatInt(tool.calls) }}</td>
+                  <td class="py-2 pr-3 text-right" :class="tool.errors ? 'text-red-600 font-semibold' : 'text-slate-500'">
+                    {{ formatInt(tool.errors) }}
+                  </td>
+                  <td class="py-2 pr-3 text-right" :class="tool.error_rate_pct > 5 ? 'text-red-600 font-semibold' : 'text-slate-500'">
+                    {{ tool.error_rate_pct }}%
+                  </td>
+                  <td class="py-2 pr-3 text-right text-slate-600">{{ formatMs(tool.latency_p50_ms) }}</td>
+                  <td class="py-2 text-right text-slate-600">{{ formatMs(tool.latency_p95_ms) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Rutas deterministas vs LLM: cuánto se ahorra en tokens. -->
+          <section v-if="report.byRoute?.length" class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+            <h2 class="font-bold text-slate-900 mb-3">Rutas de resolución</h2>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="route in report.byRoute"
+                :key="route.key"
+                class="px-3 py-1.5 rounded-lg text-xs font-medium"
+                :class="route.key === 'llm' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'">
+                {{ route.key }}: {{ formatInt(route.count) }}
+              </span>
+            </div>
+          </section>
+
           <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div class="px-5 py-4 border-b border-slate-100">
@@ -171,6 +240,12 @@ const cacheRate = computed(() => {
   return Math.round((total.cache_hits / total.requests) * 100)
 })
 
+const toolErrorRate = computed(() => {
+  const total = report.value?.total
+  if (!total?.tool_call_count) return 0
+  return Math.round((total.tool_error_count / total.tool_call_count) * 1000) / 10
+})
+
 async function authHeaders() {
   const { data } = await supabase.auth.getSession()
   return { Authorization: `Bearer ${data.session?.access_token ?? ''}` }
@@ -202,6 +277,12 @@ function formatClp(value?: number | null) {
 
 function formatInt(value?: number | null) {
   return new Intl.NumberFormat('es-CL').format(Number(value) || 0)
+}
+
+function formatMs(value?: number | null) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—'
+  const ms = Number(value)
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`
 }
 
 function formatDate(value: string) {

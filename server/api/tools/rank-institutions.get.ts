@@ -59,5 +59,9 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await query
   if (error) throw createError({ statusCode: 500, statusMessage: error.message })
 
-  return { metric: q.metric, order: q.order ?? 'desc', count: data?.length ?? 0, results: data ?? [] }
+  // is_featured/priority son señales internas de monetización: se usan arriba
+  // para ordenar, pero no deben viajar al LLM ni sesgar su narrativa.
+  const results = (data ?? []).map(({ is_featured, priority, ...row }: any) => row)
+
+  return { metric: q.metric, order: q.order ?? 'desc', count: results.length, results }
 })

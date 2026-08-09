@@ -8,7 +8,7 @@
         <div class="space-y-8">
           <div>
             <span class="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-semibold uppercase tracking-wider" style="background:#f0f6ff; border:1px solid #cce0ff; color:#0071e3; border-radius:999px;"><BarChart3 class="w-4 h-4" />Datos oficiales</span>
-            <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight leading-tight" style="color:#1d1d1f; letter-spacing:-0.02em;">Instituciones nacional<br>con datos del Mineduc</h2>
+            <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight leading-tight" style="color:#1d1d1f; letter-spacing:-0.02em;">Ranking nacional<br>con datos del Mineduc</h2>
             <p style="color:#474747;" class="mt-4 text-base leading-relaxed">Compara empleabilidad, sueldos y matrículas de todas las carreras del sistema chileno. Información oficial SIES 2025 para tomar la mejor decisión.</p>
           </div>
 
@@ -36,8 +36,8 @@
             </div>
           </div>
 
-          <NuxtLink to="/Instituciones" class="inline-flex items-center gap-2 font-semibold text-sm transition-opacity hover:opacity-80" style="background:#0071e3; color:#ffffff; border-radius:999px; padding:0.75rem 1.75rem;">
-            Ver Instituciones nacional <ArrowRight class="w-4 h-4" />
+          <NuxtLink to="/ranking" class="inline-flex items-center gap-2 font-semibold text-sm transition-opacity hover:opacity-80" style="background:#0071e3; color:#ffffff; border-radius:999px; padding:0.75rem 1.75rem;">
+            Ver ranking nacional <ArrowRight class="w-4 h-4" />
           </NuxtLink>
         </div>
 
@@ -56,7 +56,7 @@
                   <span class="h-2.5 w-2.5 rounded-full" style="background:#febc2e;"></span>
                   <span class="h-2.5 w-2.5 rounded-full" style="background:#28c840;"></span>
                 </div>
-                <span class="text-xs font-semibold" style="color:#474747;">Instituciones instituciones · KoraChile</span>
+                <span class="text-xs font-semibold" style="color:#474747;">Ranking de instituciones · KoraChile</span>
               </div>
               <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" style="border:1px solid #cce0ff; background:#f0f6ff; color:#0071e3;">Mineduc</span>
             </div>

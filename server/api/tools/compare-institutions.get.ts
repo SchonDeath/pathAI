@@ -126,7 +126,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (!rows.length) return { match: 'none', institutions: [] }
+  if (!rows.length) {
+    return {
+      match: 'none',
+      institutions: [],
+      message: 'No se encontró ninguna de las instituciones indicadas. Verifica los nombres con el usuario (usa nombres o siglas separados por coma) o confírmalos con get_institution. NO inventes la comparación.',
+    }
+  }
 
   // Calcular "ganador" por métrica para que la IA tenga ranking listo
   const metrics = [

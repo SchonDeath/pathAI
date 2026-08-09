@@ -95,10 +95,11 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  // `stats` era un alias del MISMO array que `results`: JSON.stringify lo
+  // serializaba dos veces y duplicaba el costo en tokens de esta tool.
   return {
     count: results.length,
     results,
-    stats: results,
   }
 })
  
